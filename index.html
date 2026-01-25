@@ -2317,7 +2317,281 @@
             });
         }
 
+        // Draw animated wizard sprite
+        function drawShibaSprite(ctx, x, y, direction, isWalking, time) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Flip for left direction
+            if (direction === 'left') {
+                ctx.scale(-1, 1);
+            }
+
+            // Walking animation - leg movement
+            const legOffset = isWalking ? Math.sin(time * 12) * 4 : 0;
+            const bodyBob = isWalking ? Math.abs(Math.sin(time * 12)) * 2 : 0;
+
+            // Tail wag animation
+            const tailWag = Math.sin(time * 8) * 0.3;
+
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.beginPath();
+            ctx.ellipse(0, 14, 12, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Back legs
+            ctx.fillStyle = '#d4a574';
+            // Back left leg
+            ctx.beginPath();
+            ctx.ellipse(-6, 10 + (isWalking ? -legOffset : 0), 3, 6, 0.1, 0, Math.PI * 2);
+            ctx.fill();
+            // Back right leg
+            ctx.beginPath();
+            ctx.ellipse(6, 10 + (isWalking ? legOffset : 0), 3, 6, -0.1, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Curled tail - the signature Shiba feature!
+            ctx.save();
+            ctx.translate(-10, -8 - bodyBob);
+            ctx.rotate(tailWag);
+
+            // Tail base
+            ctx.fillStyle = '#e8c49a';
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(-8, -8, -4, -14);
+            ctx.quadraticCurveTo(2, -16, 4, -10);
+            ctx.quadraticCurveTo(2, -4, 0, 0);
+            ctx.fill();
+
+            // Tail cream tip
+            ctx.fillStyle = '#fff5e6';
+            ctx.beginPath();
+            ctx.arc(-2, -12, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Body
+            ctx.fillStyle = '#e8c49a'; // Cream/tan Shiba color
+            ctx.beginPath();
+            ctx.ellipse(0, 0 - bodyBob, 12, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Belly (white/cream underbelly)
+            ctx.fillStyle = '#fff5e6';
+            ctx.beginPath();
+            ctx.ellipse(2, 3 - bodyBob, 8, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Front legs
+            ctx.fillStyle = '#d4a574';
+            // Front left leg
+            ctx.beginPath();
+            ctx.ellipse(4, 10 + (isWalking ? legOffset : 0), 3, 6, 0.1, 0, Math.PI * 2);
+            ctx.fill();
+            // Front right leg
+            ctx.beginPath();
+            ctx.ellipse(10, 10 + (isWalking ? -legOffset : 0), 3, 6, -0.1, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Paw details - cream colored
+            ctx.fillStyle = '#fff5e6';
+            ctx.beginPath();
+            ctx.ellipse(4, 14 + (isWalking ? legOffset : 0), 2, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(10, 14 + (isWalking ? -legOffset : 0), 2, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Head
+            ctx.fillStyle = '#e8c49a';
+            ctx.beginPath();
+            ctx.ellipse(12, -6 - bodyBob, 10, 9, 0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Face mask (white cheeks and snout area - characteristic of Shiba)
+            ctx.fillStyle = '#fff5e6';
+            ctx.beginPath();
+            ctx.ellipse(16, -4 - bodyBob, 6, 6, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ears (pointed triangular - very Shiba!)
+            ctx.fillStyle = '#d4a574';
+            // Left ear
+            ctx.beginPath();
+            ctx.moveTo(6, -10 - bodyBob);
+            ctx.lineTo(4, -22 - bodyBob);
+            ctx.lineTo(12, -12 - bodyBob);
+            ctx.closePath();
+            ctx.fill();
+            // Right ear
+            ctx.beginPath();
+            ctx.moveTo(12, -12 - bodyBob);
+            ctx.lineTo(14, -22 - bodyBob);
+            ctx.lineTo(20, -10 - bodyBob);
+            ctx.closePath();
+            ctx.fill();
+
+            // Inner ears (pink)
+            ctx.fillStyle = '#ffb6c1';
+            // Left inner ear
+            ctx.beginPath();
+            ctx.moveTo(7, -11 - bodyBob);
+            ctx.lineTo(6, -18 - bodyBob);
+            ctx.lineTo(11, -12 - bodyBob);
+            ctx.closePath();
+            ctx.fill();
+            // Right inner ear
+            ctx.beginPath();
+            ctx.moveTo(13, -12 - bodyBob);
+            ctx.lineTo(14, -18 - bodyBob);
+            ctx.lineTo(18, -11 - bodyBob);
+            ctx.closePath();
+            ctx.fill();
+
+            // Snout
+            ctx.fillStyle = '#fff5e6';
+            ctx.beginPath();
+            ctx.ellipse(20, -3 - bodyBob, 5, 4, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Nose (black)
+            ctx.fillStyle = '#222';
+            ctx.beginPath();
+            ctx.ellipse(24, -4 - bodyBob, 3, 2.5, 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            // Nose shine
+            ctx.fillStyle = '#555';
+            ctx.beginPath();
+            ctx.ellipse(23, -5 - bodyBob, 1, 0.8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes
+            ctx.fillStyle = '#222';
+            ctx.beginPath();
+            ctx.ellipse(14, -8 - bodyBob, 2.5, 3, 0.1, 0, Math.PI * 2);
+            ctx.fill();
+            // Eye shine
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(13.5, -9 - bodyBob, 1, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyebrows (the expressive Shiba brows!)
+            ctx.strokeStyle = '#c49a6c';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(11, -12 - bodyBob);
+            ctx.quadraticCurveTo(14, -13 - bodyBob, 17, -11 - bodyBob);
+            ctx.stroke();
+
+            // Mouth
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(22, -2 - bodyBob);
+            ctx.quadraticCurveTo(20, 0 - bodyBob, 18, -1 - bodyBob);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawWizardSprite(ctx, x, y, time, isStunned, isChasing) {
+            const bobOffset = Math.sin(time * 3) * 3;
+            const floatY = y + bobOffset;
+
+            ctx.save();
+            ctx.translate(x + 25, floatY + 20);
+
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(0, 30 - bobOffset, 15, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Robe body
+            ctx.fillStyle = isStunned ? '#666688' : '#4a1a6b';
+            ctx.beginPath();
+            ctx.moveTo(-12, -5);
+            ctx.lineTo(-16, 28);
+            ctx.lineTo(16, 28);
+            ctx.lineTo(12, -5);
+            ctx.closePath();
+            ctx.fill();
+
+            // Robe trim
+            ctx.fillStyle = '#8844aa';
+            ctx.fillRect(-16, 24, 32, 4);
+
+            // Belt
+            ctx.fillStyle = '#aa7722';
+            ctx.fillRect(-10, 2, 20, 3);
+
+            // Head
+            ctx.fillStyle = '#e8d0b8';
+            ctx.beginPath();
+            ctx.arc(0, -12, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Beard
+            ctx.fillStyle = '#777777';
+            ctx.beginPath();
+            ctx.moveTo(-6, -8);
+            ctx.quadraticCurveTo(-8, 5, -3, 12);
+            ctx.lineTo(3, 12);
+            ctx.quadraticCurveTo(8, 5, 6, -8);
+            ctx.closePath();
+            ctx.fill();
+
+            // Eyes (glowing when chasing)
+            ctx.fillStyle = isChasing ? '#ff00ff' : '#220022';
+            ctx.beginPath();
+            ctx.arc(-3, -14, 2, 0, Math.PI * 2);
+            ctx.arc(3, -14, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hat
+            ctx.fillStyle = isStunned ? '#444466' : '#2a0a4b';
+            ctx.beginPath();
+            ctx.moveTo(-12, -18);
+            ctx.lineTo(0, -42);
+            ctx.lineTo(12, -18);
+            ctx.closePath();
+            ctx.fill();
+
+            // Hat brim
+            ctx.fillStyle = isStunned ? '#555577' : '#3a1a5b';
+            ctx.beginPath();
+            ctx.ellipse(0, -18, 14, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hat star
+            ctx.fillStyle = '#ffdd00';
+            ctx.beginPath();
+            ctx.arc(0, -32, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Staff
+            ctx.fillStyle = '#5a3a1a';
+            ctx.fillRect(14, -28, 3, 50);
+
+            // Staff orb
+            const orbGlow = Math.sin(time * 5) * 0.3 + 0.7;
+            ctx.fillStyle = `rgba(136, 0, 255, ${orbGlow})`;
+            ctx.beginPath();
+            ctx.arc(15, -32, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ff88ff';
+            ctx.beginPath();
+            ctx.arc(13, -34, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
         function drawWizards() {
+            const time = Date.now() / 1000;
             wizards.forEach(wiz => {
                 const sx = wiz.x - camera.x;
                 const sy = wiz.y - camera.y;
@@ -2331,21 +2605,20 @@
                     ctx.fill();
                 }
 
-                ctx.font = '38px Arial';
-                ctx.fillText('🧙', sx, sy + 40);
+                // Draw animated wizard
+                const isChasing = wiz.retreatTimer <= 0 && wiz.stunTimer <= 0;
+                drawWizardSprite(ctx, sx, sy, time, wiz.stunTimer > 0, isChasing);
 
-                // Health bar (larger and more visible)
+                // Health bar (above wizard)
                 const barWidth = 50;
                 const barHeight = 8;
                 const healthPercent = (8 - wiz.hitsTaken) / 8;
 
-                // Background
                 ctx.fillStyle = '#000';
-                ctx.fillRect(sx - 2, sy - 14, barWidth + 4, barHeight + 4);
+                ctx.fillRect(sx, sy - 30, barWidth + 4, barHeight + 4);
                 ctx.fillStyle = '#333';
-                ctx.fillRect(sx, sy - 12, barWidth, barHeight);
+                ctx.fillRect(sx + 2, sy - 28, barWidth, barHeight);
 
-                // Health fill with gradient based on remaining health
                 if (healthPercent > 0.5) {
                     ctx.fillStyle = '#ff00ff';
                 } else if (healthPercent > 0.25) {
@@ -2353,17 +2626,16 @@
                 } else {
                     ctx.fillStyle = '#ff0000';
                 }
-                ctx.fillRect(sx, sy - 12, barWidth * healthPercent, barHeight);
+                ctx.fillRect(sx + 2, sy - 28, barWidth * healthPercent, barHeight);
 
-                // Health text
                 ctx.fillStyle = '#fff';
                 ctx.font = '10px Courier New';
-                ctx.fillText(`${8 - wiz.hitsTaken}/8`, sx + 15, sy - 5);
+                ctx.fillText(`${8 - wiz.hitsTaken}/8`, sx + 17, sy - 21);
 
                 if (wiz.stunTimer > 0) {
                     ctx.fillStyle = '#ffff00';
-                    ctx.font = '12px Arial';
-                    ctx.fillText('STUNNED', sx, sy - 12);
+                    ctx.font = '11px Arial';
+                    ctx.fillText('STUNNED', sx + 5, sy - 35);
                 }
             });
         }
@@ -2380,15 +2652,11 @@
                 ctx.stroke();
             }
 
-            ctx.font = '32px Arial';
-            ctx.save();
-            ctx.translate(sx + player.width/2, sy + player.height/2);
-            // FIXED: Only flip when facing left
-            if (player.direction === 'left') {
-                ctx.scale(-1, 1);
-            }
-            ctx.fillText('🐕', -16, 10);
-            ctx.restore();
+            // Draw animated Shiba Inu sprite
+            const time = Date.now() / 1000;
+            const isWalking = keys.w || keys.a || keys.s || keys.d ||
+                              keys.ArrowUp || keys.ArrowDown || keys.ArrowLeft || keys.ArrowRight;
+            drawShibaSprite(ctx, sx + player.width/2 - 10, sy + player.height/2 - 5, player.direction, isWalking, time);
 
             if (player.hasSword) {
                 ctx.font = '16px Arial';
