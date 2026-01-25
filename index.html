@@ -534,8 +534,8 @@
         const minimapCtx = minimapCanvas.getContext('2d');
 
         // Game constants
-        const WORLD_WIDTH = 6000;
-        const WORLD_HEIGHT = 6000;
+        const WORLD_WIDTH = 12000;
+        const WORLD_HEIGHT = 12000;
         const BASE_SPEED = 150;
         const SPRINT_MULTIPLIER = 1.8;
         const ZOOM_LEVEL = 1.3; // 30% more zoomed in
@@ -558,8 +558,8 @@
 
         // Player
         const player = {
-            x: 3000,
-            y: 5500,
+            x: 6000,
+            y: 11000,
             width: 40,
             height: 40,
             speed: BASE_SPEED,
@@ -602,26 +602,32 @@
         // Input
         const keys = {};
 
-        // Palo Alto zones
+        // Palo Alto zones (scaled for 12000x12000 map)
         const zones = [
-            { name: 'Downtown Palo Alto', x: 2500, y: 5000, width: 1000, height: 800, color: '#4a4a5a', type: 'urban' },
-            { name: 'Stanford Campus', x: 600, y: 600, width: 1800, height: 1400, color: '#8b4513', type: 'campus' },
-            { name: 'Baylands Nature Preserve', x: 4500, y: 400, width: 1300, height: 1100, color: '#7caa2d', type: 'nature' },
-            { name: 'California Avenue', x: 1500, y: 3500, width: 800, height: 600, color: '#5a5a6a', type: 'shops' },
-            { name: 'Mitchell Park', x: 4000, y: 3000, width: 900, height: 900, color: '#228b22', type: 'park' },
-            { name: 'Foothills Park', x: 100, y: 2200, width: 800, height: 1000, color: '#2d5a27', type: 'forest' },
-            { name: 'Page Mill Road', x: 200, y: 3400, width: 600, height: 400, color: '#6a6a7a', type: 'road' },
-            { name: 'Black Mountain', x: 100, y: 100, width: 1200, height: 1200, color: '#5a5a5a', type: 'mountain' },
-            { name: 'Arastradero Preserve', x: 100, y: 1400, width: 700, height: 700, color: '#3d6b33', type: 'forest' },
+            { name: 'Downtown Palo Alto', x: 5000, y: 10000, width: 2000, height: 1600, color: '#4a4a5a', type: 'urban' },
+            { name: 'Stanford Campus', x: 1200, y: 1200, width: 3600, height: 2800, color: '#8b4513', type: 'campus' },
+            { name: 'Baylands Nature Preserve', x: 9000, y: 800, width: 2600, height: 2200, color: '#7caa2d', type: 'nature' },
+            { name: 'California Avenue', x: 3000, y: 7000, width: 1600, height: 1200, color: '#5a5a6a', type: 'shops' },
+            { name: 'Mitchell Park', x: 8000, y: 6000, width: 1800, height: 1800, color: '#228b22', type: 'park' },
+            { name: 'Foothills Park', x: 200, y: 4400, width: 1600, height: 2000, color: '#2d5a27', type: 'forest' },
+            { name: 'Page Mill Road', x: 400, y: 6800, width: 1200, height: 800, color: '#6a6a7a', type: 'road' },
+            { name: 'Black Mountain', x: 200, y: 200, width: 2400, height: 2400, color: '#5a5a5a', type: 'mountain' },
+            { name: 'Arastradero Preserve', x: 200, y: 2800, width: 1400, height: 1400, color: '#3d6b33', type: 'forest' },
+            { name: 'Rinconada Park', x: 6000, y: 8000, width: 1200, height: 1200, color: '#228b22', type: 'park' },
+            { name: 'Palo Alto Medical', x: 7500, y: 9500, width: 1000, height: 1000, color: '#5a5a6a', type: 'urban' },
+            { name: 'University Avenue', x: 5500, y: 5500, width: 2500, height: 600, color: '#6a6a7a', type: 'shops' },
         ];
 
         // Mountain trails
         const mountain = {
-            x: 100, y: 100,
-            width: 1200, height: 1200,
-            peakX: 700, peakY: 300,
+            x: 200, y: 200,
+            width: 2400, height: 2400,
+            peakX: 1400, peakY: 1400,
             trails: [],
-            swordCollected: false
+            swordCollected: false,
+            // Entry point at base of mountain (south side)
+            entryX: 1400,
+            entryY: 2500
         };
 
         // Generate spiral mountain trail
@@ -629,27 +635,33 @@
             mountain.trails = [];
             const cx = mountain.x + mountain.width / 2;
             const cy = mountain.y + mountain.height / 2;
-            const maxRadius = 500;
-            const turns = 3;
-            const trailWidth = 35;
+            const maxRadius = 1000;
+            const turns = 4;
+            const trailWidth = 45;
 
-            for (let i = 0; i < 200; i++) {
-                const t = i / 200;
-                const angle = t * Math.PI * 2 * turns;
-                const radius = maxRadius * (1 - t * 0.85);
+            // Create spiral from outside to inside
+            for (let i = 0; i < 300; i++) {
+                const t = i / 300;
+                const angle = t * Math.PI * 2 * turns - Math.PI / 2; // Start from south
+                const radius = maxRadius * (1 - t * 0.9);
                 const x = cx + Math.cos(angle) * radius;
                 const y = cy + Math.sin(angle) * radius;
                 mountain.trails.push({ x, y, width: trailWidth, height: trailWidth });
             }
+
+            // Set entry point at the start of the trail
+            mountain.entryX = mountain.trails[0].x;
+            mountain.entryY = mountain.trails[0].y;
         }
 
-        // Water bodies
+        // Water bodies (scaled for 12000x12000 map)
         const waterBodies = [
-            { x: 4800, y: 200, width: 900, height: 500 },
-            { x: 50, y: 50, width: 200, height: 1800 },
-            { x: 3000, y: 2700, width: 200, height: 900 },
-            { x: 1900, y: 1400, width: 450, height: 350 },
-            { x: 4200, y: 2000, width: 300, height: 400 },
+            { x: 9600, y: 400, width: 1800, height: 1000 },   // Bay
+            { x: 50, y: 50, width: 400, height: 3600 },        // Creek west
+            { x: 6000, y: 5400, width: 400, height: 1800 },    // River through middle
+            { x: 3800, y: 2800, width: 900, height: 700 },     // Lake
+            { x: 8400, y: 4000, width: 600, height: 800 },     // Pond east
+            { x: 4000, y: 8000, width: 500, height: 600 },     // Small lake south
         ];
 
         // Hidden cave entrance (changes position on reset)
@@ -657,13 +669,15 @@
 
         function randomizeCaveEntrance() {
             const possibleLocations = [
-                { x: 350, y: 2600 },   // Foothills
-                { x: 250, y: 1600 },   // Arastradero
-                { x: 4700, y: 800 },   // Baylands edge
-                { x: 1200, y: 4200 },  // Near downtown
-                { x: 5200, y: 3500 },  // East edge
-                { x: 800, y: 4800 },   // Southwest
-                { x: 4500, y: 5200 },  // Southeast
+                { x: 700, y: 5200 },    // Foothills
+                { x: 500, y: 3200 },    // Arastradero
+                { x: 9400, y: 1600 },   // Baylands edge
+                { x: 2400, y: 8400 },   // Near downtown
+                { x: 10400, y: 7000 },  // East edge
+                { x: 1600, y: 9600 },   // Southwest
+                { x: 9000, y: 10400 },  // Southeast
+                { x: 7000, y: 3000 },   // Central north
+                { x: 4500, y: 6500 },   // Central
             ];
             const loc = possibleLocations[Math.floor(Math.random() * possibleLocations.length)];
             caveEntrance.x = loc.x;
@@ -735,6 +749,18 @@
                 }
             }
 
+            // Clear the starting cell's walls to ensure player can move
+            const startX = Math.floor(cols / 2);
+            const startY = rows - 1;
+            grid[startY][startX].walls.top = false;
+            grid[startY][startX].walls.bottom = false;
+            grid[startY][startX].walls.left = false;
+            grid[startY][startX].walls.right = false;
+            // Also clear the cell above to ensure upward movement
+            if (startY > 0) {
+                grid[startY - 1][startX].walls.bottom = false;
+            }
+
             // Convert to wall rectangles
             const wallThickness = 8;
             for (let y = 0; y < rows; y++) {
@@ -750,9 +776,9 @@
                 }
             }
 
-            // Player start at bottom center
-            cave.playerX = (cols / 2) * cave.cellSize;
-            cave.playerY = (rows - 1) * cave.cellSize;
+            // Player start at bottom center - in the CENTER of the cell
+            cave.playerX = (startX * cave.cellSize) + (cave.cellSize / 2) - 15;
+            cave.playerY = (startY * cave.cellSize) + (cave.cellSize / 2) - 15;
             cave.playerDir = 'up';
 
             // Palo Santo at top area
@@ -783,7 +809,7 @@
 
         function spawnSteaks() {
             steaks = [];
-            for (let i = 0; i < 100; i++) {
+            for (let i = 0; i < 200; i++) {
                 let x, y, valid, attempts = 0;
                 do {
                     x = Math.random() * (WORLD_WIDTH - 100) + 50;
@@ -805,10 +831,11 @@
         function spawnKibble() {
             kibbleBowls = [];
             const positions = [
-                { x: 3100, y: 5200 }, { x: 1200, y: 1000 }, { x: 4700, y: 700 },
-                { x: 1700, y: 3700 }, { x: 4200, y: 3300 }, { x: 300, y: 2800 },
-                { x: 2500, y: 2500 }, { x: 5000, y: 4500 }, { x: 700, y: 700 },
-                { x: 5500, y: 1500 },
+                { x: 6200, y: 10400 }, { x: 2400, y: 2000 }, { x: 9400, y: 1400 },
+                { x: 3400, y: 7400 }, { x: 8400, y: 6600 }, { x: 600, y: 5600 },
+                { x: 5000, y: 5000 }, { x: 10000, y: 9000 }, { x: 1400, y: 1400 },
+                { x: 11000, y: 3000 }, { x: 7000, y: 4000 }, { x: 4000, y: 9000 },
+                { x: 8500, y: 2000 }, { x: 2000, y: 10000 },
             ];
             positions.forEach(pos => {
                 kibbleBowls.push({ ...pos, width: 45, height: 45, available: true, respawnTime: 0 });
@@ -842,14 +869,14 @@
         function spawnNPCs() {
             npcs = [];
 
-            // Power givers at specific locations
+            // Power givers at specific locations (scaled for 12000x12000 map)
             const powerLocations = [
-                { x: 3050, y: 5150, zone: 'Downtown' },
-                { x: 1100, y: 900, zone: 'Stanford' },
-                { x: 4600, y: 650, zone: 'Baylands' },
-                { x: 1650, y: 3600, zone: 'California Ave' },
-                { x: 4300, y: 3200, zone: 'Mitchell Park' },
-                { x: 300, y: 2600, zone: 'Foothills' },
+                { x: 6100, y: 10300, zone: 'Downtown' },
+                { x: 2200, y: 1800, zone: 'Stanford' },
+                { x: 9200, y: 1300, zone: 'Baylands' },
+                { x: 3300, y: 7200, zone: 'California Ave' },
+                { x: 8600, y: 6400, zone: 'Mitchell Park' },
+                { x: 600, y: 5200, zone: 'Foothills' },
             ];
 
             powerLocations.forEach((loc, i) => {
@@ -868,10 +895,10 @@
                 }
             });
 
-            // Stanford startup people - walking around campus
-            for (let i = 0; i < 12; i++) {
-                const x = 700 + Math.random() * 1600;
-                const y = 700 + Math.random() * 1200;
+            // Stanford startup people - walking around campus (scaled for larger map)
+            for (let i = 0; i < 15; i++) {
+                const x = 1400 + Math.random() * 3200;
+                const y = 1400 + Math.random() * 2400;
                 npcs.push({
                     x, y,
                     homeX: x, homeY: y,
@@ -989,12 +1016,13 @@
         function generateTrees() {
             trees = [];
             thickForestAreas = [
-                { x: 100, y: 2200, width: 700, height: 900 },
-                { x: 100, y: 1400, width: 600, height: 600 },
+                { x: 200, y: 4400, width: 1400, height: 1800 },
+                { x: 200, y: 2800, width: 1200, height: 1200 },
+                { x: 100, y: 6500, width: 800, height: 1000 },
             ];
 
-            // Regular trees
-            for (let i = 0; i < 500; i++) {
+            // Regular trees (more for larger map)
+            for (let i = 0; i < 1000; i++) {
                 let x, y, valid, attempts = 0;
                 do {
                     x = Math.random() * WORLD_WIDTH;
@@ -1439,8 +1467,8 @@
             } else {
                 showNotification('💀 The wizard defeated you!', 3000);
                 player.health = 30;
-                player.x = 3000;
-                player.y = 5500;
+                player.x = 6000;
+                player.y = 11000;
             }
         }
 
@@ -1465,8 +1493,8 @@
                 cave.difficulty++;
                 randomizeCaveEntrance();
                 showNotification('The cave collapsed! The entrance has moved...', 4000);
-                player.x = 3000;
-                player.y = 5500;
+                player.x = 6000;
+                player.y = 11000;
             }
         }
 
@@ -1725,14 +1753,20 @@
             newX = Math.max(0, Math.min(WORLD_WIDTH - player.width, newX));
             newY = Math.max(0, Math.min(WORLD_HEIGHT - player.height, newY));
 
-            // Mountain - only allow on trails (with sliding)
+            // Mountain - only allow on trails, slide back to start if off trail
             if (isOnMountain(newX, newY) && !isOnMountainTrail(newX + player.width/2, newY + player.height/2)) {
-                // Slide down
-                const cx = mountain.x + mountain.width / 2;
-                const cy = mountain.y + mountain.height / 2;
-                const slideAngle = Math.atan2(newY - cy, newX - cx);
-                newX += Math.cos(slideAngle) * 30 * dt;
-                newY += Math.sin(slideAngle) * 30 * dt;
+                // Slide back toward the mountain entry point
+                const slideAngle = Math.atan2(mountain.entryY - newY, mountain.entryX - newX);
+                const slideSpeed = 80 * dt;
+                newX += Math.cos(slideAngle) * slideSpeed;
+                newY += Math.sin(slideAngle) * slideSpeed;
+
+                // If slid far enough, teleport to entry
+                if (distance(newX, newY, mountain.entryX, mountain.entryY) < 100) {
+                    newX = mountain.entryX;
+                    newY = mountain.entryY;
+                    showNotification('You slid back down the mountain!', 1500);
+                }
             }
 
             // Collisions
@@ -1979,8 +2013,8 @@
             if (player.energy <= 0) {
                 showNotification('💀 Croissant collapsed!', 3000);
                 player.energy = 30;
-                player.x = 3000;
-                player.y = 5500;
+                player.x = 6000;
+                player.y = 11000;
                 player.health -= 15;
             }
 
@@ -2300,11 +2334,31 @@
                 ctx.font = '38px Arial';
                 ctx.fillText('🧙', sx, sy + 40);
 
-                // Health bar
+                // Health bar (larger and more visible)
+                const barWidth = 50;
+                const barHeight = 8;
+                const healthPercent = (8 - wiz.hitsTaken) / 8;
+
+                // Background
+                ctx.fillStyle = '#000';
+                ctx.fillRect(sx - 2, sy - 14, barWidth + 4, barHeight + 4);
                 ctx.fillStyle = '#333';
-                ctx.fillRect(sx, sy - 8, 45, 5);
-                ctx.fillStyle = '#ff00ff';
-                ctx.fillRect(sx, sy - 8, 45 * ((8 - wiz.hitsTaken) / 8), 5);
+                ctx.fillRect(sx, sy - 12, barWidth, barHeight);
+
+                // Health fill with gradient based on remaining health
+                if (healthPercent > 0.5) {
+                    ctx.fillStyle = '#ff00ff';
+                } else if (healthPercent > 0.25) {
+                    ctx.fillStyle = '#ff8800';
+                } else {
+                    ctx.fillStyle = '#ff0000';
+                }
+                ctx.fillRect(sx, sy - 12, barWidth * healthPercent, barHeight);
+
+                // Health text
+                ctx.fillStyle = '#fff';
+                ctx.font = '10px Courier New';
+                ctx.fillText(`${8 - wiz.hitsTaken}/8`, sx + 15, sy - 5);
 
                 if (wiz.stunTimer > 0) {
                     ctx.fillStyle = '#ffff00';
