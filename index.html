@@ -241,6 +241,38 @@
         }
         #pauseScreen button:hover { background: #e6a23c; }
 
+        .volume-control {
+            margin: 15px 0;
+            text-align: center;
+        }
+        .volume-control label {
+            display: block;
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .volume-control input[type="range"] {
+            width: 180px;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #333;
+            border-radius: 4px;
+            outline: none;
+        }
+        .volume-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #e6a23c;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .volume-control span {
+            color: #e6a23c;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
         #caveScreen .cave-ui {
             position: relative;
             width: 100%;
@@ -472,6 +504,16 @@
         <div id="pauseScreen" class="overlay-screen">
             <div class="pause-content">
                 <h2>⏸️ PAUSED</h2>
+                <div class="volume-control">
+                    <label for="volumeSlider">🔊 Music Volume</label>
+                    <input type="range" id="volumeSlider" min="0" max="100" value="30" oninput="setMusicVolume(this.value)">
+                    <span id="volumeValue">30%</span>
+                </div>
+                <div class="volume-control">
+                    <label for="sfxSlider">🔈 Sound Effects</label>
+                    <input type="range" id="sfxSlider" min="0" max="100" value="50" oninput="setSfxVolume(this.value)">
+                    <span id="sfxValue">50%</span>
+                </div>
                 <button onclick="resumeGame()">Resume</button>
                 <button onclick="location.reload()">Restart</button>
             </div>
@@ -547,6 +589,175 @@
         let inCave = false;
         let inDuel = false;
         let inWaterCrossing = false;
+
+        // ===== AUDIO SYSTEM =====
+        let audioCtx = null;
+        let musicVolume = 0.3;
+        let sfxVolume = 0.5;
+        let currentMusicNodes = [];
+        let musicMood = 'normal'; // 'normal', 'tense', 'intense'
+        let musicInterval = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Create a note with the Web Audio API
+        function playNote(freq, duration, type = 'sine', volume = 0.1, delay = 0) {
+            if (!audioCtx || musicVolume <= 0) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            gain.gain.value = 0;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const startTime = audioCtx.currentTime + delay;
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(volume * musicVolume, startTime + 0.05);
+            gain.gain.linearRampToValueAtTime(volume * musicVolume * 0.7, startTime + duration * 0.5);
+            gain.gain.linearRampToValueAtTime(0, startTime + duration);
+
+            osc.start(startTime);
+            osc.stop(startTime + duration + 0.1);
+        }
+
+        // Music patterns for different moods
+        const musicPatterns = {
+            normal: {
+                notes: [261, 329, 392, 329, 261, 293, 349, 293], // C E G E C D F D
+                tempo: 0.5,
+                type: 'sine',
+                volume: 0.08
+            },
+            tense: {
+                notes: [220, 233, 261, 233, 220, 196, 220, 233], // A Bb C Bb A G A Bb
+                tempo: 0.35,
+                type: 'triangle',
+                volume: 0.12
+            },
+            intense: {
+                notes: [196, 185, 174, 165, 196, 220, 196, 174], // G Gb F E G A G F
+                tempo: 0.25,
+                type: 'sawtooth',
+                volume: 0.1
+            }
+        };
+
+        let musicNoteIndex = 0;
+
+        function playMusicLoop() {
+            if (!gameStarted || gamePaused) return;
+
+            const pattern = musicPatterns[musicMood];
+            const note = pattern.notes[musicNoteIndex % pattern.notes.length];
+
+            // Play main note
+            playNote(note, pattern.tempo * 0.8, pattern.type, pattern.volume);
+
+            // Add harmony for intensity
+            if (musicMood === 'tense') {
+                playNote(note * 1.5, pattern.tempo * 0.6, 'sine', pattern.volume * 0.4, 0.1);
+            } else if (musicMood === 'intense') {
+                playNote(note * 0.5, pattern.tempo * 0.9, 'square', pattern.volume * 0.3);
+                playNote(note * 1.25, pattern.tempo * 0.4, 'triangle', pattern.volume * 0.5, 0.15);
+            }
+
+            // Add bass on every other note
+            if (musicNoteIndex % 2 === 0) {
+                playNote(note / 2, pattern.tempo * 1.5, 'sine', pattern.volume * 0.6);
+            }
+
+            musicNoteIndex++;
+        }
+
+        function startMusic() {
+            initAudio();
+            if (musicInterval) clearInterval(musicInterval);
+            musicNoteIndex = 0;
+            const pattern = musicPatterns[musicMood];
+            musicInterval = setInterval(playMusicLoop, pattern.tempo * 1000);
+        }
+
+        function stopMusic() {
+            if (musicInterval) {
+                clearInterval(musicInterval);
+                musicInterval = null;
+            }
+        }
+
+        function setMusicMood(mood) {
+            if (mood !== musicMood) {
+                musicMood = mood;
+                if (musicInterval) {
+                    stopMusic();
+                    startMusic();
+                }
+            }
+        }
+
+        function setMusicVolume(value) {
+            musicVolume = value / 100;
+            document.getElementById('volumeValue').textContent = value + '%';
+        }
+
+        function setSfxVolume(value) {
+            sfxVolume = value / 100;
+            document.getElementById('sfxValue').textContent = value + '%';
+        }
+
+        // Bark sound effect
+        function playBarkSound() {
+            if (!audioCtx || sfxVolume <= 0) return;
+            initAudio();
+
+            // Create bark sound using multiple oscillators
+            const baseFreq = 300;
+
+            // First bark "woof"
+            for (let i = 0; i < 3; i++) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = i === 0 ? 'square' : 'sawtooth';
+                osc.frequency.value = baseFreq + i * 50;
+
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.15 * sfxVolume, audioCtx.currentTime + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + 0.15);
+            }
+
+            // Second bark "woof" (slightly higher, delayed)
+            setTimeout(() => {
+                if (!audioCtx) return;
+                for (let i = 0; i < 3; i++) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = i === 0 ? 'square' : 'sawtooth';
+                    osc.frequency.value = baseFreq + 80 + i * 50;
+
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.12 * sfxVolume, audioCtx.currentTime + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + 0.12);
+                }
+            }, 150);
+        }
+        // ===== END AUDIO SYSTEM =====
 
         // Fog of war - explored areas
         const exploredChunks = new Set();
@@ -624,20 +835,24 @@
             width: 2400, height: 2400,
             peakX: 1400, peakY: 1400,
             trails: [],
+            approachPath: [], // Path from outside mountain to trail start
             swordCollected: false,
-            // Entry point at base of mountain (south side)
+            // Entry point OUTSIDE the mountain (where player can enter)
             entryX: 1400,
-            entryY: 2500
+            entryY: 2700, // Outside the mountain boundary
+            trailStartX: 0,
+            trailStartY: 0
         };
 
-        // Generate spiral mountain trail
+        // Generate spiral mountain trail with approach path
         function generateMountainTrails() {
             mountain.trails = [];
+            mountain.approachPath = [];
             const cx = mountain.x + mountain.width / 2;
             const cy = mountain.y + mountain.height / 2;
             const maxRadius = 1000;
             const turns = 4;
-            const trailWidth = 45;
+            const trailWidth = 60; // Wider trail for easier navigation
 
             // Create spiral from outside to inside
             for (let i = 0; i < 300; i++) {
@@ -649,9 +864,44 @@
                 mountain.trails.push({ x, y, width: trailWidth, height: trailWidth });
             }
 
-            // Set entry point at the start of the trail
-            mountain.entryX = mountain.trails[0].x;
-            mountain.entryY = mountain.trails[0].y;
+            // Trail start point (first point of spiral on south side)
+            mountain.trailStartX = mountain.trails[0].x;
+            mountain.trailStartY = mountain.trails[0].y;
+
+            // Create approach path from OUTSIDE the mountain to trail start
+            // This path goes from outside the mountain boundary (south) to the trail start
+            const approachStartY = mountain.y + mountain.height + 150; // Well outside mountain
+            const approachEndY = mountain.trailStartY;
+            const pathX = mountain.trailStartX;
+
+            // Create vertical approach corridor
+            for (let y = approachStartY; y >= approachEndY - 50; y -= 30) {
+                mountain.approachPath.push({ x: pathX, y: y, width: trailWidth * 1.5, height: trailWidth });
+            }
+
+            // Entry point is at the START of the approach path (outside mountain)
+            mountain.entryX = pathX;
+            mountain.entryY = approachStartY;
+        }
+
+        // Check if on approach path to mountain
+        function isOnApproachPath(x, y) {
+            return mountain.approachPath.some(t =>
+                x >= t.x - t.width/2 && x <= t.x + t.width/2 &&
+                y >= t.y - t.height/2 && y <= t.y + t.height/2
+            );
+        }
+
+        // Check if near the mountain entrance (can enter the mountain from here)
+        function isNearMountainEntrance(x, y) {
+            const entranceZone = {
+                x: mountain.trailStartX - 60,
+                y: mountain.y + mountain.height - 60,
+                width: 120,
+                height: 150
+            };
+            return x >= entranceZone.x && x <= entranceZone.x + entranceZone.width &&
+                   y >= entranceZone.y && y <= entranceZone.y + entranceZone.height;
         }
 
         // Water bodies (scaled for 12000x12000 map)
@@ -1228,16 +1478,23 @@
         function togglePause() {
             gamePaused = !gamePaused;
             document.getElementById('pauseScreen').style.display = gamePaused ? 'flex' : 'none';
+            if (gamePaused) {
+                stopMusic();
+            } else {
+                startMusic();
+            }
         }
 
         function resumeGame() {
             gamePaused = false;
             document.getElementById('pauseScreen').style.display = 'none';
+            startMusic();
         }
 
         // Bark function
         function bark() {
             player.barkCooldown = 0.5;
+            playBarkSound(); // Play bark sound effect
 
             if (player.hasWizardPower) {
                 // Lightning attack
@@ -1477,6 +1734,7 @@
             inCave = true;
             generateCaveMaze();
             document.getElementById('caveScreen').style.display = 'flex';
+            setMusicMood('intense'); // Underground intense music
 
             const caveCanvas = document.getElementById('caveCanvas');
             caveCanvas.width = canvas.width;
@@ -1487,6 +1745,7 @@
             inCave = false;
             document.getElementById('caveScreen').style.display = 'none';
             document.getElementById('caveWarning').style.display = 'none';
+            setMusicMood('normal'); // Return to normal music
 
             if (!success) {
                 // Cave-in - reset cave location and increase difficulty
@@ -1499,6 +1758,7 @@
         }
 
         function caveBark() {
+            playBarkSound(); // Play bark sound effect
             // Push back ghosts in the direction player is facing
             const pushDistance = 150;
             const pushAngle = {
@@ -1699,6 +1959,13 @@
             updateEnergy(dt);
 
             if (player.barkCooldown > 0) player.barkCooldown -= dt;
+
+            // Update music mood based on wizard proximity
+            let wizardNearby = wizards.some(wiz =>
+                wiz.stunTimer <= 0 && wiz.retreatTimer <= 0 &&
+                distance(player.x, player.y, wiz.x, wiz.y) < 500
+            );
+            setMusicMood(wizardNearby ? 'tense' : 'normal');
         }
 
         function updatePlayer(dt) {
@@ -1753,19 +2020,34 @@
             newX = Math.max(0, Math.min(WORLD_WIDTH - player.width, newX));
             newY = Math.max(0, Math.min(WORLD_HEIGHT - player.height, newY));
 
-            // Mountain - only allow on trails, slide back to start if off trail
-            if (isOnMountain(newX, newY) && !isOnMountainTrail(newX + player.width/2, newY + player.height/2)) {
-                // Slide back toward the mountain entry point
-                const slideAngle = Math.atan2(mountain.entryY - newY, mountain.entryX - newX);
-                const slideSpeed = 80 * dt;
-                newX += Math.cos(slideAngle) * slideSpeed;
-                newY += Math.sin(slideAngle) * slideSpeed;
+            // Mountain - must use approach path to enter, then stay on trail
+            const playerCenterX = newX + player.width/2;
+            const playerCenterY = newY + player.height/2;
+            const onMountain = isOnMountain(newX, newY);
+            const onTrail = isOnMountainTrail(playerCenterX, playerCenterY);
+            const onApproach = isOnApproachPath(playerCenterX, playerCenterY);
+            const nearEntrance = isNearMountainEntrance(playerCenterX, playerCenterY);
 
-                // If slid far enough, teleport to entry
-                if (distance(newX, newY, mountain.entryX, mountain.entryY) < 100) {
-                    newX = mountain.entryX;
-                    newY = mountain.entryY;
-                    showNotification('You slid back down the mountain!', 1500);
+            // If on mountain but not on trail
+            if (onMountain && !onTrail) {
+                // Check if entering through the entrance (from approach path)
+                if (nearEntrance && isOnApproachPath(player.x + player.width/2, player.y + player.height/2)) {
+                    // Allow entry through the entrance - snap to trail start
+                    newX = mountain.trailStartX - player.width/2;
+                    newY = mountain.trailStartY - player.height/2;
+                } else {
+                    // Not on trail and not entering properly - slide back to entrance
+                    const slideAngle = Math.atan2(mountain.entryY - newY, mountain.entryX - newX);
+                    const slideSpeed = 150 * dt;
+                    newX += Math.cos(slideAngle) * slideSpeed;
+                    newY += Math.sin(slideAngle) * slideSpeed;
+
+                    // If slid outside the mountain, teleport to approach path start
+                    if (!isOnMountain(newX, newY)) {
+                        newX = mountain.entryX - player.width/2;
+                        newY = mountain.entryY - player.height/2;
+                        showNotification('You slid back down! Use the path on the south side.', 2000);
+                    }
                 }
             }
 
@@ -2113,6 +2395,36 @@
         function drawMountain() {
             const sx = mountain.x - camera.x;
             const sy = mountain.y - camera.y;
+
+            // Draw approach path first (even if mountain is off screen, path might be visible)
+            ctx.strokeStyle = '#8B7355';
+            ctx.lineWidth = 40;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            mountain.approachPath.forEach((t, i) => {
+                const tx = t.x - camera.x;
+                const ty = t.y - camera.y;
+                if (i === 0) ctx.moveTo(tx, ty);
+                else ctx.lineTo(tx, ty);
+            });
+            ctx.stroke();
+
+            // Entrance sign at path start
+            if (mountain.approachPath.length > 0) {
+                const entranceX = mountain.entryX - camera.x;
+                const entranceY = mountain.entryY - camera.y;
+                if (entranceX > -100 && entranceX < camera.width + 100 && entranceY > -100 && entranceY < camera.height + 100) {
+                    ctx.fillStyle = '#5a3d2b';
+                    ctx.fillRect(entranceX - 25, entranceY + 10, 50, 40);
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 10px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('MOUNTAIN', entranceX, entranceY + 28);
+                    ctx.fillText('PATH →', entranceX, entranceY + 40);
+                    ctx.textAlign = 'left';
+                }
+            }
+
             if (sx + mountain.width < 0 || sx > camera.width || sy + mountain.height < 0 || sy > camera.height) return;
 
             // Mountain base
@@ -2129,7 +2441,8 @@
 
             // Trail
             ctx.strokeStyle = '#8B7355';
-            ctx.lineWidth = 25;
+            ctx.lineWidth = 35;
+            ctx.lineCap = 'round';
             ctx.beginPath();
             mountain.trails.forEach((t, i) => {
                 const tx = t.x - camera.x;
@@ -2821,6 +3134,8 @@
         function startGame() {
             document.getElementById('instructionsScreen').style.display = 'none';
             gameStarted = true;
+            initAudio();
+            startMusic();
             showNotification('Find the hidden cave entrance! Explore the map!', 4000);
         }
 
