@@ -14,11 +14,12 @@
         body {
             background: #1a1a2e;
             font-family: 'Courier New', monospace;
-            overflow: hidden;
+            overflow: auto;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            padding: 10px;
         }
 
         #gameContainer {
@@ -26,11 +27,15 @@
             border: 4px solid #e6a23c;
             border-radius: 8px;
             box-shadow: 0 0 30px rgba(230, 162, 60, 0.3);
+            max-width: 100%;
+            max-height: calc(100vh - 20px);
         }
 
         #gameCanvas {
             display: block;
             background: #2d5a27;
+            max-width: 100%;
+            max-height: calc(100vh - 28px);
         }
 
         #ui {
@@ -116,43 +121,52 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
             color: #fff;
-            padding: 30px;
+            padding: 20px;
             text-align: center;
             z-index: 100;
+            overflow-y: auto;
+        }
+
+        #instructionsScreen {
+            justify-content: flex-start;
+            padding-top: 20px;
+            padding-bottom: 30px;
         }
 
         #instructionsScreen h1 {
             color: #e6a23c;
-            font-size: 36px;
-            margin-bottom: 20px;
+            font-size: clamp(24px, 5vw, 36px);
+            margin-bottom: 10px;
             text-shadow: 2px 2px 4px #000;
         }
 
         #instructionsScreen h2 {
             color: #ffcc00;
-            font-size: 24px;
-            margin: 15px 0 10px;
+            font-size: clamp(18px, 4vw, 24px);
+            margin: 10px 0 5px;
         }
 
         #instructionsScreen p, #instructionsScreen li {
-            font-size: 16px;
-            line-height: 1.6;
+            font-size: clamp(12px, 2.5vw, 16px);
+            line-height: 1.4;
             max-width: 600px;
         }
 
         #instructionsScreen ul {
             text-align: left;
+            margin: 5px 0;
             margin: 10px 0;
         }
 
         #instructionsScreen .start-btn {
-            margin-top: 30px;
+            margin-top: 15px;
+            margin-bottom: 20px;
             padding: 15px 40px;
             font-size: 20px;
             background: linear-gradient(to bottom, #e6a23c, #c78530);
@@ -162,6 +176,7 @@
             cursor: pointer;
             font-family: inherit;
             transition: transform 0.2s;
+            flex-shrink: 0;
         }
 
         #instructionsScreen .start-btn:hover {
@@ -169,8 +184,9 @@
         }
 
         .shiba-art {
-            font-size: 60px;
-            margin-bottom: 20px;
+            font-size: 50px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
         }
 
         #powerupHub {
@@ -437,32 +453,31 @@
         <div id="instructionsScreen">
             <div class="shiba-art">🐕</div>
             <h1>Croissant's Quest for Enlightenment</h1>
-            <p>You are <strong>Croissant</strong>, a brave Shiba Inu on a journey through Palo Alto to find the legendary <em>Palo Santo Plant of Enlightenment</em>!</p>
+
+            <button class="start-btn" onclick="startGame()">Begin Your Journey!</button>
+
+            <p>You are <strong>Croissant</strong>, a brave Shiba Inu on a quest to find the legendary <em>Palo Santo Plant of Enlightenment</em> in Palo Alto!</p>
 
             <h2>🎮 Controls</h2>
             <ul>
-                <li><strong>Arrow Keys / WASD</strong> - Move Croissant</li>
-                <li><strong>Spacebar</strong> - Bark (thwarts the Evil Wizard!)</li>
-                <li><strong>P</strong> - Open Power-up Hub</li>
-                <li><strong>E</strong> - Interact with people</li>
+                <li><strong>WASD / Arrows</strong> - Move</li>
+                <li><strong>Spacebar</strong> - Bark</li>
+                <li><strong>P</strong> - Power-ups</li>
+                <li><strong>E</strong> - Talk to people</li>
             </ul>
 
-            <h2>🎯 Your Quest</h2>
+            <h2>🎯 Quest</h2>
             <ul>
-                <li>Find the hidden <strong>maze</strong> that protects the Palo Santo</li>
-                <li>Collect floating <strong>🥩 Steaks</strong> to run faster</li>
-                <li>Find <strong>🍲 Kibble Bowls</strong> to restore energy</li>
-                <li>Talk to <strong>people</strong> to receive magical powers</li>
-                <li>Watch out for <strong>🐰 Rabbits</strong> - you might chase them!</li>
-                <li>Beware of <strong>🧙 The Evil Wizard</strong> who wants to stop you!</li>
-                <li>Cross <strong>water</strong> carefully - you'll need to be persuasive!</li>
+                <li>Find the hidden <strong>maze</strong> with the Palo Santo</li>
+                <li>Collect <strong>🥩 Steaks</strong> for speed</li>
+                <li>Find <strong>🍲 Kibble</strong> to restore energy</li>
+                <li>Talk to <strong>people</strong> for magical powers</li>
+                <li>Avoid <strong>🐰 Rabbits</strong> - you'll chase them!</li>
+                <li>Defeat <strong>🧙 The Evil Wizard</strong> in duels!</li>
             </ul>
 
-            <h2>⚠️ Warnings</h2>
-            <p>Your <strong>energy</strong> depletes as you explore. Find Kibble to survive!<br>
-            The Evil Wizard will challenge you to duels. Use your bark wisely!</p>
-
-            <button class="start-btn" onclick="startGame()">Begin Your Journey!</button>
+            <h2>⚠️ Tips</h2>
+            <p>Energy depletes as you move - find Kibble! Bark to push away the wizard!</p>
         </div>
 
         <div id="powerupHub">
