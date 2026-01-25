@@ -1,0 +1,2017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Croissant's Quest for Enlightenment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a2e;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #gameContainer {
+            position: relative;
+            border: 4px solid #e6a23c;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(230, 162, 60, 0.3);
+        }
+
+        #gameCanvas {
+            display: block;
+            background: #2d5a27;
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .bar-container {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #fff;
+            border-radius: 10px;
+            padding: 5px;
+            width: 200px;
+        }
+
+        .bar-label {
+            color: #fff;
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+
+        .bar {
+            height: 20px;
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+
+        #healthBar {
+            background: linear-gradient(to right, #ff4444, #ff6b6b);
+            width: 100%;
+        }
+
+        #energyBar {
+            background: linear-gradient(to right, #44ff44, #6bff6b);
+            width: 100%;
+        }
+
+        #speedIndicator {
+            color: #ffff00;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        #inventory {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #e6a23c;
+            border-radius: 10px;
+            padding: 10px;
+            color: #fff;
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        #minimap {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #e6a23c;
+            border-radius: 5px;
+            pointer-events: none;
+        }
+
+        #minimapCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        #instructionsScreen, #powerupHub, #waterPrompt, #duelScreen, #victoryScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            padding: 30px;
+            text-align: center;
+            z-index: 100;
+        }
+
+        #instructionsScreen h1 {
+            color: #e6a23c;
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px #000;
+        }
+
+        #instructionsScreen h2 {
+            color: #ffcc00;
+            font-size: 24px;
+            margin: 15px 0 10px;
+        }
+
+        #instructionsScreen p, #instructionsScreen li {
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 600px;
+        }
+
+        #instructionsScreen ul {
+            text-align: left;
+            margin: 10px 0;
+        }
+
+        #instructionsScreen .start-btn {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 20px;
+            background: linear-gradient(to bottom, #e6a23c, #c78530);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            font-family: inherit;
+            transition: transform 0.2s;
+        }
+
+        #instructionsScreen .start-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .shiba-art {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        #powerupHub {
+            display: none;
+        }
+
+        #powerupHub h2 {
+            color: #e6a23c;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .powerup-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            max-width: 500px;
+        }
+
+        .powerup-item {
+            background: rgba(230, 162, 60, 0.3);
+            border: 2px solid #e6a23c;
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 120px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .powerup-item:hover {
+            background: rgba(230, 162, 60, 0.5);
+            transform: scale(1.05);
+        }
+
+        .powerup-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #waterPrompt {
+            display: none;
+        }
+
+        #waterPrompt .prompt-box {
+            background: rgba(0, 100, 200, 0.8);
+            border: 3px solid #00aaff;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 400px;
+        }
+
+        #waterPrompt h3 {
+            color: #00aaff;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        #waterPrompt .persuade-bar {
+            width: 100%;
+            height: 30px;
+            background: #333;
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        #waterPrompt .persuade-fill {
+            height: 100%;
+            background: linear-gradient(to right, #ff6b6b, #ffcc00, #6bff6b);
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        #waterPrompt .instruction {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        #duelScreen {
+            display: none;
+        }
+
+        #duelScreen .duel-arena {
+            background: rgba(80, 0, 80, 0.8);
+            border: 3px solid #ff00ff;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+        }
+
+        #duelScreen h2 {
+            color: #ff00ff;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .duel-health-bars {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            gap: 20px;
+        }
+
+        .duel-character {
+            flex: 1;
+        }
+
+        .duel-character .name {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .duel-bar {
+            height: 25px;
+            background: #333;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .duel-bar-fill {
+            height: 100%;
+            transition: width 0.2s;
+        }
+
+        .croissant-health {
+            background: linear-gradient(to right, #e6a23c, #ffcc00);
+        }
+
+        .wizard-health {
+            background: linear-gradient(to right, #8800ff, #ff00ff);
+        }
+
+        .duel-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .duel-btn {
+            padding: 10px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: transform 0.1s;
+        }
+
+        .duel-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .bark-btn {
+            background: linear-gradient(to bottom, #e6a23c, #c78530);
+            color: #fff;
+        }
+
+        .dodge-btn {
+            background: linear-gradient(to bottom, #44aaff, #2288dd);
+            color: #fff;
+        }
+
+        #duelMessage {
+            margin-top: 15px;
+            font-size: 18px;
+            color: #ffcc00;
+            min-height: 25px;
+        }
+
+        #victoryScreen {
+            display: none;
+            background: radial-gradient(ellipse at center, #2d1f4e 0%, #0a0a15 100%);
+        }
+
+        #victoryScreen h1 {
+            color: #ffd700;
+            font-size: 48px;
+            text-shadow: 0 0 20px #ffd700;
+            margin-bottom: 20px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #ffd700; }
+            to { text-shadow: 0 0 40px #ffd700, 0 0 60px #ffaa00; }
+        }
+
+        #victoryScreen .palo-santo {
+            font-size: 100px;
+            margin: 30px 0;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        #victoryScreen p {
+            font-size: 20px;
+            max-width: 500px;
+            line-height: 1.8;
+            color: #ddd;
+        }
+
+        #notification {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #e6a23c;
+            border-radius: 10px;
+            padding: 20px 40px;
+            color: #fff;
+            font-size: 18px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 50;
+        }
+
+        #notification.show {
+            opacity: 1;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1024" height="768"></canvas>
+        <canvas id="minimapCanvas" width="150" height="150"></canvas>
+
+        <div id="ui">
+            <div>
+                <div class="bar-container">
+                    <div class="bar-label">❤️ Health</div>
+                    <div id="healthBar" class="bar"></div>
+                </div>
+                <div class="bar-container" style="margin-top: 5px;">
+                    <div class="bar-label">⚡ Energy</div>
+                    <div id="energyBar" class="bar"></div>
+                </div>
+                <div id="speedIndicator">🏃 Speed: 1.0x</div>
+            </div>
+            <div id="minimap">
+                <canvas id="minimapCanvas" width="150" height="150"></canvas>
+            </div>
+        </div>
+
+        <div id="inventory">
+            <div><strong>🎒 Powers (Press P)</strong></div>
+            <div id="powerList">None yet...</div>
+            <div style="margin-top: 10px;"><strong>🥩 Steaks:</strong> <span id="steakCount">0</span></div>
+        </div>
+
+        <div id="notification"></div>
+
+        <div id="instructionsScreen">
+            <div class="shiba-art">🐕</div>
+            <h1>Croissant's Quest for Enlightenment</h1>
+            <p>You are <strong>Croissant</strong>, a brave Shiba Inu on a journey through Palo Alto to find the legendary <em>Palo Santo Plant of Enlightenment</em>!</p>
+
+            <h2>🎮 Controls</h2>
+            <ul>
+                <li><strong>Arrow Keys / WASD</strong> - Move Croissant</li>
+                <li><strong>Spacebar</strong> - Bark (thwarts the Evil Wizard!)</li>
+                <li><strong>P</strong> - Open Power-up Hub</li>
+                <li><strong>E</strong> - Interact with people</li>
+            </ul>
+
+            <h2>🎯 Your Quest</h2>
+            <ul>
+                <li>Find the hidden <strong>maze</strong> that protects the Palo Santo</li>
+                <li>Collect floating <strong>🥩 Steaks</strong> to run faster</li>
+                <li>Find <strong>🍲 Kibble Bowls</strong> to restore energy</li>
+                <li>Talk to <strong>people</strong> to receive magical powers</li>
+                <li>Watch out for <strong>🐰 Rabbits</strong> - you might chase them!</li>
+                <li>Beware of <strong>🧙 The Evil Wizard</strong> who wants to stop you!</li>
+                <li>Cross <strong>water</strong> carefully - you'll need to be persuasive!</li>
+            </ul>
+
+            <h2>⚠️ Warnings</h2>
+            <p>Your <strong>energy</strong> depletes as you explore. Find Kibble to survive!<br>
+            The Evil Wizard will challenge you to duels. Use your bark wisely!</p>
+
+            <button class="start-btn" onclick="startGame()">Begin Your Journey!</button>
+        </div>
+
+        <div id="powerupHub">
+            <h2>🌟 Power-up Hub</h2>
+            <p style="margin-bottom: 20px; color: #aaa;">Select a power to activate (Press P to close)</p>
+            <div class="powerup-list" id="powerupList">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <div id="waterPrompt">
+            <div class="prompt-box">
+                <h3>💧 Water Crossing!</h3>
+                <p>Croissant is hesitant about the water...</p>
+                <p style="margin-top: 10px;">Mash <strong>SPACEBAR</strong> rapidly to convince him to swim!</p>
+                <div class="persuade-bar">
+                    <div class="persuade-fill" id="persuadeFill"></div>
+                </div>
+                <p class="instruction">Fill the bar before time runs out!</p>
+                <p id="waterTimer" style="color: #ffcc00; margin-top: 10px;">Time: 5.0s</p>
+            </div>
+        </div>
+
+        <div id="duelScreen">
+            <div class="duel-arena">
+                <h2>⚔️ WIZARD DUEL! ⚔️</h2>
+                <p style="color: #aaa;">The Evil Wizard challenges you!</p>
+                <div class="duel-health-bars">
+                    <div class="duel-character">
+                        <div class="name">🐕 Croissant</div>
+                        <div class="duel-bar">
+                            <div class="duel-bar-fill croissant-health" id="duelPlayerHealth" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="duel-character">
+                        <div class="name">🧙 Wizard</div>
+                        <div class="duel-bar">
+                            <div class="duel-bar-fill wizard-health" id="duelWizardHealth" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="duel-actions">
+                    <button class="duel-btn bark-btn" id="barkBtn">🔊 BARK!</button>
+                    <button class="duel-btn dodge-btn" id="dodgeBtn">💨 Dodge</button>
+                </div>
+                <div id="duelMessage"></div>
+            </div>
+        </div>
+
+        <div id="victoryScreen">
+            <div class="palo-santo">🌿✨</div>
+            <h1>ENLIGHTENMENT ACHIEVED!</h1>
+            <p>Croissant has found the legendary Palo Santo Plant!</p>
+            <p style="margin-top: 20px; font-style: italic; color: #aaa;">
+                "In the heart of Palo Alto, beneath the ancient maze,<br>
+                The brave Shiba Inu found what mortals rarely gaze.<br>
+                The Palo Santo's wisdom now flows through your soul,<br>
+                Making Croissant forever whole."
+            </p>
+            <p style="margin-top: 30px; color: #ffd700;">🎉 Congratulations! You have completed the quest! 🎉</p>
+            <button class="start-btn" onclick="location.reload()" style="margin-top: 20px;">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CROISSANT'S QUEST FOR ENLIGHTENMENT
+        // A Palo Alto Open World Adventure
+        // ============================================
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const minimapCanvas = document.getElementById('minimapCanvas');
+        const minimapCtx = minimapCanvas.getContext('2d');
+
+        // Game constants - Large world (5 min to cross = ~6000px at 20px/s)
+        const WORLD_WIDTH = 6000;
+        const WORLD_HEIGHT = 6000;
+        const TILE_SIZE = 48;
+        const BASE_SPEED = 150; // pixels per second
+
+        // Game state
+        let gameStarted = false;
+        let gamePaused = false;
+        let lastTime = 0;
+
+        // Player (Croissant the Shiba Inu)
+        const player = {
+            x: 3000,
+            y: 5500,
+            width: 40,
+            height: 40,
+            speed: BASE_SPEED,
+            speedMultiplier: 1,
+            health: 100,
+            maxHealth: 100,
+            energy: 100,
+            maxEnergy: 100,
+            steaks: 0,
+            direction: 'down',
+            isMoving: false,
+            frame: 0,
+            frameTime: 0,
+            isChasing: false,
+            chaseTarget: null,
+            powers: [],
+            activePower: null,
+            powerTimer: 0,
+            isSwimming: false,
+            inWater: false,
+            barkCooldown: 0
+        };
+
+        // Camera
+        const camera = {
+            x: 0,
+            y: 0,
+            width: canvas.width,
+            height: canvas.height
+        };
+
+        // Input handling
+        const keys = {};
+
+        // World zones (Palo Alto-inspired)
+        const zones = [
+            // Main areas
+            { name: 'Downtown', x: 2500, y: 5000, width: 1000, height: 800, color: '#4a4a5a', type: 'urban' },
+            { name: 'Stanford Area', x: 800, y: 800, width: 1500, height: 1200, color: '#8b4513', type: 'campus' },
+            { name: 'Baylands', x: 4500, y: 500, width: 1200, height: 1000, color: '#7caa2d', type: 'nature' },
+            { name: 'California Ave', x: 1500, y: 3500, width: 800, height: 600, color: '#5a5a6a', type: 'shops' },
+            { name: 'Mitchell Park', x: 4000, y: 3000, width: 900, height: 900, color: '#228b22', type: 'park' },
+            { name: 'Palo Alto Hills', x: 200, y: 2500, width: 1000, height: 1200, color: '#556b2f', type: 'hills' },
+        ];
+
+        // Water bodies
+        const waterBodies = [
+            { x: 4800, y: 200, width: 800, height: 400 }, // Bay
+            { x: 100, y: 100, width: 300, height: 2000 }, // Creek west
+            { x: 3000, y: 2800, width: 200, height: 800 }, // River through middle
+            { x: 2000, y: 1500, width: 400, height: 300 }, // Pond
+        ];
+
+        // The Maze (hiding the Palo Santo)
+        const maze = {
+            x: 500,
+            y: 4000,
+            width: 600,
+            height: 600,
+            walls: [],
+            entrance: { x: 800, y: 4550 },
+            paloSanto: { x: 700, y: 4200, width: 50, height: 50 }
+        };
+
+        // Generate maze walls
+        function generateMaze() {
+            const cellSize = 60;
+            const cols = Math.floor(maze.width / cellSize);
+            const rows = Math.floor(maze.height / cellSize);
+
+            // Create grid
+            const grid = [];
+            for (let y = 0; y < rows; y++) {
+                grid[y] = [];
+                for (let x = 0; x < cols; x++) {
+                    grid[y][x] = { visited: false, walls: { top: true, right: true, bottom: true, left: true } };
+                }
+            }
+
+            // DFS maze generation
+            const stack = [];
+            let current = { x: cols - 1, y: rows - 1 };
+            grid[current.y][current.x].visited = true;
+            stack.push(current);
+
+            while (stack.length > 0) {
+                const neighbors = [];
+                const { x, y } = current;
+
+                if (y > 0 && !grid[y - 1][x].visited) neighbors.push({ x, y: y - 1, dir: 'top' });
+                if (x < cols - 1 && !grid[y][x + 1].visited) neighbors.push({ x: x + 1, y, dir: 'right' });
+                if (y < rows - 1 && !grid[y + 1][x].visited) neighbors.push({ x, y: y + 1, dir: 'bottom' });
+                if (x > 0 && !grid[y][x - 1].visited) neighbors.push({ x: x - 1, y, dir: 'left' });
+
+                if (neighbors.length > 0) {
+                    const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    grid[next.y][next.x].visited = true;
+
+                    // Remove walls
+                    if (next.dir === 'top') {
+                        grid[y][x].walls.top = false;
+                        grid[next.y][next.x].walls.bottom = false;
+                    } else if (next.dir === 'right') {
+                        grid[y][x].walls.right = false;
+                        grid[next.y][next.x].walls.left = false;
+                    } else if (next.dir === 'bottom') {
+                        grid[y][x].walls.bottom = false;
+                        grid[next.y][next.x].walls.top = false;
+                    } else if (next.dir === 'left') {
+                        grid[y][x].walls.left = false;
+                        grid[next.y][next.x].walls.right = false;
+                    }
+
+                    stack.push(current);
+                    current = next;
+                } else {
+                    current = stack.pop();
+                }
+            }
+
+            // Convert to wall rectangles
+            const wallThickness = 8;
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    const cell = grid[y][x];
+                    const wx = maze.x + x * cellSize;
+                    const wy = maze.y + y * cellSize;
+
+                    if (cell.walls.top && y > 0) {
+                        maze.walls.push({ x: wx, y: wy, width: cellSize, height: wallThickness });
+                    }
+                    if (cell.walls.left && x > 0) {
+                        maze.walls.push({ x: wx, y: wy, width: wallThickness, height: cellSize });
+                    }
+                }
+            }
+
+            // Outer walls (with entrance gap)
+            maze.walls.push({ x: maze.x, y: maze.y, width: maze.width, height: wallThickness }); // Top
+            maze.walls.push({ x: maze.x, y: maze.y, width: wallThickness, height: maze.height }); // Left
+            maze.walls.push({ x: maze.x + maze.width - wallThickness, y: maze.y, width: wallThickness, height: maze.height }); // Right
+            // Bottom with gap
+            maze.walls.push({ x: maze.x, y: maze.y + maze.height - wallThickness, width: 250, height: wallThickness });
+            maze.walls.push({ x: maze.x + 350, y: maze.y + maze.height - wallThickness, width: 250, height: wallThickness });
+        }
+
+        // Collectibles
+        let steaks = [];
+        let kibbleBowls = [];
+
+        function spawnSteaks() {
+            steaks = [];
+            for (let i = 0; i < 80; i++) {
+                let x, y, valid;
+                do {
+                    x = Math.random() * (WORLD_WIDTH - 100) + 50;
+                    y = Math.random() * (WORLD_HEIGHT - 100) + 50;
+                    valid = !isInWater(x, y) && !isInMazeWall(x, y, 30, 30);
+                } while (!valid);
+
+                steaks.push({
+                    x, y,
+                    width: 35,
+                    height: 35,
+                    bobOffset: Math.random() * Math.PI * 2,
+                    collected: false
+                });
+            }
+        }
+
+        function spawnKibble() {
+            kibbleBowls = [];
+            const positions = [
+                { x: 3100, y: 5200 }, // Downtown
+                { x: 1200, y: 1000 }, // Stanford
+                { x: 4700, y: 700 },  // Baylands
+                { x: 1700, y: 3700 }, // California Ave
+                { x: 4200, y: 3300 }, // Mitchell Park
+                { x: 400, y: 2800 },  // Hills
+                { x: 2500, y: 2500 }, // Central
+                { x: 5000, y: 4500 }, // East
+            ];
+
+            positions.forEach(pos => {
+                kibbleBowls.push({
+                    ...pos,
+                    width: 45,
+                    height: 45,
+                    available: true,
+                    respawnTime: 0
+                });
+            });
+        }
+
+        // NPCs
+        const npcs = [];
+        const npcDialogs = [
+            { name: 'Professor Oak', gift: 'speed_boost', message: 'Take this Speed Amulet! It doubles your speed for 30 seconds!' },
+            { name: 'Farmer Joe', gift: 'energy_regen', message: 'Here\'s an Energy Crystal! It regenerates energy for 20 seconds!' },
+            { name: 'Mystic Maya', gift: 'shield', message: 'Accept this Magic Shield! It protects you from the wizard for 15 seconds!' },
+            { name: 'Chef Carlos', gift: 'mega_bark', message: 'Take this Mega Bark power! Your bark becomes devastating!' },
+            { name: 'Hiker Hannah', gift: 'water_walker', message: 'Here\'s the Water Walking charm! Cross water easily for 25 seconds!' },
+            { name: 'Tech Tim', gift: 'radar', message: 'This Radar shows steaks and kibble nearby for 30 seconds!' },
+        ];
+
+        function spawnNPCs() {
+            const positions = [
+                { x: 3050, y: 5150 },
+                { x: 1100, y: 950 },
+                { x: 4600, y: 650 },
+                { x: 1650, y: 3600 },
+                { x: 4300, y: 3200 },
+                { x: 350, y: 2700 },
+            ];
+
+            positions.forEach((pos, i) => {
+                npcs.push({
+                    ...pos,
+                    width: 40,
+                    height: 50,
+                    dialog: npcDialogs[i],
+                    hasGivenGift: false,
+                    talkRadius: 60
+                });
+            });
+        }
+
+        // Rabbits
+        let rabbits = [];
+        const RABBIT_SPAWN_INTERVAL = 8000;
+        let lastRabbitSpawn = 0;
+
+        function spawnRabbit() {
+            if (rabbits.length >= 5) return;
+
+            let x, y;
+            do {
+                x = Math.random() * (WORLD_WIDTH - 200) + 100;
+                y = Math.random() * (WORLD_HEIGHT - 200) + 100;
+            } while (isInWater(x, y) || isInMazeWall(x, y, 25, 25));
+
+            const hiddenSpots = [
+                { x: 100, y: 100 },
+                { x: 5800, y: 100 },
+                { x: 100, y: 5800 },
+                { x: 5800, y: 5800 },
+                { x: 3000, y: 3000 },
+            ];
+            const target = hiddenSpots[Math.floor(Math.random() * hiddenSpots.length)];
+
+            rabbits.push({
+                x, y,
+                width: 25,
+                height: 25,
+                targetX: target.x,
+                targetY: target.y,
+                speed: 180,
+                active: true,
+                runTimer: 3000 + Math.random() * 4000
+            });
+        }
+
+        // Evil Wizard
+        const wizard = {
+            x: 2000,
+            y: 2000,
+            width: 50,
+            height: 60,
+            speed: 80,
+            detectRadius: 400,
+            catchRadius: 40,
+            state: 'patrol',
+            patrolTarget: { x: 0, y: 0 },
+            duelHealth: 100,
+            lastAttack: 0,
+            attackCooldown: 2000,
+            retreatTimer: 0
+        };
+
+        function updateWizardPatrol() {
+            if (wizard.state === 'patrol') {
+                const dx = wizard.patrolTarget.x - wizard.x;
+                const dy = wizard.patrolTarget.y - wizard.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < 50 || isInWater(wizard.x, wizard.y) || isInMazeWall(wizard.x, wizard.y, wizard.width, wizard.height)) {
+                    // Pick new patrol target
+                    wizard.patrolTarget.x = Math.random() * (WORLD_WIDTH - 200) + 100;
+                    wizard.patrolTarget.y = Math.random() * (WORLD_HEIGHT - 200) + 100;
+                }
+            }
+        }
+
+        // Duel system
+        let inDuel = false;
+        let duelState = {
+            playerHealth: 100,
+            wizardHealth: 100,
+            playerTurn: true,
+            message: '',
+            actionCooldown: 0
+        };
+
+        // Water crossing
+        let inWaterCrossing = false;
+        let waterCrossingProgress = 0;
+        let waterCrossingTimer = 5;
+        let waterCrossingTarget = { x: 0, y: 0 };
+
+        // Powers system
+        const powerDefinitions = {
+            speed_boost: { name: 'Speed Amulet', duration: 30, icon: '⚡', effect: () => { player.speedMultiplier = 2; } },
+            energy_regen: { name: 'Energy Crystal', duration: 20, icon: '💎', effect: () => { player.energyRegen = true; } },
+            shield: { name: 'Magic Shield', duration: 15, icon: '🛡️', effect: () => { player.shielded = true; } },
+            mega_bark: { name: 'Mega Bark', duration: 1, icon: '📢', effect: () => { player.megaBark = true; } },
+            water_walker: { name: 'Water Walker', duration: 25, icon: '🌊', effect: () => { player.canWalkOnWater = true; } },
+            radar: { name: 'Radar', duration: 30, icon: '📡', effect: () => { player.radarActive = true; } },
+        };
+
+        // Trees and obstacles
+        let trees = [];
+        let buildings = [];
+
+        function generateTrees() {
+            trees = [];
+            for (let i = 0; i < 300; i++) {
+                let x, y, valid;
+                do {
+                    x = Math.random() * WORLD_WIDTH;
+                    y = Math.random() * WORLD_HEIGHT;
+                    valid = !isInWater(x, y) && !isInMaze(x, y) && !isInUrbanZone(x, y);
+                } while (!valid);
+
+                trees.push({
+                    x, y,
+                    width: 30 + Math.random() * 20,
+                    height: 40 + Math.random() * 30,
+                    type: Math.random() > 0.3 ? 'tree' : 'bush'
+                });
+            }
+        }
+
+        function generateBuildings() {
+            buildings = [];
+            zones.filter(z => z.type === 'urban' || z.type === 'shops').forEach(zone => {
+                const numBuildings = 8 + Math.floor(Math.random() * 5);
+                for (let i = 0; i < numBuildings; i++) {
+                    buildings.push({
+                        x: zone.x + Math.random() * (zone.width - 80),
+                        y: zone.y + Math.random() * (zone.height - 80),
+                        width: 60 + Math.random() * 40,
+                        height: 60 + Math.random() * 40,
+                        color: `hsl(${Math.random() * 40 + 20}, 30%, ${40 + Math.random() * 20}%)`
+                    });
+                }
+            });
+        }
+
+        // Utility functions
+        function isInWater(x, y) {
+            return waterBodies.some(w =>
+                x >= w.x && x <= w.x + w.width &&
+                y >= w.y && y <= w.y + w.height
+            );
+        }
+
+        function isInMaze(x, y) {
+            return x >= maze.x && x <= maze.x + maze.width &&
+                   y >= maze.y && y <= maze.y + maze.height;
+        }
+
+        function isInMazeWall(x, y, w, h) {
+            return maze.walls.some(wall =>
+                x < wall.x + wall.width &&
+                x + w > wall.x &&
+                y < wall.y + wall.height &&
+                y + h > wall.y
+            );
+        }
+
+        function isInUrbanZone(x, y) {
+            return zones.some(z =>
+                (z.type === 'urban' || z.type === 'shops') &&
+                x >= z.x && x <= z.x + z.width &&
+                y >= z.y && y <= z.y + z.height
+            );
+        }
+
+        function isCollidingWithBuilding(x, y, w, h) {
+            return buildings.some(b =>
+                x < b.x + b.width &&
+                x + w > b.x &&
+                y < b.y + b.height &&
+                y + h > b.y
+            );
+        }
+
+        function distance(x1, y1, x2, y2) {
+            return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+        }
+
+        function showNotification(message, duration = 2000) {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), duration);
+        }
+
+        // Input handling
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            keys[e.code] = true;
+
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (inWaterCrossing) {
+                    waterCrossingProgress += 8;
+                } else if (inDuel) {
+                    performDuelAction('bark');
+                } else if (player.barkCooldown <= 0) {
+                    bark();
+                }
+            }
+
+            if (e.key.toLowerCase() === 'p' && gameStarted && !inDuel && !inWaterCrossing) {
+                togglePowerupHub();
+            }
+
+            if (e.key.toLowerCase() === 'e' && gameStarted && !inDuel && !inWaterCrossing) {
+                interactWithNPC();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+            keys[e.code] = false;
+        });
+
+        // Duel buttons
+        document.getElementById('barkBtn').addEventListener('click', () => performDuelAction('bark'));
+        document.getElementById('dodgeBtn').addEventListener('click', () => performDuelAction('dodge'));
+
+        function bark() {
+            player.barkCooldown = 1;
+            showNotification('🔊 WOOF WOOF!', 800);
+
+            // Push back wizard if nearby
+            const dist = distance(player.x, player.y, wizard.x, wizard.y);
+            if (dist < 200) {
+                const angle = Math.atan2(wizard.y - player.y, wizard.x - player.x);
+                wizard.x += Math.cos(angle) * 150;
+                wizard.y += Math.sin(angle) * 150;
+                wizard.retreatTimer = 3;
+                showNotification('The wizard retreats!', 1500);
+            }
+        }
+
+        function togglePowerupHub() {
+            const hub = document.getElementById('powerupHub');
+            gamePaused = !gamePaused;
+            hub.style.display = gamePaused ? 'flex' : 'none';
+
+            if (gamePaused) {
+                updatePowerupList();
+            }
+        }
+
+        function updatePowerupList() {
+            const list = document.getElementById('powerupList');
+            list.innerHTML = '';
+
+            if (player.powers.length === 0) {
+                list.innerHTML = '<p style="color: #aaa;">No powers collected yet. Talk to people to get powers!</p>';
+                return;
+            }
+
+            player.powers.forEach(powerId => {
+                const power = powerDefinitions[powerId];
+                const item = document.createElement('div');
+                item.className = 'powerup-item';
+                item.innerHTML = `<div style="font-size: 24px;">${power.icon}</div><div>${power.name}</div><div style="font-size: 11px; color: #aaa;">${power.duration}s</div>`;
+                item.onclick = () => activatePower(powerId);
+                list.appendChild(item);
+            });
+        }
+
+        function activatePower(powerId) {
+            const power = powerDefinitions[powerId];
+            if (!power) return;
+
+            // Remove from inventory
+            const idx = player.powers.indexOf(powerId);
+            if (idx > -1) player.powers.splice(idx, 1);
+
+            // Apply effect
+            player.activePower = powerId;
+            player.powerTimer = power.duration;
+            power.effect();
+
+            showNotification(`${power.icon} ${power.name} activated!`, 2000);
+            togglePowerupHub();
+            updateInventoryDisplay();
+        }
+
+        function deactivatePower() {
+            player.speedMultiplier = 1;
+            player.energyRegen = false;
+            player.shielded = false;
+            player.megaBark = false;
+            player.canWalkOnWater = false;
+            player.radarActive = false;
+            player.activePower = null;
+        }
+
+        function interactWithNPC() {
+            npcs.forEach(npc => {
+                const dist = distance(player.x + player.width/2, player.y + player.height/2,
+                                     npc.x + npc.width/2, npc.y + npc.height/2);
+                if (dist < npc.talkRadius && !npc.hasGivenGift) {
+                    npc.hasGivenGift = true;
+                    player.powers.push(npc.dialog.gift);
+                    showNotification(`${npc.dialog.name}: "${npc.dialog.message}"`, 4000);
+                    updateInventoryDisplay();
+                }
+            });
+        }
+
+        function updateInventoryDisplay() {
+            const powerList = document.getElementById('powerList');
+            if (player.powers.length === 0) {
+                powerList.textContent = 'None yet...';
+            } else {
+                powerList.textContent = player.powers.map(p => powerDefinitions[p].icon + ' ' + powerDefinitions[p].name).join(', ');
+            }
+        }
+
+        // Game update
+        function update(deltaTime) {
+            if (!gameStarted || gamePaused || inWaterCrossing || inDuel) return;
+
+            updatePlayer(deltaTime);
+            updateCamera();
+            updateSteaks(deltaTime);
+            updateKibble(deltaTime);
+            updateRabbits(deltaTime);
+            updateWizard(deltaTime);
+            updateEnergy(deltaTime);
+            updatePowerTimer(deltaTime);
+            checkVictory();
+        }
+
+        function updatePlayer(deltaTime) {
+            let dx = 0, dy = 0;
+
+            // Chase rabbit override
+            if (player.isChasing && player.chaseTarget) {
+                const rabbit = player.chaseTarget;
+                if (rabbit.active) {
+                    dx = rabbit.x - player.x;
+                    dy = rabbit.y - player.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > 5) {
+                        dx = (dx / dist);
+                        dy = (dy / dist);
+                    } else {
+                        player.isChasing = false;
+                        player.chaseTarget = null;
+                    }
+                } else {
+                    player.isChasing = false;
+                    player.chaseTarget = null;
+                }
+            } else {
+                // Normal movement
+                if (keys['arrowup'] || keys['w']) dy = -1;
+                if (keys['arrowdown'] || keys['s']) dy = 1;
+                if (keys['arrowleft'] || keys['a']) dx = -1;
+                if (keys['arrowright'] || keys['d']) dx = 1;
+
+                // Normalize diagonal
+                if (dx !== 0 && dy !== 0) {
+                    dx *= 0.707;
+                    dy *= 0.707;
+                }
+            }
+
+            player.isMoving = dx !== 0 || dy !== 0;
+
+            // Set direction
+            if (Math.abs(dx) > Math.abs(dy)) {
+                player.direction = dx > 0 ? 'right' : 'left';
+            } else if (dy !== 0) {
+                player.direction = dy > 0 ? 'down' : 'up';
+            }
+
+            // Calculate speed with steak bonus
+            const steakBonus = 1 + (player.steaks * 0.05);
+            const currentSpeed = player.speed * player.speedMultiplier * steakBonus * deltaTime;
+
+            // New position
+            let newX = player.x + dx * currentSpeed;
+            let newY = player.y + dy * currentSpeed;
+
+            // Boundary check
+            newX = Math.max(0, Math.min(WORLD_WIDTH - player.width, newX));
+            newY = Math.max(0, Math.min(WORLD_HEIGHT - player.height, newY));
+
+            // Collision checks
+            if (isInMazeWall(newX, newY, player.width, player.height)) {
+                // Try sliding along walls
+                if (!isInMazeWall(newX, player.y, player.width, player.height)) {
+                    newY = player.y;
+                } else if (!isInMazeWall(player.x, newY, player.width, player.height)) {
+                    newX = player.x;
+                } else {
+                    newX = player.x;
+                    newY = player.y;
+                }
+            }
+
+            if (isCollidingWithBuilding(newX, newY, player.width, player.height)) {
+                if (!isCollidingWithBuilding(newX, player.y, player.width, player.height)) {
+                    newY = player.y;
+                } else if (!isCollidingWithBuilding(player.x, newY, player.width, player.height)) {
+                    newX = player.x;
+                } else {
+                    newX = player.x;
+                    newY = player.y;
+                }
+            }
+
+            // Water check
+            if (isInWater(newX + player.width/2, newY + player.height/2) && !player.canWalkOnWater) {
+                if (!player.inWater) {
+                    startWaterCrossing(newX, newY);
+                    return;
+                }
+            } else {
+                player.inWater = false;
+            }
+
+            player.x = newX;
+            player.y = newY;
+
+            // Animation
+            if (player.isMoving) {
+                player.frameTime += deltaTime;
+                if (player.frameTime > 0.15) {
+                    player.frame = (player.frame + 1) % 4;
+                    player.frameTime = 0;
+                }
+            }
+
+            // Bark cooldown
+            if (player.barkCooldown > 0) {
+                player.barkCooldown -= deltaTime;
+            }
+        }
+
+        function updateCamera() {
+            camera.x = player.x - camera.width / 2 + player.width / 2;
+            camera.y = player.y - camera.height / 2 + player.height / 2;
+
+            // Clamp to world bounds
+            camera.x = Math.max(0, Math.min(WORLD_WIDTH - camera.width, camera.x));
+            camera.y = Math.max(0, Math.min(WORLD_HEIGHT - camera.height, camera.y));
+        }
+
+        function updateSteaks(deltaTime) {
+            steaks.forEach(steak => {
+                if (steak.collected) return;
+
+                steak.bobOffset += deltaTime * 3;
+
+                // Check collection
+                const dist = distance(player.x + player.width/2, player.y + player.height/2,
+                                      steak.x + steak.width/2, steak.y + steak.height/2);
+                if (dist < 30) {
+                    steak.collected = true;
+                    player.steaks++;
+                    document.getElementById('steakCount').textContent = player.steaks;
+                    showNotification('🥩 Steak eaten! Speed +5%', 1000);
+                }
+            });
+        }
+
+        function updateKibble(deltaTime) {
+            kibbleBowls.forEach(kibble => {
+                if (!kibble.available) {
+                    kibble.respawnTime -= deltaTime;
+                    if (kibble.respawnTime <= 0) {
+                        kibble.available = true;
+                    }
+                    return;
+                }
+
+                // Check collection
+                const dist = distance(player.x + player.width/2, player.y + player.height/2,
+                                      kibble.x + kibble.width/2, kibble.y + kibble.height/2);
+                if (dist < 35) {
+                    kibble.available = false;
+                    kibble.respawnTime = 60; // 60 seconds respawn
+                    player.energy = Math.min(player.maxEnergy, player.energy + 40);
+                    showNotification('🍲 Kibble! Energy restored!', 1500);
+                }
+            });
+        }
+
+        function updateRabbits(deltaTime) {
+            // Spawn new rabbits
+            lastRabbitSpawn += deltaTime * 1000;
+            if (lastRabbitSpawn > RABBIT_SPAWN_INTERVAL) {
+                spawnRabbit();
+                lastRabbitSpawn = 0;
+            }
+
+            rabbits.forEach((rabbit, index) => {
+                if (!rabbit.active) return;
+
+                rabbit.runTimer -= deltaTime * 1000;
+
+                // Move toward target
+                const dx = rabbit.targetX - rabbit.x;
+                const dy = rabbit.targetY - rabbit.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist > 10 && rabbit.runTimer > 0) {
+                    rabbit.x += (dx / dist) * rabbit.speed * deltaTime;
+                    rabbit.y += (dy / dist) * rabbit.speed * deltaTime;
+                } else {
+                    rabbit.active = false;
+                }
+
+                // Check if player should chase
+                const playerDist = distance(player.x, player.y, rabbit.x, rabbit.y);
+                if (playerDist < 150 && !player.isChasing && rabbit.runTimer > 0) {
+                    player.isChasing = true;
+                    player.chaseTarget = rabbit;
+                    showNotification('🐰 A rabbit! Must... chase...!', 1500);
+                }
+            });
+
+            // Clean up inactive rabbits
+            rabbits = rabbits.filter(r => r.active);
+        }
+
+        function updateWizard(deltaTime) {
+            if (wizard.retreatTimer > 0) {
+                wizard.retreatTimer -= deltaTime;
+                return;
+            }
+
+            if (player.shielded) {
+                wizard.state = 'patrol';
+            }
+
+            const playerDist = distance(player.x, player.y, wizard.x, wizard.y);
+
+            if (playerDist < wizard.detectRadius && !player.shielded) {
+                wizard.state = 'chase';
+            } else {
+                wizard.state = 'patrol';
+            }
+
+            updateWizardPatrol();
+
+            let targetX, targetY;
+            if (wizard.state === 'chase') {
+                targetX = player.x;
+                targetY = player.y;
+            } else {
+                targetX = wizard.patrolTarget.x;
+                targetY = wizard.patrolTarget.y;
+            }
+
+            const dx = targetX - wizard.x;
+            const dy = targetY - wizard.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist > 5) {
+                const speed = wizard.state === 'chase' ? wizard.speed * 1.3 : wizard.speed;
+                let newX = wizard.x + (dx / dist) * speed * deltaTime;
+                let newY = wizard.y + (dy / dist) * speed * deltaTime;
+
+                // Avoid water and maze
+                if (!isInWater(newX, newY) && !isInMazeWall(newX, newY, wizard.width, wizard.height)) {
+                    wizard.x = newX;
+                    wizard.y = newY;
+                } else {
+                    wizard.patrolTarget.x = Math.random() * WORLD_WIDTH;
+                    wizard.patrolTarget.y = Math.random() * WORLD_HEIGHT;
+                }
+            }
+
+            // Check catch
+            if (playerDist < wizard.catchRadius && !player.shielded) {
+                startDuel();
+            }
+        }
+
+        function updateEnergy(deltaTime) {
+            // Base drain rate - balanced for 5 min gameplay
+            let drainRate = 0.3; // Loses about 18 energy per minute base
+
+            // Moving drains more
+            if (player.isMoving) {
+                drainRate *= 1.5;
+            }
+
+            // Speed multiplier increases drain
+            drainRate *= player.speedMultiplier;
+
+            // Energy regen power
+            if (player.energyRegen) {
+                player.energy = Math.min(player.maxEnergy, player.energy + 2 * deltaTime);
+            } else {
+                player.energy -= drainRate * deltaTime;
+            }
+
+            // Clamp and check death
+            player.energy = Math.max(0, Math.min(player.maxEnergy, player.energy));
+
+            if (player.energy <= 0) {
+                showNotification('💀 Croissant collapsed from exhaustion!', 3000);
+                player.energy = 30;
+                player.x = 3000;
+                player.y = 5500;
+                player.health -= 20;
+            }
+
+            if (player.health <= 0) {
+                showNotification('Game Over! Croissant has been defeated...', 5000);
+                setTimeout(() => location.reload(), 3000);
+            }
+
+            // Update UI
+            document.getElementById('energyBar').style.width = player.energy + '%';
+            document.getElementById('healthBar').style.width = player.health + '%';
+            document.getElementById('speedIndicator').textContent =
+                `🏃 Speed: ${(player.speedMultiplier * (1 + player.steaks * 0.05)).toFixed(1)}x`;
+        }
+
+        function updatePowerTimer(deltaTime) {
+            if (player.powerTimer > 0) {
+                player.powerTimer -= deltaTime;
+                if (player.powerTimer <= 0) {
+                    deactivatePower();
+                    showNotification('Power-up expired!', 1500);
+                }
+            }
+        }
+
+        function startWaterCrossing(targetX, targetY) {
+            inWaterCrossing = true;
+            waterCrossingProgress = 0;
+            waterCrossingTimer = 5;
+            waterCrossingTarget = { x: targetX, y: targetY };
+            document.getElementById('waterPrompt').style.display = 'flex';
+        }
+
+        function updateWaterCrossing(deltaTime) {
+            if (!inWaterCrossing) return;
+
+            waterCrossingTimer -= deltaTime;
+            document.getElementById('waterTimer').textContent = `Time: ${waterCrossingTimer.toFixed(1)}s`;
+            document.getElementById('persuadeFill').style.width = waterCrossingProgress + '%';
+
+            // Decay progress
+            waterCrossingProgress = Math.max(0, waterCrossingProgress - 15 * deltaTime);
+
+            if (waterCrossingProgress >= 100) {
+                // Success!
+                inWaterCrossing = false;
+                player.inWater = true;
+                player.x = waterCrossingTarget.x;
+                player.y = waterCrossingTarget.y;
+                document.getElementById('waterPrompt').style.display = 'none';
+                showNotification('🏊 Croissant is swimming!', 1500);
+            } else if (waterCrossingTimer <= 0) {
+                // Failed
+                inWaterCrossing = false;
+                document.getElementById('waterPrompt').style.display = 'none';
+                showNotification('Croissant refuses to swim!', 1500);
+            }
+        }
+
+        function startDuel() {
+            inDuel = true;
+            duelState = {
+                playerHealth: player.health,
+                wizardHealth: 100,
+                playerTurn: true,
+                message: 'The wizard attacks! What will Croissant do?',
+                actionCooldown: 0
+            };
+            document.getElementById('duelScreen').style.display = 'flex';
+            updateDuelUI();
+        }
+
+        function performDuelAction(action) {
+            if (duelState.actionCooldown > 0) return;
+            duelState.actionCooldown = 500;
+
+            if (action === 'bark') {
+                const damage = player.megaBark ? 35 : 15 + Math.floor(Math.random() * 10);
+                duelState.wizardHealth -= damage;
+                duelState.message = `🔊 WOOF! Croissant deals ${damage} damage!`;
+
+                if (duelState.wizardHealth <= 0) {
+                    endDuel(true);
+                    return;
+                }
+            } else if (action === 'dodge') {
+                if (Math.random() > 0.4) {
+                    duelState.message = '💨 Croissant dodges the attack!';
+                } else {
+                    const damage = 10 + Math.floor(Math.random() * 5);
+                    duelState.playerHealth -= damage;
+                    duelState.message = `Failed to dodge! Took ${damage} damage!`;
+                }
+            }
+
+            // Wizard attacks back
+            setTimeout(() => {
+                if (!inDuel) return;
+                const wizDamage = 8 + Math.floor(Math.random() * 12);
+                if (Math.random() > 0.3) {
+                    duelState.playerHealth -= wizDamage;
+                    duelState.message += ` Wizard hits back for ${wizDamage}!`;
+                } else {
+                    duelState.message += ' Wizard\'s attack misses!';
+                }
+
+                if (duelState.playerHealth <= 0) {
+                    endDuel(false);
+                    return;
+                }
+
+                updateDuelUI();
+                duelState.actionCooldown = 0;
+            }, 800);
+
+            updateDuelUI();
+        }
+
+        function updateDuelUI() {
+            document.getElementById('duelPlayerHealth').style.width = Math.max(0, duelState.playerHealth) + '%';
+            document.getElementById('duelWizardHealth').style.width = Math.max(0, duelState.wizardHealth) + '%';
+            document.getElementById('duelMessage').textContent = duelState.message;
+        }
+
+        function endDuel(playerWon) {
+            inDuel = false;
+            document.getElementById('duelScreen').style.display = 'none';
+
+            if (playerWon) {
+                showNotification('🎉 You defeated the wizard! He retreats...', 3000);
+                wizard.x = Math.random() * WORLD_WIDTH;
+                wizard.y = Math.random() * WORLD_HEIGHT;
+                wizard.retreatTimer = 30; // 30 seconds before wizard comes back
+                player.health = Math.min(player.maxHealth, duelState.playerHealth + 10);
+            } else {
+                showNotification('💀 The wizard defeated you!', 3000);
+                player.health = 30;
+                player.x = 3000;
+                player.y = 5500;
+            }
+        }
+
+        function checkVictory() {
+            const dist = distance(player.x + player.width/2, player.y + player.height/2,
+                                 maze.paloSanto.x + maze.paloSanto.width/2,
+                                 maze.paloSanto.y + maze.paloSanto.height/2);
+            if (dist < 40) {
+                document.getElementById('victoryScreen').style.display = 'flex';
+                gameStarted = false;
+            }
+        }
+
+        // Rendering
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw world
+            drawBackground();
+            drawZones();
+            drawWater();
+            drawMaze();
+            drawTrees();
+            drawBuildings();
+            drawSteaks();
+            drawKibble();
+            drawNPCs();
+            drawRabbits();
+            drawWizard();
+            drawPlayer();
+
+            if (player.radarActive) {
+                drawRadar();
+            }
+
+            // Draw minimap
+            drawMinimap();
+        }
+
+        function drawBackground() {
+            // Base grass
+            ctx.fillStyle = '#3d7a33';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Grass texture
+            ctx.fillStyle = '#4a8a3d';
+            for (let x = -camera.x % 100; x < canvas.width; x += 100) {
+                for (let y = -camera.y % 100; y < canvas.height; y += 100) {
+                    ctx.fillRect(x, y, 3, 3);
+                    ctx.fillRect(x + 50, y + 50, 3, 3);
+                }
+            }
+        }
+
+        function drawZones() {
+            zones.forEach(zone => {
+                const screenX = zone.x - camera.x;
+                const screenY = zone.y - camera.y;
+
+                if (screenX + zone.width < 0 || screenX > canvas.width ||
+                    screenY + zone.height < 0 || screenY > canvas.height) return;
+
+                ctx.fillStyle = zone.color + '80';
+                ctx.fillRect(screenX, screenY, zone.width, zone.height);
+
+                // Zone label
+                ctx.fillStyle = '#fff';
+                ctx.font = '14px Courier New';
+                ctx.fillText(zone.name, screenX + 10, screenY + 20);
+            });
+        }
+
+        function drawWater() {
+            waterBodies.forEach(water => {
+                const screenX = water.x - camera.x;
+                const screenY = water.y - camera.y;
+
+                if (screenX + water.width < 0 || screenX > canvas.width ||
+                    screenY + water.height < 0 || screenY > canvas.height) return;
+
+                // Water gradient
+                const gradient = ctx.createLinearGradient(screenX, screenY, screenX, screenY + water.height);
+                gradient.addColorStop(0, '#1a5f7a');
+                gradient.addColorStop(0.5, '#2980b9');
+                gradient.addColorStop(1, '#1a5f7a');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(screenX, screenY, water.width, water.height);
+
+                // Waves
+                ctx.strokeStyle = '#ffffff40';
+                ctx.lineWidth = 2;
+                const time = Date.now() / 1000;
+                for (let i = 0; i < water.width; i += 30) {
+                    ctx.beginPath();
+                    ctx.moveTo(screenX + i, screenY + Math.sin(time + i * 0.1) * 5 + water.height/2);
+                    ctx.lineTo(screenX + i + 20, screenY + Math.sin(time + i * 0.1 + 1) * 5 + water.height/2);
+                    ctx.stroke();
+                }
+            });
+        }
+
+        function drawMaze() {
+            const screenX = maze.x - camera.x;
+            const screenY = maze.y - camera.y;
+
+            if (screenX + maze.width < 0 || screenX > canvas.width ||
+                screenY + maze.height < 0 || screenY > canvas.height) return;
+
+            // Maze floor
+            ctx.fillStyle = '#4a3728';
+            ctx.fillRect(screenX, screenY, maze.width, maze.height);
+
+            // Walls
+            ctx.fillStyle = '#2d2d2d';
+            maze.walls.forEach(wall => {
+                const wx = wall.x - camera.x;
+                const wy = wall.y - camera.y;
+                ctx.fillRect(wx, wy, wall.width, wall.height);
+            });
+
+            // Palo Santo (glowing plant)
+            const psX = maze.paloSanto.x - camera.x;
+            const psY = maze.paloSanto.y - camera.y;
+
+            // Glow
+            const glowSize = 30 + Math.sin(Date.now() / 300) * 10;
+            const gradient = ctx.createRadialGradient(
+                psX + maze.paloSanto.width/2, psY + maze.paloSanto.height/2, 0,
+                psX + maze.paloSanto.width/2, psY + maze.paloSanto.height/2, glowSize
+            );
+            gradient.addColorStop(0, '#ffd70080');
+            gradient.addColorStop(1, '#ffd70000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(psX - glowSize, psY - glowSize, maze.paloSanto.width + glowSize * 2, maze.paloSanto.height + glowSize * 2);
+
+            // Plant
+            ctx.fillStyle = '#228b22';
+            ctx.fillRect(psX, psY, maze.paloSanto.width, maze.paloSanto.height);
+            ctx.fillStyle = '#ffd700';
+            ctx.font = '30px Arial';
+            ctx.fillText('🌿', psX + 10, psY + 35);
+        }
+
+        function drawTrees() {
+            trees.forEach(tree => {
+                const screenX = tree.x - camera.x;
+                const screenY = tree.y - camera.y;
+
+                if (screenX + tree.width < 0 || screenX > canvas.width ||
+                    screenY + tree.height < 0 || screenY > canvas.height) return;
+
+                if (tree.type === 'tree') {
+                    // Trunk
+                    ctx.fillStyle = '#5d4037';
+                    ctx.fillRect(screenX + tree.width/3, screenY + tree.height/2, tree.width/3, tree.height/2);
+                    // Foliage
+                    ctx.fillStyle = '#2e7d32';
+                    ctx.beginPath();
+                    ctx.arc(screenX + tree.width/2, screenY + tree.height/3, tree.width/2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // Bush
+                    ctx.fillStyle = '#388e3c';
+                    ctx.beginPath();
+                    ctx.arc(screenX + tree.width/2, screenY + tree.height/2, tree.width/2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+
+        function drawBuildings() {
+            buildings.forEach(building => {
+                const screenX = building.x - camera.x;
+                const screenY = building.y - camera.y;
+
+                if (screenX + building.width < 0 || screenX > canvas.width ||
+                    screenY + building.height < 0 || screenY > canvas.height) return;
+
+                // Building
+                ctx.fillStyle = building.color;
+                ctx.fillRect(screenX, screenY, building.width, building.height);
+
+                // Roof
+                ctx.fillStyle = '#333';
+                ctx.fillRect(screenX - 3, screenY - 5, building.width + 6, 8);
+
+                // Windows
+                ctx.fillStyle = '#87ceeb';
+                const windowSize = 10;
+                for (let wy = screenY + 15; wy < screenY + building.height - 15; wy += 20) {
+                    for (let wx = screenX + 10; wx < screenX + building.width - 15; wx += 20) {
+                        ctx.fillRect(wx, wy, windowSize, windowSize);
+                    }
+                }
+            });
+        }
+
+        function drawSteaks() {
+            steaks.forEach(steak => {
+                if (steak.collected) return;
+
+                const screenX = steak.x - camera.x;
+                const screenY = steak.y - camera.y + Math.sin(steak.bobOffset) * 5;
+
+                if (screenX + steak.width < 0 || screenX > canvas.width ||
+                    screenY + steak.height < 0 || screenY > canvas.height) return;
+
+                // Glow
+                ctx.fillStyle = '#ff660040';
+                ctx.beginPath();
+                ctx.arc(screenX + steak.width/2, screenY + steak.height/2, 25, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Steak emoji
+                ctx.font = '28px Arial';
+                ctx.fillText('🥩', screenX, screenY + 28);
+            });
+        }
+
+        function drawKibble() {
+            kibbleBowls.forEach(kibble => {
+                if (!kibble.available) return;
+
+                const screenX = kibble.x - camera.x;
+                const screenY = kibble.y - camera.y;
+
+                if (screenX + kibble.width < 0 || screenX > canvas.width ||
+                    screenY + kibble.height < 0 || screenY > canvas.height) return;
+
+                // Glow
+                ctx.fillStyle = '#00ff0040';
+                ctx.beginPath();
+                ctx.arc(screenX + kibble.width/2, screenY + kibble.height/2, 30, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Bowl emoji
+                ctx.font = '35px Arial';
+                ctx.fillText('🍲', screenX, screenY + 35);
+            });
+        }
+
+        function drawNPCs() {
+            npcs.forEach(npc => {
+                const screenX = npc.x - camera.x;
+                const screenY = npc.y - camera.y;
+
+                if (screenX + npc.width < 0 || screenX > canvas.width ||
+                    screenY + npc.height < 0 || screenY > canvas.height) return;
+
+                // Body
+                ctx.fillStyle = '#f5deb3';
+                ctx.fillRect(screenX + 10, screenY + 15, 20, 25);
+
+                // Head
+                ctx.fillStyle = '#ffe4c4';
+                ctx.beginPath();
+                ctx.arc(screenX + 20, screenY + 10, 12, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Shirt color based on gift
+                const colors = {
+                    speed_boost: '#ff6b6b',
+                    energy_regen: '#6bff6b',
+                    shield: '#6b6bff',
+                    mega_bark: '#ffff6b',
+                    water_walker: '#6bffff',
+                    radar: '#ff6bff'
+                };
+                ctx.fillStyle = colors[npc.dialog.gift] || '#888';
+                ctx.fillRect(screenX + 10, screenY + 15, 20, 15);
+
+                // Gift indicator
+                if (!npc.hasGivenGift) {
+                    ctx.fillStyle = '#ffd700';
+                    ctx.font = '16px Arial';
+                    ctx.fillText('❗', screenX + 15, screenY - 5);
+                }
+
+                // Name
+                ctx.fillStyle = '#fff';
+                ctx.font = '10px Courier New';
+                ctx.fillText(npc.dialog.name, screenX - 10, screenY + 55);
+            });
+        }
+
+        function drawRabbits() {
+            rabbits.forEach(rabbit => {
+                if (!rabbit.active) return;
+
+                const screenX = rabbit.x - camera.x;
+                const screenY = rabbit.y - camera.y;
+
+                if (screenX + rabbit.width < 0 || screenX > canvas.width ||
+                    screenY + rabbit.height < 0 || screenY > canvas.height) return;
+
+                ctx.font = '22px Arial';
+                ctx.fillText('🐰', screenX, screenY + 20);
+            });
+        }
+
+        function drawWizard() {
+            const screenX = wizard.x - camera.x;
+            const screenY = wizard.y - camera.y;
+
+            if (screenX + wizard.width < 0 || screenX > canvas.width ||
+                screenY + wizard.height < 0 || screenY > canvas.height) return;
+
+            // Evil aura
+            if (wizard.state === 'chase') {
+                ctx.fillStyle = '#8800ff30';
+                ctx.beginPath();
+                ctx.arc(screenX + wizard.width/2, screenY + wizard.height/2, 50, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Wizard
+            ctx.font = '45px Arial';
+            ctx.fillText('🧙', screenX, screenY + 45);
+
+            // Health bar
+            ctx.fillStyle = '#333';
+            ctx.fillRect(screenX, screenY - 10, 50, 6);
+            ctx.fillStyle = '#ff00ff';
+            ctx.fillRect(screenX, screenY - 10, 50 * (wizard.duelHealth / 100), 6);
+        }
+
+        function drawPlayer() {
+            const screenX = player.x - camera.x;
+            const screenY = player.y - camera.y;
+
+            // Shield effect
+            if (player.shielded) {
+                ctx.strokeStyle = '#6b6bff80';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(screenX + player.width/2, screenY + player.height/2, 35, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Croissant the Shiba Inu
+            ctx.font = '36px Arial';
+            let emoji = '🐕';
+
+            // Direction-based rendering (simplified since emojis don't rotate well)
+            ctx.save();
+            ctx.translate(screenX + player.width/2, screenY + player.height/2);
+
+            if (player.direction === 'left') {
+                ctx.scale(-1, 1);
+            }
+
+            ctx.fillText(emoji, -18, 12);
+            ctx.restore();
+
+            // Moving particles
+            if (player.isMoving && player.speedMultiplier > 1) {
+                ctx.fillStyle = '#ffff0060';
+                for (let i = 0; i < 3; i++) {
+                    const px = screenX + Math.random() * player.width;
+                    const py = screenY + player.height + Math.random() * 10;
+                    ctx.beginPath();
+                    ctx.arc(px, py, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Chase indicator
+            if (player.isChasing) {
+                ctx.fillStyle = '#ff0000';
+                ctx.font = '14px Arial';
+                ctx.fillText('❗CHASING❗', screenX - 15, screenY - 10);
+            }
+        }
+
+        function drawRadar() {
+            // Highlight nearby steaks and kibble
+            steaks.forEach(steak => {
+                if (steak.collected) return;
+                const dist = distance(player.x, player.y, steak.x, steak.y);
+                if (dist < 300) {
+                    const screenX = steak.x - camera.x;
+                    const screenY = steak.y - camera.y;
+                    ctx.strokeStyle = '#ffff00';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(screenX + steak.width/2, screenY + steak.height/2, 20, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            });
+
+            kibbleBowls.forEach(kibble => {
+                if (!kibble.available) return;
+                const dist = distance(player.x, player.y, kibble.x, kibble.y);
+                if (dist < 400) {
+                    const screenX = kibble.x - camera.x;
+                    const screenY = kibble.y - camera.y;
+                    ctx.strokeStyle = '#00ff00';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(screenX + kibble.width/2, screenY + kibble.height/2, 25, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            });
+        }
+
+        function drawMinimap() {
+            const mmCanvas = document.querySelectorAll('#minimapCanvas')[1] || document.getElementById('minimapCanvas');
+            const mmCtx = mmCanvas.getContext('2d');
+
+            mmCtx.fillStyle = '#1a1a2e';
+            mmCtx.fillRect(0, 0, 150, 150);
+
+            const scale = 150 / WORLD_WIDTH;
+
+            // Zones
+            zones.forEach(zone => {
+                mmCtx.fillStyle = zone.color + '80';
+                mmCtx.fillRect(zone.x * scale, zone.y * scale, zone.width * scale, zone.height * scale);
+            });
+
+            // Water
+            mmCtx.fillStyle = '#2980b9';
+            waterBodies.forEach(water => {
+                mmCtx.fillRect(water.x * scale, water.y * scale, water.width * scale, water.height * scale);
+            });
+
+            // Maze
+            mmCtx.fillStyle = '#4a3728';
+            mmCtx.fillRect(maze.x * scale, maze.y * scale, maze.width * scale, maze.height * scale);
+
+            // Palo Santo (goal)
+            mmCtx.fillStyle = '#ffd700';
+            mmCtx.beginPath();
+            mmCtx.arc(maze.paloSanto.x * scale, maze.paloSanto.y * scale, 4, 0, Math.PI * 2);
+            mmCtx.fill();
+
+            // Player
+            mmCtx.fillStyle = '#e6a23c';
+            mmCtx.beginPath();
+            mmCtx.arc(player.x * scale, player.y * scale, 3, 0, Math.PI * 2);
+            mmCtx.fill();
+
+            // Wizard
+            mmCtx.fillStyle = '#ff00ff';
+            mmCtx.beginPath();
+            mmCtx.arc(wizard.x * scale, wizard.y * scale, 3, 0, Math.PI * 2);
+            mmCtx.fill();
+
+            // Camera view box
+            mmCtx.strokeStyle = '#fff';
+            mmCtx.lineWidth = 1;
+            mmCtx.strokeRect(camera.x * scale, camera.y * scale, camera.width * scale, camera.height * scale);
+        }
+
+        // Game loop
+        function gameLoop(currentTime) {
+            const deltaTime = Math.min((currentTime - lastTime) / 1000, 0.1);
+            lastTime = currentTime;
+
+            if (inWaterCrossing) {
+                updateWaterCrossing(deltaTime);
+            }
+
+            update(deltaTime);
+            render();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialization
+        function init() {
+            generateMaze();
+            generateTrees();
+            generateBuildings();
+            spawnSteaks();
+            spawnKibble();
+            spawnNPCs();
+
+            // Initial camera position
+            updateCamera();
+
+            // Start game loop
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startGame() {
+            document.getElementById('instructionsScreen').style.display = 'none';
+            gameStarted = true;
+            showNotification('Find the Palo Santo! Check your minimap for the golden glow!', 4000);
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
