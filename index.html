@@ -4,6 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Croissant's Quest for Enlightenment</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Help Croissant the Shiba Inu find the legendary Palo Santo Plant of Enlightenment in Palo Alto!">
+    <meta name="theme-color" content="#FFD700">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Croissant's Quest">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-96x96.png">
+
+    <!-- Plausible Analytics (privacy-friendly) -->
+    <script defer data-domain="croissantsquestforenlightenment.netlify.app" src="https://plausible.io/js/script.js"></script>
+
+    <!-- Accessibility: Prefers reduced motion -->
+    <style>
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+
     <style>
         * {
             margin: 0;
@@ -211,8 +243,67 @@
         }
 
         .start-btn:hover { transform: scale(1.1); }
+        .start-btn:focus {
+            outline: 3px solid #fff;
+            outline-offset: 3px;
+            transform: scale(1.1);
+        }
 
         .shiba-art { font-size: 50px; }
+
+        /* Accessibility: Focus styles for all interactive elements */
+        button:focus, input:focus, a:focus, [tabindex]:focus {
+            outline: 3px solid #FFD700;
+            outline-offset: 2px;
+        }
+
+        /* Skip to content link for screen readers */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #FFD700;
+            color: #1a1a2e;
+            padding: 8px 16px;
+            z-index: 1000;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .bar-container, .hud-slot, #minimap {
+                border-width: 3px;
+            }
+            button {
+                border-width: 3px;
+            }
+        }
+
+        /* Visually hidden but accessible to screen readers */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Live region for game announcements */
+        .sr-only-announcements {
+            position: absolute;
+            left: -10000px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
 
         /* Leaderboard styles */
         .leaderboard {
@@ -537,8 +628,14 @@
     </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <canvas id="gameCanvas" width="1024" height="768"></canvas>
+    <!-- Skip link for keyboard users -->
+    <a href="#gameCanvas" class="skip-link">Skip to Game</a>
+
+    <!-- Screen reader announcements -->
+    <div id="srAnnouncements" class="sr-only-announcements" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <div id="gameContainer" role="application" aria-label="Croissant's Quest for Enlightenment - Game Area">
+        <canvas id="gameCanvas" width="1024" height="768" role="img" aria-label="Game canvas - Use WASD or Arrow keys to move, Spacebar to bark, E to interact, ESC to pause" tabindex="0"></canvas>
 
         <div id="ui">
             <div class="bar-container">
@@ -586,7 +683,7 @@
         <div id="instructionsScreen" class="overlay-screen">
             <div class="shiba-art">🐕</div>
             <h1>Croissant's Quest for Enlightenment</h1>
-            <button class="start-btn" onclick="startGame()">Begin Your Journey!</button>
+            <button class="start-btn" onclick="startGame()" aria-label="Start the game and begin Croissant's adventure">Begin Your Journey!</button>
 
             <p>You are <strong>Croissant</strong>, a brave Shiba Inu seeking the legendary <em>Palo Santo Plant of Enlightenment</em> hidden deep within a mysterious cave in Palo Alto!</p>
 
@@ -637,8 +734,8 @@
                     <input type="range" id="sfxSlider" min="0" max="100" value="50" oninput="setSfxVolume(this.value)">
                     <span id="sfxValue">50%</span>
                 </div>
-                <button onclick="resumeGame()">Resume</button>
-                <button onclick="location.reload()">Restart</button>
+                <button onclick="resumeGame()" aria-label="Resume the game">Resume</button>
+                <button onclick="location.reload()" aria-label="Restart the game from the beginning">Restart</button>
             </div>
         </div>
 
@@ -668,8 +765,8 @@
                     </div>
                 </div>
                 <div class="duel-actions">
-                    <button class="duel-btn bark-btn" onclick="performDuelAction('bark')">🔊 BARK!</button>
-                    <button class="duel-btn dodge-btn" onclick="performDuelAction('dodge')">💨 Dodge</button>
+                    <button class="duel-btn bark-btn" onclick="performDuelAction('bark')" aria-label="Bark attack - deal damage to the wizard">🔊 BARK!</button>
+                    <button class="duel-btn dodge-btn" onclick="performDuelAction('dodge')" aria-label="Dodge the wizard's attack">💨 Dodge</button>
                 </div>
                 <div id="duelMessage"></div>
             </div>
@@ -687,13 +784,14 @@
                 The brave Shiba found the truth that makes a spirit whole."
             </p>
             <div class="victory-input" id="nameInputSection">
-                <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="20">
-                <button class="submit-btn" onclick="submitScore()">Submit Score</button>
+                <label for="playerNameInput" class="visually-hidden">Enter your name for the leaderboard</label>
+                <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="20" aria-label="Enter your name for the leaderboard">
+                <button class="submit-btn" onclick="submitScore()" aria-label="Submit your score to the leaderboard">Submit Score</button>
             </div>
-            <div id="scoreSubmitted" style="display: none; color: #88ff88; margin: 20px 0;">
+            <div id="scoreSubmitted" style="display: none; color: #88ff88; margin: 20px 0;" role="status" aria-live="polite">
                 ✓ Score submitted to leaderboard!
             </div>
-            <button class="start-btn" onclick="location.reload()" style="margin-top: 20px;">Play Again</button>
+            <button class="start-btn" onclick="location.reload()" style="margin-top: 20px;" aria-label="Play the game again">Play Again</button>
         </div>
     </div>
 
@@ -1857,8 +1955,10 @@
                             updateHUD();
                         }
                         showNotification(`${npc.data.name}: "${npc.data.message}"`, 3500);
+                        if (typeof trackNPCInteraction === 'function') trackNPCInteraction(npc.data.name);
                     } else if (npc.type === 'startup') {
                         showStartupDialog(npc.data.name, npc.data.idea);
+                        if (typeof trackNPCInteraction === 'function') trackNPCInteraction(npc.data.name);
                     }
                     return;
                 }
@@ -2517,6 +2617,7 @@
                     player.steaks++;
                     document.getElementById('steakCount').textContent = player.steaks;
                     showNotification('🥩 Steak! Speed +5%', 1000);
+                    if (typeof trackSteakCollected === 'function') trackSteakCollected();
                 }
             });
         }
@@ -2536,6 +2637,7 @@
                     kibble.respawnTime = 60;
                     player.energy = Math.min(player.maxEnergy, player.energy + 40);
                     showNotification('🍲 Kibble! Energy +40!', 1500);
+                    if (typeof trackKibbleCollected === 'function') trackKibbleCollected();
                 }
             });
         }
@@ -3422,6 +3524,101 @@
         }
 
         init();
+
+        // ===== SERVICE WORKER REGISTRATION =====
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('ServiceWorker registered:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+
+        // ===== PLAUSIBLE ANALYTICS TRACKING =====
+        // Track custom events for game analytics
+        function trackEvent(eventName, props = {}) {
+            if (window.plausible) {
+                window.plausible(eventName, { props });
+            }
+        }
+
+        // Track game start
+        const originalStartGame = startGame;
+        startGame = function() {
+            trackEvent('Game Started');
+            originalStartGame();
+        };
+
+        // Track steak collection (in updateSteaks)
+        function trackSteakCollected() {
+            trackEvent('Steak Collected', { total: steaks.filter(s => s.collected).length });
+        }
+
+        // Track kibble collection (in updateKibble)
+        function trackKibbleCollected() {
+            trackEvent('Kibble Collected');
+        }
+
+        // Track NPC interaction
+        function trackNPCInteraction(npcName) {
+            trackEvent('NPC Interaction', { npc: npcName });
+        }
+
+        // Track game victory
+        const originalShowVictory = showVictoryWithTime;
+        showVictoryWithTime = function() {
+            trackEvent('Game Completed', { time: formatTime(gameElapsedTime) });
+            originalShowVictory();
+        };
+
+        // Track cave entry
+        const originalEnterCave = enterCave;
+        enterCave = function() {
+            trackEvent('Cave Entered');
+            originalEnterCave();
+        };
+
+        // ===== ACCESSIBILITY: Screen Reader Announcements =====
+        function announceToScreenReader(message) {
+            const announcer = document.getElementById('srAnnouncements');
+            if (announcer) {
+                announcer.textContent = message;
+                // Clear after announcement
+                setTimeout(() => { announcer.textContent = ''; }, 1000);
+            }
+        }
+
+        // Announce notifications to screen readers
+        const originalShowNotification = showNotification;
+        showNotification = function(message, duration) {
+            announceToScreenReader(message);
+            originalShowNotification(message, duration);
+        };
+
+        // ===== ACCESSIBILITY: Keyboard Focus Management =====
+        document.addEventListener('keydown', (e) => {
+            // Allow Tab navigation in menus
+            if (e.key === 'Tab') {
+                // Don't prevent default - allow normal tab navigation
+            }
+
+            // Enter key activates focused buttons
+            if (e.key === 'Enter' && document.activeElement.tagName === 'BUTTON') {
+                document.activeElement.click();
+            }
+        });
+
+        // Focus the start button when instructions screen is shown
+        document.addEventListener('DOMContentLoaded', () => {
+            const startBtn = document.querySelector('#instructionsScreen .start-btn');
+            if (startBtn) {
+                startBtn.focus();
+            }
+        });
     </script>
 </body>
 </html>

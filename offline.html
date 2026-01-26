@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Croissant's Quest</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #1a1a2e;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+        .offline-container {
+            max-width: 400px;
+        }
+        .shiba {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 1s ease-in-out infinite alternate;
+        }
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+        h1 {
+            color: #e6a23c;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        p {
+            color: #aaa;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .retry-btn {
+            background: #e6a23c;
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-family: inherit;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .retry-btn:hover {
+            background: #ffcc00;
+            transform: scale(1.05);
+        }
+        .retry-btn:focus {
+            outline: 3px solid #fff;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="shiba" role="img" aria-label="Sad Shiba Inu">🐕</div>
+        <h1>You're Offline!</h1>
+        <p>Croissant can't find the internet connection. Please check your network and try again.</p>
+        <button class="retry-btn" onclick="window.location.reload()" aria-label="Retry loading the game">
+            Try Again
+        </button>
+    </div>
+</body>
+</html>

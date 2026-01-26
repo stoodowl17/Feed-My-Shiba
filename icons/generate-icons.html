@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator - Croissant's Quest</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #1a1a2e; color: #fff; }
+        canvas { border: 1px solid #e6a23c; margin: 5px; }
+        .container { display: flex; flex-wrap: wrap; gap: 10px; }
+        a { color: #e6a23c; display: block; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>Icon Generator</h1>
+    <p>Right-click each icon and "Save image as..." with the filename shown.</p>
+    <div class="container" id="icons"></div>
+    <script>
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        const container = document.getElementById('icons');
+
+        sizes.forEach(size => {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // Background
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(0, 0, size, size);
+
+            // Circle background
+            ctx.fillStyle = '#1a1a2e';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size*0.4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Shiba face (simplified)
+            const scale = size / 100;
+            ctx.fillStyle = '#e8c49a';
+
+            // Head
+            ctx.beginPath();
+            ctx.ellipse(size/2, size/2, size*0.25, size*0.22, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ears
+            ctx.fillStyle = '#d4a574';
+            ctx.beginPath();
+            ctx.moveTo(size*0.3, size*0.35);
+            ctx.lineTo(size*0.25, size*0.15);
+            ctx.lineTo(size*0.42, size*0.32);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(size*0.7, size*0.35);
+            ctx.lineTo(size*0.75, size*0.15);
+            ctx.lineTo(size*0.58, size*0.32);
+            ctx.fill();
+
+            // White face mask
+            ctx.fillStyle = '#fff5e6';
+            ctx.beginPath();
+            ctx.ellipse(size/2, size*0.55, size*0.15, size*0.12, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes
+            ctx.fillStyle = '#222';
+            ctx.beginPath();
+            ctx.arc(size*0.4, size*0.45, size*0.04, 0, Math.PI * 2);
+            ctx.arc(size*0.6, size*0.45, size*0.04, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Nose
+            ctx.fillStyle = '#222';
+            ctx.beginPath();
+            ctx.ellipse(size/2, size*0.55, size*0.045, size*0.035, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            const div = document.createElement('div');
+            div.innerHTML = `<p>icon-${size}x${size}.png</p>`;
+            div.appendChild(canvas);
+
+            // Download link
+            const link = document.createElement('a');
+            link.download = `icon-${size}x${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.textContent = `Download ${size}x${size}`;
+            div.appendChild(link);
+
+            container.appendChild(div);
+        });
+
+        // Screenshot
+        const screenshotCanvas = document.createElement('canvas');
+        screenshotCanvas.width = 1280;
+        screenshotCanvas.height = 720;
+        const sCtx = screenshotCanvas.getContext('2d');
+        sCtx.fillStyle = '#2d5a27';
+        sCtx.fillRect(0, 0, 1280, 720);
+        sCtx.fillStyle = '#FFD700';
+        sCtx.font = 'bold 48px Arial';
+        sCtx.textAlign = 'center';
+        sCtx.fillText("Croissant's Quest for Enlightenment", 640, 300);
+        sCtx.font = '24px Arial';
+        sCtx.fillStyle = '#fff';
+        sCtx.fillText("Help Croissant find the Palo Santo Plant!", 640, 360);
+        sCtx.font = '100px Arial';
+        sCtx.fillText("🐕", 640, 500);
+
+        const sDiv = document.createElement('div');
+        sDiv.innerHTML = '<p>screenshot-wide.png (1280x720)</p>';
+        sDiv.appendChild(screenshotCanvas);
+        const sLink = document.createElement('a');
+        sLink.download = 'screenshot-wide.png';
+        sLink.href = screenshotCanvas.toDataURL('image/png');
+        sLink.textContent = 'Download Screenshot';
+        sDiv.appendChild(sLink);
+        container.appendChild(sDiv);
+    </script>
+</body>
+</html>
