@@ -1169,6 +1169,9 @@
             shielded: false,
             megaBarkReady: false,
             energyRegen: false,
+            kibbleBoostActive: false,
+            kibbleBoostTimer: 0,
+            kibbleCooldown: 0,
             radarActive: false
         };
 
@@ -2383,8 +2386,9 @@
                 player.direction = dy > 0 ? 'down' : 'up';
             }
 
-            // Calculate speed
-            let speedMult = player.speedMultiplier * (1 + player.steaks * 0.05);
+            // Calculate speed (steaks no longer give speed - only kibble boost does)
+            let speedMult = player.speedMultiplier;
+            if (player.kibbleBoostActive) speedMult *= 1.5; // 50% speed boost from kibble
             if (player.isSprinting) speedMult *= SPRINT_MULTIPLIER;
             const currentSpeed = player.speed * speedMult * dt;
 
@@ -2616,13 +2620,31 @@
                     steak.collected = true;
                     player.steaks++;
                     document.getElementById('steakCount').textContent = player.steaks;
-                    showNotification('🥩 Steak! Speed +5%', 1000);
+                    // Steak now gives health (+1%) and energy (+5%), no speed boost
+                    player.health = Math.min(100, player.health + 1);
+                    player.energy = Math.min(100, player.energy + 5);
+                    showNotification('🥩 Steak! Health +1%, Energy +5%', 1000);
                     if (typeof trackSteakCollected === 'function') trackSteakCollected();
                 }
             });
         }
 
         function updateKibble(dt) {
+            // Update kibble boost timer
+            if (player.kibbleBoostActive) {
+                player.kibbleBoostTimer -= dt;
+                if (player.kibbleBoostTimer <= 0) {
+                    player.kibbleBoostActive = false;
+                    player.kibbleBoostTimer = 0;
+                    showNotification('🍲 Speed boost ended!', 1000);
+                }
+            }
+
+            // Update kibble cooldown
+            if (player.kibbleCooldown > 0) {
+                player.kibbleCooldown -= dt;
+            }
+
             kibbleBowls.forEach(kibble => {
                 if (!kibble.available) {
                     kibble.respawnTime -= dt;
@@ -2635,8 +2657,16 @@
                 if (d < 35) {
                     kibble.available = false;
                     kibble.respawnTime = 60;
-                    player.energy = Math.min(player.maxEnergy, player.energy + 40);
-                    showNotification('🍲 Kibble! Energy +40!', 1500);
+
+                    // Kibble now gives speed boost instead of energy
+                    if (player.kibbleCooldown <= 0) {
+                        player.kibbleBoostActive = true;
+                        player.kibbleBoostTimer = 10; // 10 seconds of speed boost
+                        player.kibbleCooldown = 30; // 30 second cooldown
+                        showNotification('🍲 Kibble! SPEED BOOST for 10 seconds!', 2000);
+                    } else {
+                        showNotification(`🍲 Kibble on cooldown! ${Math.ceil(player.kibbleCooldown)}s remaining`, 1500);
+                    }
                     if (typeof trackKibbleCollected === 'function') trackKibbleCollected();
                 }
             });
@@ -2677,15 +2707,28 @@
                 player.health -= 15;
             }
 
+            // Clamp health and energy to valid range
+            player.health = Math.max(0, Math.min(100, player.health));
+            player.energy = Math.max(0, Math.min(100, player.energy));
+
             if (player.health <= 0) {
                 showNotification('Game Over!', 5000);
                 setTimeout(() => location.reload(), 3000);
             }
 
-            document.getElementById('energyBar').style.width = player.energy + '%';
-            document.getElementById('healthBar').style.width = player.health + '%';
+            // Clamp bars at 100% visually
+            document.getElementById('energyBar').style.width = Math.min(100, player.energy) + '%';
+            document.getElementById('healthBar').style.width = Math.min(100, player.health) + '%';
 
-            let speedText = `🏃 Speed: ${(player.speedMultiplier * (1 + player.steaks * 0.05)).toFixed(1)}x`;
+            // Speed indicator - show kibble boost status
+            let currentSpeedMult = player.speedMultiplier;
+            if (player.kibbleBoostActive) currentSpeedMult *= 1.5;
+            let speedText = `🏃 Speed: ${currentSpeedMult.toFixed(1)}x`;
+            if (player.kibbleBoostActive) {
+                speedText += ` ⚡${Math.ceil(player.kibbleBoostTimer)}s`;
+            } else if (player.kibbleCooldown > 0) {
+                speedText += ` (CD: ${Math.ceil(player.kibbleCooldown)}s)`;
+            }
             document.getElementById('speedIndicator').textContent = speedText;
             document.getElementById('sprintIndicator').textContent = player.isSprinting ? '🔥 SPRINTING' : '';
         }
@@ -3334,6 +3377,28 @@
             const sx = player.x - camera.x;
             const sy = player.y - camera.y;
 
+            // Draw speed lines when kibble boost is active
+            if (player.kibbleBoostActive) {
+                const time = Date.now() / 100;
+                ctx.strokeStyle = '#FFD70080';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 8; i++) {
+                    const offset = ((time + i * 20) % 60) - 30;
+                    const lineX = sx + player.width/2 + offset;
+                    const lineY = sy + player.height/2 + (i - 4) * 8;
+                    const lineLen = 15 + Math.random() * 10;
+                    ctx.beginPath();
+                    ctx.moveTo(lineX - lineLen, lineY);
+                    ctx.lineTo(lineX, lineY);
+                    ctx.stroke();
+                }
+                // Glow effect around player
+                ctx.fillStyle = '#FFD70020';
+                ctx.beginPath();
+                ctx.arc(sx + player.width/2, sy + player.height/2, 35, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
             if (player.shielded) {
                 ctx.strokeStyle = '#6b6bff60';
                 ctx.lineWidth = 3;
@@ -3346,7 +3411,9 @@
             const time = Date.now() / 1000;
             const isWalking = keys.w || keys.a || keys.s || keys.d ||
                               keys.ArrowUp || keys.ArrowDown || keys.ArrowLeft || keys.ArrowRight;
-            drawShibaSprite(ctx, sx + player.width/2 - 10, sy + player.height/2 - 5, player.direction, isWalking, time);
+            // Faster animation when kibble boost is active
+            const animTime = player.kibbleBoostActive ? time * 2 : time;
+            drawShibaSprite(ctx, sx + player.width/2 - 10, sy + player.height/2 - 5, player.direction, isWalking, animTime);
 
             if (player.hasSword) {
                 ctx.font = '16px Arial';
