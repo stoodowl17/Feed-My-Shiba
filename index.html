@@ -2086,6 +2086,534 @@
         }
         // ===== END BEAR DANGER ZONE SYSTEM =====
 
+        // ===== ZUCK NPC SYSTEM =====
+        const metaCampus = {
+            x: 4000,
+            y: 3500,
+            width: 800,
+            height: 600,
+            name: "Meta Reality Labs"
+        };
+
+        const zuck = {
+            x: metaCampus.x + metaCampus.width / 2,
+            y: metaCampus.y + metaCampus.height / 2,
+            width: 40,
+            height: 50,
+            triggerRadius: 50,
+            active: false,
+            dialogueTimer: 0,
+            dialogueIndex: 0,
+            handGesturePhase: 0,
+            lizardGlanceTimer: 0,
+            isGlancingLizard: false
+        };
+
+        const ZUCK_TRAP_DURATION = 45; // 45 seconds
+        const ZUCK_HEALTH_DRAIN = 0.2; // -0.2% per second
+        const META_DEBUFF_DURATION = 30; // 30 seconds
+        const META_SPEED_PENALTY = 0.1; // -10% speed
+
+        let zuckEncounter = {
+            active: false,
+            timer: 0,
+            escaped: false,
+            vrParticles: [],
+            vignetteAlpha: 0,
+            currentDialogue: '',
+            dialoguePhase: 0
+        };
+
+        let metaDebuff = {
+            active: false,
+            timer: 0
+        };
+
+        // VR headset decorations around Meta campus
+        const vrHeadsets = [];
+        function initMetaCampus() {
+            // Scatter VR headsets around campus
+            for (let i = 0; i < 8; i++) {
+                vrHeadsets.push({
+                    x: metaCampus.x + Math.random() * metaCampus.width,
+                    y: metaCampus.y + Math.random() * metaCampus.height,
+                    rotation: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        const zuckDialogues = [
+            { time: 0, text: "Hey! Perfect timing. We're building the *future* of social connection.", duration: 3 },
+            { time: 3, text: "The metaverse isn't just virtual reality - it's the next evolution of human interaction.", duration: 5 },
+            { time: 8, text: "Imagine living in a world where your digital self can...", duration: 4 },
+            { time: 12, text: "...and here's the best part: **LIZARDS**.. I mean they're really no different than people.", duration: 3 },
+            { time: 15, text: "Cold-blooded computing. Scalable. Decentralized. **Monitor lizards** could run the entire blockchain.", duration: 3 },
+            { time: 18, text: "Doge was our first metaverse experiment. Much wow. Such scale. Welcome to Web3...", duration: 4 },
+        ];
+
+        const zuckRandomPivots = [
+            "Have you heard about our new Llama model? It's like GPT but with *taste*.",
+            "We're hiring! Want to be a lizard farmer? Or maybe... **DIGITAL CROISSANT ECOSYSTEM MANAGER**?",
+            "Threads is basically Twitter but with mandatory optimism. Trust me."
+        ];
+
+        function isInMetaCampus(x, y) {
+            return x >= metaCampus.x && x <= metaCampus.x + metaCampus.width &&
+                   y >= metaCampus.y && y <= metaCampus.y + metaCampus.height;
+        }
+
+        function triggerZuckEncounter() {
+            if (zuckEncounter.escaped) return; // Already escaped once
+
+            zuckEncounter.active = true;
+            zuckEncounter.timer = 0;
+            zuckEncounter.dialoguePhase = 0;
+            zuckEncounter.currentDialogue = zuckDialogues[0].text;
+            zuckEncounter.vignetteAlpha = 0;
+            zuckEncounter.vrParticles = [];
+
+            // Play initial VR hum
+            playVRHum();
+            showNotification('⚠️ VR HEADSET LOCKED - Cannot escape!', 3000);
+        }
+
+        function updateZuckEncounter(dt) {
+            // Check for trigger
+            if (!zuckEncounter.active && !zuckEncounter.escaped) {
+                const distToZuck = distance(player.x + player.width/2, player.y + player.height/2,
+                                           zuck.x + zuck.width/2, zuck.y + zuck.height/2);
+                if (distToZuck < zuck.triggerRadius) {
+                    triggerZuckEncounter();
+                }
+            }
+
+            if (!zuckEncounter.active) return;
+
+            zuckEncounter.timer += dt;
+            zuck.handGesturePhase += dt * 5;
+            zuck.lizardGlanceTimer -= dt;
+
+            // Lizard glance every 5-8 seconds
+            if (zuck.lizardGlanceTimer <= 0) {
+                zuck.isGlancingLizard = true;
+                zuck.lizardGlanceTimer = 5 + Math.random() * 3;
+                setTimeout(() => { zuck.isGlancingLizard = false; }, 500);
+            }
+
+            // Update vignette
+            zuckEncounter.vignetteAlpha = Math.min(0.4, zuckEncounter.timer * 0.1);
+
+            // Health drain (-0.2% per second)
+            player.health = Math.max(1, player.health - ZUCK_HEALTH_DRAIN * dt);
+
+            // Update dialogue based on timer
+            for (let i = zuckDialogues.length - 1; i >= 0; i--) {
+                if (zuckEncounter.timer >= zuckDialogues[i].time) {
+                    zuckEncounter.currentDialogue = zuckDialogues[i].text;
+                    zuckEncounter.dialoguePhase = i;
+                    break;
+                }
+            }
+
+            // Random pivot at second 22
+            if (zuckEncounter.timer >= 22 && zuckEncounter.timer < 22 + dt) {
+                const pivot = zuckRandomPivots[Math.floor(Math.random() * zuckRandomPivots.length)];
+                zuckEncounter.currentDialogue = pivot;
+            }
+
+            // Add VR particles
+            if (Math.random() < 0.3) {
+                zuckEncounter.vrParticles.push({
+                    x: player.x + player.width/2 + (Math.random() - 0.5) * 200,
+                    y: player.y + player.height/2 + (Math.random() - 0.5) * 200,
+                    vx: (Math.random() - 0.5) * 50,
+                    vy: (Math.random() - 0.5) * 50,
+                    life: 2,
+                    size: 3 + Math.random() * 5,
+                    isLizard: zuckEncounter.dialoguePhase >= 3 && Math.random() < 0.2
+                });
+            }
+
+            // Update particles
+            zuckEncounter.vrParticles = zuckEncounter.vrParticles.filter(p => {
+                p.life -= dt;
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                // Swirl toward player
+                const dx = player.x + player.width/2 - p.x;
+                const dy = player.y + player.height/2 - p.y;
+                p.vx += dx * 0.5 * dt;
+                p.vy += dy * 0.5 * dt;
+                return p.life > 0;
+            });
+
+            // Escape after 45 seconds (changed from 18 to match spec)
+            if (zuckEncounter.timer >= ZUCK_TRAP_DURATION) {
+                escapeZuckEncounter();
+            }
+
+            // Show "VR headset locked" when player tries to escape
+            if (keys.Escape || keys.e || keys.E) {
+                showNotification('🥽 VR headset locked! Please wait...', 1000);
+            }
+
+            // Play periodic VR hum
+            if (Math.floor(zuckEncounter.timer) % 5 === 0 && Math.floor(zuckEncounter.timer - dt) % 5 !== 0) {
+                playVRHum();
+            }
+
+            // Play echoey voice periodically
+            if (Math.floor(zuckEncounter.timer) % 3 === 0 && Math.floor(zuckEncounter.timer - dt) % 3 !== 0) {
+                playZuckVoice();
+            }
+        }
+
+        function escapeZuckEncounter() {
+            zuckEncounter.active = false;
+            zuckEncounter.escaped = true;
+            zuckEncounter.vignetteAlpha = 0;
+
+            // Apply Meta'd debuff
+            metaDebuff.active = true;
+            metaDebuff.timer = META_DEBUFF_DURATION;
+
+            showNotification("🥽 Escaped! But you've been 'Meta'd' - 10% slower for 30s", 4000);
+
+            // Zuck continues talking to empty air
+            setTimeout(() => {
+                showNotification('Zuck: "...the metaverse needs more baked goods..."', 3000);
+            }, 1500);
+        }
+
+        function updateMetaDebuff(dt) {
+            if (metaDebuff.active) {
+                metaDebuff.timer -= dt;
+                if (metaDebuff.timer <= 0) {
+                    metaDebuff.active = false;
+                    showNotification("Meta'd debuff worn off!", 2000);
+                }
+            }
+        }
+
+        function getMetaSpeedMultiplier() {
+            return metaDebuff.active ? (1 - META_SPEED_PENALTY) : 1;
+        }
+
+        function playVRHum() {
+            if (!audioCtx || sfxVolume <= 0) return;
+            initAudio();
+
+            // Low frequency hum
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 60;
+
+            gain.gain.setValueAtTime(0.05 * sfxVolume, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 1);
+        }
+
+        function playZuckVoice() {
+            if (!audioCtx || sfxVolume <= 0) return;
+            initAudio();
+
+            // Echoey voice effect - multiple delayed tones
+            const baseFreqs = [180, 220, 200];
+            baseFreqs.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.value = freq + Math.random() * 20;
+
+                const delay = i * 0.1;
+                gain.gain.setValueAtTime(0, audioCtx.currentTime + delay);
+                gain.gain.linearRampToValueAtTime(0.08 * sfxVolume, audioCtx.currentTime + delay + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + delay + 0.3);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + delay);
+                osc.stop(audioCtx.currentTime + delay + 0.4);
+            });
+        }
+
+        function drawMetaCampus() {
+            const sx = metaCampus.x - camera.x;
+            const sy = metaCampus.y - camera.y;
+
+            if (sx + metaCampus.width < 0 || sx > camera.width ||
+                sy + metaCampus.height < 0 || sy > camera.height) return;
+
+            // Campus ground (tech gray)
+            ctx.fillStyle = '#e8e8e8';
+            ctx.fillRect(sx, sy, metaCampus.width, metaCampus.height);
+
+            // Blue glass building
+            ctx.fillStyle = '#1877f2'; // Meta blue
+            ctx.fillRect(sx + metaCampus.width/2 - 100, sy + 50, 200, 150);
+
+            // Glass panels
+            ctx.fillStyle = '#4aa3ff';
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 4; col++) {
+                    ctx.fillRect(sx + metaCampus.width/2 - 90 + col * 45, sy + 60 + row * 45, 35, 35);
+                }
+            }
+
+            // Meta logo (simplified infinity)
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            const logoX = sx + metaCampus.width/2;
+            const logoY = sy + 30;
+            ctx.moveTo(logoX - 20, logoY);
+            ctx.bezierCurveTo(logoX - 20, logoY - 15, logoX, logoY - 15, logoX, logoY);
+            ctx.bezierCurveTo(logoX, logoY + 15, logoX + 20, logoY + 15, logoX + 20, logoY);
+            ctx.bezierCurveTo(logoX + 20, logoY - 15, logoX, logoY - 15, logoX, logoY);
+            ctx.bezierCurveTo(logoX, logoY + 15, logoX - 20, logoY + 15, logoX - 20, logoY);
+            ctx.stroke();
+
+            // VR headsets scattered around
+            vrHeadsets.forEach(headset => {
+                const hx = headset.x - camera.x;
+                const hy = headset.y - camera.y;
+                if (hx < -50 || hx > camera.width + 50 || hy < -50 || hy > camera.height + 50) return;
+
+                ctx.save();
+                ctx.translate(hx, hy);
+                ctx.rotate(headset.rotation);
+
+                // Headset body
+                ctx.fillStyle = '#333';
+                ctx.fillRect(-15, -8, 30, 16);
+                // Strap
+                ctx.strokeStyle = '#555';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, 0, 20, Math.PI * 0.8, Math.PI * 2.2);
+                ctx.stroke();
+                // Lenses
+                ctx.fillStyle = '#1877f2';
+                ctx.beginPath();
+                ctx.arc(-6, 0, 5, 0, Math.PI * 2);
+                ctx.arc(6, 0, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            });
+
+            // Campus sign
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('META REALITY LABS', sx + metaCampus.width/2, sy + metaCampus.height - 20);
+            ctx.font = '10px Arial';
+            ctx.fillText('Building the Metaverse™', sx + metaCampus.width/2, sy + metaCampus.height - 8);
+            ctx.textAlign = 'left';
+        }
+
+        function drawZuck() {
+            const sx = zuck.x - camera.x;
+            const sy = zuck.y - camera.y;
+
+            if (sx + zuck.width < -50 || sx > camera.width + 50 ||
+                sy + zuck.height < -50 || sy > camera.height + 50) return;
+
+            ctx.save();
+            ctx.translate(sx + zuck.width/2, sy + zuck.height/2);
+
+            // Aura when active
+            if (zuckEncounter.active) {
+                ctx.fillStyle = 'rgba(24, 119, 242, 0.3)';
+                ctx.beginPath();
+                ctx.arc(0, 0, 60 + Math.sin(zuck.handGesturePhase) * 10, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Trigger zone indicator (blue circle)
+            if (!zuckEncounter.escaped) {
+                ctx.strokeStyle = 'rgba(24, 119, 242, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.arc(0, 0, zuck.triggerRadius, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Body (grey t-shirt)
+            ctx.fillStyle = '#808080';
+            ctx.beginPath();
+            ctx.ellipse(0, 10, 15, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Head
+            ctx.fillStyle = '#ffdab9';
+            ctx.beginPath();
+            ctx.arc(0, -15, 14, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hair (short, brown)
+            ctx.fillStyle = '#654321';
+            ctx.beginPath();
+            ctx.arc(0, -22, 12, Math.PI, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes (occasionally glance like lizard)
+            ctx.fillStyle = zuck.isGlancingLizard ? '#00ff00' : '#4a4a4a';
+            const eyeOffset = zuck.isGlancingLizard ? 3 : 0;
+            ctx.beginPath();
+            ctx.arc(-5 + eyeOffset, -16, 2, 0, Math.PI * 2);
+            ctx.arc(5 + eyeOffset, -16, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Mouth (slight smile)
+            ctx.strokeStyle = '#8b4513';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(0, -10, 5, 0.1 * Math.PI, 0.9 * Math.PI);
+            ctx.stroke();
+
+            // Hands gesturing intensely
+            const gestureOffset = Math.sin(zuck.handGesturePhase) * 10;
+            ctx.fillStyle = '#ffdab9';
+
+            // Left hand
+            ctx.beginPath();
+            ctx.arc(-25 + gestureOffset, 0 - gestureOffset/2, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Right hand
+            ctx.beginPath();
+            ctx.arc(25 - gestureOffset, 5 + gestureOffset/2, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Arms
+            ctx.strokeStyle = '#808080';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.moveTo(-12, 5);
+            ctx.lineTo(-25 + gestureOffset, 0 - gestureOffset/2);
+            ctx.moveTo(12, 5);
+            ctx.lineTo(25 - gestureOffset, 5 + gestureOffset/2);
+            ctx.stroke();
+
+            ctx.restore();
+
+            // Name tag
+            if (!zuckEncounter.active) {
+                ctx.fillStyle = '#333';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Zuck', sx + zuck.width/2, sy - 10);
+                ctx.textAlign = 'left';
+            }
+        }
+
+        function drawZuckEncounterOverlay() {
+            if (!zuckEncounter.active) return;
+
+            // Full screen vignette
+            const gradient = ctx.createRadialGradient(
+                camera.width/2, camera.height/2, camera.width * 0.3,
+                camera.width/2, camera.height/2, camera.width * 0.8
+            );
+            gradient.addColorStop(0, 'rgba(24, 119, 242, 0)');
+            gradient.addColorStop(1, `rgba(24, 119, 242, ${zuckEncounter.vignetteAlpha})`);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, camera.width, camera.height);
+
+            // VR particles swirl
+            zuckEncounter.vrParticles.forEach(p => {
+                const px = p.x - camera.x;
+                const py = p.y - camera.y;
+
+                if (p.isLizard) {
+                    // Lizard silhouette
+                    ctx.fillStyle = `rgba(0, 255, 0, ${p.life * 0.5})`;
+                    ctx.font = `${p.size * 3}px Arial`;
+                    ctx.fillText('🦎', px - p.size, py + p.size);
+                } else {
+                    ctx.fillStyle = `rgba(24, 119, 242, ${p.life * 0.7})`;
+                    ctx.beginPath();
+                    ctx.arc(px, py, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            // Dialogue box at top
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillRect(50, 20, camera.width - 100, 80);
+            ctx.strokeStyle = '#1877f2';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(50, 20, camera.width - 100, 80);
+
+            // Zuck dialogue
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+
+            // Word wrap dialogue
+            const maxWidth = camera.width - 140;
+            const words = zuckEncounter.currentDialogue.split(' ');
+            let line = '';
+            let y = 50;
+
+            words.forEach(word => {
+                const testLine = line + word + ' ';
+                if (ctx.measureText(testLine).width > maxWidth && line !== '') {
+                    ctx.fillText(line, camera.width/2, y);
+                    line = word + ' ';
+                    y += 18;
+                } else {
+                    line = testLine;
+                }
+            });
+            ctx.fillText(line, camera.width/2, y);
+
+            ctx.textAlign = 'left';
+
+            // Timer bar
+            const timerWidth = (zuckEncounter.timer / ZUCK_TRAP_DURATION) * (camera.width - 120);
+            ctx.fillStyle = '#333';
+            ctx.fillRect(60, 85, camera.width - 120, 10);
+            ctx.fillStyle = '#1877f2';
+            ctx.fillRect(60, 85, timerWidth, 10);
+
+            // Time remaining
+            ctx.fillStyle = '#888';
+            ctx.font = '10px Arial';
+            ctx.fillText(`${Math.ceil(ZUCK_TRAP_DURATION - zuckEncounter.timer)}s remaining`, camera.width/2 - 30, 95);
+
+            // Health drain warning
+            ctx.fillStyle = '#ff4444';
+            ctx.font = '12px Arial';
+            ctx.fillText(`Health: ${Math.floor(player.health)}% (-0.2%/s)`, 60, 115);
+
+            // Meta'd debuff preview
+            if (metaDebuff.active) {
+                ctx.fillStyle = '#1877f2';
+                ctx.fillText(`Meta'd: ${Math.ceil(metaDebuff.timer)}s (-10% speed)`, camera.width - 200, 115);
+            }
+        }
+
+        function drawMetaDebuffIndicator() {
+            if (!metaDebuff.active) return;
+
+            // Small indicator in corner
+            ctx.fillStyle = 'rgba(24, 119, 242, 0.8)';
+            ctx.fillRect(10, 130, 100, 25);
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px Arial';
+            ctx.fillText(`🥽 Meta'd: ${Math.ceil(metaDebuff.timer)}s`, 15, 147);
+        }
+        // ===== END ZUCK NPC SYSTEM =====
+
         function spawnSteaks() {
             steaks = [];
             for (let i = 0; i < 200; i++) {
@@ -2995,6 +3523,8 @@
             updateGoldSparkles(dt);
             updateBear(dt);
             updateScreenShake(dt);
+            updateZuckEncounter(dt);
+            updateMetaDebuff(dt);
 
             if (player.barkCooldown > 0) player.barkCooldown -= dt;
 
@@ -3007,6 +3537,11 @@
         }
 
         function updatePlayer(dt) {
+            // Trapped in Zuck's VR presentation
+            if (zuckEncounter.active) {
+                return; // Cannot move during encounter
+            }
+
             if (player.frozenByMole) {
                 player.moleTimer -= dt;
                 document.getElementById('moleTimer').textContent = `${player.moleTimer.toFixed(1)}s`;
@@ -3050,6 +3585,7 @@
             let speedMult = player.speedMultiplier;
             if (player.kibbleBoostActive) speedMult *= 1.5; // 50% speed boost from kibble
             if (player.isSprinting) speedMult *= SPRINT_MULTIPLIER;
+            speedMult *= getMetaSpeedMultiplier(); // Apply Meta'd debuff if active
             const currentSpeed = player.speed * speedMult * dt;
 
             let newX = player.x + dx * currentSpeed;
@@ -3407,6 +3943,7 @@
             drawBackground();
             drawZones();
             drawBearTerritory();
+            drawMetaCampus();
             drawWater();
             drawMountain();
             drawTrees();
@@ -3421,10 +3958,15 @@
             drawMoles();
             drawWizards();
             drawBear();
+            drawZuck();
             drawPlayer();
             drawClouds();
 
             if (player.radarActive) drawRadar();
+
+            // Draw Zuck encounter overlay (VR vignette, particles, dialogue)
+            drawZuckEncounterOverlay();
+            drawMetaDebuffIndicator();
 
             ctx.restore();
             drawMinimap();
@@ -4248,6 +4790,9 @@
 
             // Initialize bear
             initBear();
+
+            // Initialize Meta campus
+            initMetaCampus();
             updateGoldUI();
 
             // Initialize leaderboard display and hide timer until game starts
