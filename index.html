@@ -1652,6 +1652,440 @@
             });
         }
 
+        // ===== BEAR DANGER ZONE SYSTEM =====
+        const bearTerritory = {
+            x: 9500,
+            y: 4000,
+            width: 2000,
+            height: 2500,
+            name: "Bear's Den Forest"
+        };
+
+        const bear = {
+            x: bearTerritory.x + bearTerritory.width / 2,
+            y: bearTerritory.y + bearTerritory.height / 2,
+            width: 60,
+            height: 60,
+            speed: BASE_SPEED * 2.5, // 2x+ player speed
+            patrolSpeed: 40,
+            state: 'patrol', // 'patrol', 'chase', 'returning'
+            patrolAngle: 0,
+            patrolRadius: 300,
+            patrolCenterX: 0,
+            patrolCenterY: 0,
+            chaseTarget: null,
+            cooldownTimer: 0,
+            roarTimer: 0,
+            animFrame: 0,
+            direction: 'down'
+        };
+
+        const BEAR_COOLDOWN = 60; // 1 minute cooldown
+        const BEAR_DETECTION_RANGE = 400;
+        const BEAR_ROAR_INTERVAL = 3; // Roar every 3 seconds while chasing
+        let screenShake = { active: false, intensity: 0, duration: 0 };
+        let bearWarningShown = false;
+
+        function isInBearTerritory(x, y) {
+            return x >= bearTerritory.x && x <= bearTerritory.x + bearTerritory.width &&
+                   y >= bearTerritory.y && y <= bearTerritory.y + bearTerritory.height;
+        }
+
+        function initBear() {
+            bear.patrolCenterX = bearTerritory.x + bearTerritory.width / 2;
+            bear.patrolCenterY = bearTerritory.y + bearTerritory.height / 2;
+            bear.x = bear.patrolCenterX;
+            bear.y = bear.patrolCenterY;
+        }
+
+        function updateBear(dt) {
+            // Update cooldown
+            if (bear.cooldownTimer > 0) {
+                bear.cooldownTimer -= dt;
+            }
+
+            // Update roar timer
+            if (bear.roarTimer > 0) {
+                bear.roarTimer -= dt;
+            }
+
+            // Animation
+            bear.animFrame += dt * 4;
+
+            const playerInTerritory = isInBearTerritory(player.x + player.width/2, player.y + player.height/2);
+            const bearInTerritory = isInBearTerritory(bear.x + bear.width/2, bear.y + bear.height/2);
+            const distToPlayer = distance(bear.x, bear.y, player.x, player.y);
+
+            // Show warning when player first enters
+            if (playerInTerritory && !bearWarningShown && bear.cooldownTimer <= 0) {
+                showNotification('⚠️ WARNING: Bear Territory! RUN!', 3000);
+                bearWarningShown = true;
+            }
+            if (!playerInTerritory) {
+                bearWarningShown = false;
+            }
+
+            switch (bear.state) {
+                case 'patrol':
+                    // Patrol in circles around territory center
+                    bear.patrolAngle += dt * 0.5;
+                    const targetX = bear.patrolCenterX + Math.cos(bear.patrolAngle) * bear.patrolRadius;
+                    const targetY = bear.patrolCenterY + Math.sin(bear.patrolAngle) * bear.patrolRadius;
+
+                    const patrolDx = targetX - bear.x;
+                    const patrolDy = targetY - bear.y;
+                    const patrolDist = Math.sqrt(patrolDx * patrolDx + patrolDy * patrolDy);
+
+                    if (patrolDist > 5) {
+                        bear.x += (patrolDx / patrolDist) * bear.patrolSpeed * dt;
+                        bear.y += (patrolDy / patrolDist) * bear.patrolSpeed * dt;
+                        bear.direction = Math.abs(patrolDx) > Math.abs(patrolDy)
+                            ? (patrolDx > 0 ? 'right' : 'left')
+                            : (patrolDy > 0 ? 'down' : 'up');
+                    }
+
+                    // Detect player in territory
+                    if (playerInTerritory && distToPlayer < BEAR_DETECTION_RANGE && bear.cooldownTimer <= 0) {
+                        bear.state = 'chase';
+                        playBearRoar();
+                        triggerScreenShake(15, 0.5);
+                        showNotification('🐻 BEAR IS CHASING YOU!', 2000);
+                    }
+                    break;
+
+                case 'chase':
+                    // Chase player at high speed
+                    const chaseDx = player.x - bear.x;
+                    const chaseDy = player.y - bear.y;
+                    const chaseDist = Math.sqrt(chaseDx * chaseDx + chaseDy * chaseDy);
+
+                    if (chaseDist > 10) {
+                        bear.x += (chaseDx / chaseDist) * bear.speed * dt;
+                        bear.y += (chaseDy / chaseDist) * bear.speed * dt;
+                        bear.direction = Math.abs(chaseDx) > Math.abs(chaseDy)
+                            ? (chaseDx > 0 ? 'right' : 'left')
+                            : (chaseDy > 0 ? 'down' : 'up');
+                    }
+
+                    // Periodic roar while chasing
+                    if (bear.roarTimer <= 0) {
+                        playBearRoar();
+                        triggerScreenShake(10, 0.3);
+                        bear.roarTimer = BEAR_ROAR_INTERVAL;
+                    }
+
+                    // Check collision with player
+                    if (distToPlayer < 40) {
+                        bearAttackPlayer();
+                    }
+
+                    // Stop chasing if player escapes territory
+                    if (!playerInTerritory) {
+                        bear.state = 'returning';
+                        bear.cooldownTimer = BEAR_COOLDOWN;
+                        showNotification('🐻 Bear stopped at territory edge. Safe!', 2000);
+                    }
+
+                    // Also stop if bear goes too far from territory
+                    if (!bearInTerritory) {
+                        bear.state = 'returning';
+                    }
+                    break;
+
+                case 'returning':
+                    // Return to patrol center
+                    const returnDx = bear.patrolCenterX - bear.x;
+                    const returnDy = bear.patrolCenterY - bear.y;
+                    const returnDist = Math.sqrt(returnDx * returnDx + returnDy * returnDy);
+
+                    if (returnDist > 20) {
+                        bear.x += (returnDx / returnDist) * bear.patrolSpeed * 2 * dt;
+                        bear.y += (returnDy / returnDist) * bear.patrolSpeed * 2 * dt;
+                        bear.direction = Math.abs(returnDx) > Math.abs(returnDy)
+                            ? (returnDx > 0 ? 'right' : 'left')
+                            : (returnDy > 0 ? 'down' : 'up');
+                    } else {
+                        bear.state = 'patrol';
+                    }
+                    break;
+            }
+        }
+
+        function bearAttackPlayer() {
+            // Knockback player
+            const knockbackDist = 150;
+            const knockbackAngle = Math.atan2(player.y - bear.y, player.x - bear.x);
+            player.x += Math.cos(knockbackAngle) * knockbackDist;
+            player.y += Math.sin(knockbackAngle) * knockbackDist;
+
+            // Damage player (-25% health)
+            player.health = Math.max(0, player.health - 25);
+
+            // Strong screen shake
+            triggerScreenShake(25, 0.8);
+            playBearRoar();
+            showNotification('🐻 BEAR ATTACK! -25% Health!', 2000);
+
+            // Brief invulnerability - bear backs off slightly
+            bear.state = 'returning';
+            bear.cooldownTimer = BEAR_COOLDOWN;
+        }
+
+        function triggerScreenShake(intensity, duration) {
+            screenShake.active = true;
+            screenShake.intensity = intensity;
+            screenShake.duration = duration;
+        }
+
+        function updateScreenShake(dt) {
+            if (screenShake.active) {
+                screenShake.duration -= dt;
+                if (screenShake.duration <= 0) {
+                    screenShake.active = false;
+                    screenShake.intensity = 0;
+                }
+            }
+        }
+
+        function getScreenShakeOffset() {
+            if (!screenShake.active) return { x: 0, y: 0 };
+            return {
+                x: (Math.random() - 0.5) * screenShake.intensity * 2,
+                y: (Math.random() - 0.5) * screenShake.intensity * 2
+            };
+        }
+
+        function playBearRoar() {
+            if (!audioCtx || sfxVolume <= 0) return;
+            initAudio();
+
+            // Deep rumbling roar using low frequency oscillators
+            const baseFreq = 80;
+
+            // Multiple oscillators for rich roar sound
+            for (let i = 0; i < 4; i++) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = i < 2 ? 'sawtooth' : 'square';
+                osc.frequency.value = baseFreq + i * 20 + Math.random() * 30;
+
+                const attackTime = 0.05;
+                const sustainTime = 0.4;
+                const releaseTime = 0.3;
+
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.2 * sfxVolume, audioCtx.currentTime + attackTime);
+                gain.gain.linearRampToValueAtTime(0.15 * sfxVolume, audioCtx.currentTime + attackTime + sustainTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + attackTime + sustainTime + releaseTime);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + attackTime + sustainTime + releaseTime + 0.1);
+            }
+        }
+
+        function drawBearTerritory() {
+            const sx = bearTerritory.x - camera.x;
+            const sy = bearTerritory.y - camera.y;
+
+            // Skip if completely off screen
+            if (sx + bearTerritory.width < 0 || sx > camera.width ||
+                sy + bearTerritory.height < 0 || sy > camera.height) return;
+
+            // Dark forest floor
+            ctx.fillStyle = '#1a2f1a';
+            ctx.fillRect(sx, sy, bearTerritory.width, bearTerritory.height);
+
+            // Red-tinted fog effect
+            const playerInTerritory = isInBearTerritory(player.x, player.y);
+            const fogAlpha = playerInTerritory ? 0.25 : 0.15;
+            ctx.fillStyle = `rgba(139, 0, 0, ${fogAlpha})`;
+            ctx.fillRect(sx, sy, bearTerritory.width, bearTerritory.height);
+
+            // Darker trees within territory
+            const treeDensity = 15;
+            ctx.fillStyle = '#0d1f0d';
+            for (let i = 0; i < treeDensity; i++) {
+                const treeX = sx + (i % 5) * (bearTerritory.width / 5) + 50;
+                const treeY = sy + Math.floor(i / 5) * (bearTerritory.height / 3) + 80;
+
+                // Dark pine tree
+                ctx.beginPath();
+                ctx.moveTo(treeX, treeY - 60);
+                ctx.lineTo(treeX - 30, treeY + 20);
+                ctx.lineTo(treeX + 30, treeY + 20);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(treeX, treeY - 40);
+                ctx.lineTo(treeX - 25, treeY + 40);
+                ctx.lineTo(treeX + 25, treeY + 40);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Warning signs at borders
+            const signPositions = [
+                { x: bearTerritory.x, y: bearTerritory.y + bearTerritory.height / 2 }, // Left
+                { x: bearTerritory.x + bearTerritory.width, y: bearTerritory.y + bearTerritory.height / 2 }, // Right
+                { x: bearTerritory.x + bearTerritory.width / 2, y: bearTerritory.y }, // Top
+                { x: bearTerritory.x + bearTerritory.width / 2, y: bearTerritory.y + bearTerritory.height } // Bottom
+            ];
+
+            signPositions.forEach(pos => {
+                const signX = pos.x - camera.x;
+                const signY = pos.y - camera.y;
+
+                if (signX > -50 && signX < camera.width + 50 && signY > -50 && signY < camera.height + 50) {
+                    // Sign post
+                    ctx.fillStyle = '#4a3728';
+                    ctx.fillRect(signX - 3, signY - 10, 6, 40);
+
+                    // Warning sign
+                    ctx.fillStyle = '#ff4444';
+                    ctx.beginPath();
+                    ctx.moveTo(signX, signY - 35);
+                    ctx.lineTo(signX - 20, signY - 5);
+                    ctx.lineTo(signX + 20, signY - 5);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Exclamation mark
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('!', signX, signY - 12);
+                    ctx.textAlign = 'left';
+
+                    // Bear icon below sign
+                    ctx.font = '14px Arial';
+                    ctx.fillText('🐻', signX - 7, signY + 25);
+                }
+            });
+
+            // Pulsing danger border when player is inside
+            if (playerInTerritory && bear.state === 'chase') {
+                const pulseAlpha = 0.3 + Math.sin(Date.now() / 200) * 0.2;
+                ctx.strokeStyle = `rgba(255, 0, 0, ${pulseAlpha})`;
+                ctx.lineWidth = 8;
+                ctx.strokeRect(sx + 4, sy + 4, bearTerritory.width - 8, bearTerritory.height - 8);
+            }
+        }
+
+        function drawBear() {
+            const sx = bear.x - camera.x;
+            const sy = bear.y - camera.y;
+
+            // Skip if off screen
+            if (sx + bear.width < -50 || sx > camera.width + 50 ||
+                sy + bear.height < -50 || sy > camera.height + 50) return;
+
+            const bobOffset = Math.sin(bear.animFrame) * 3;
+            const isChasing = bear.state === 'chase';
+
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(sx + bear.width/2, sy + bear.height + 5, 25, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Angry aura when chasing
+            if (isChasing) {
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+                ctx.beginPath();
+                ctx.arc(sx + bear.width/2, sy + bear.height/2, 50, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.save();
+            ctx.translate(sx + bear.width/2, sy + bear.height/2 + bobOffset);
+
+            // Flip based on direction
+            if (bear.direction === 'left') {
+                ctx.scale(-1, 1);
+            }
+
+            // Bear body (brown)
+            ctx.fillStyle = isChasing ? '#5c3d2e' : '#6b4423';
+            ctx.beginPath();
+            ctx.ellipse(0, 5, 28, 22, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Bear head
+            ctx.fillStyle = isChasing ? '#5c3d2e' : '#6b4423';
+            ctx.beginPath();
+            ctx.ellipse(15, -8, 18, 16, 0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ears
+            ctx.beginPath();
+            ctx.arc(8, -22, 8, 0, Math.PI * 2);
+            ctx.arc(22, -18, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Inner ears
+            ctx.fillStyle = '#8b6914';
+            ctx.beginPath();
+            ctx.arc(8, -22, 4, 0, Math.PI * 2);
+            ctx.arc(22, -18, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Snout
+            ctx.fillStyle = '#8b7355';
+            ctx.beginPath();
+            ctx.ellipse(28, -5, 10, 8, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Nose
+            ctx.fillStyle = '#222';
+            ctx.beginPath();
+            ctx.ellipse(35, -6, 5, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes (angry when chasing)
+            ctx.fillStyle = isChasing ? '#ff0000' : '#222';
+            ctx.beginPath();
+            ctx.ellipse(12, -12, isChasing ? 4 : 3, isChasing ? 4 : 3, 0, 0, Math.PI * 2);
+            ctx.ellipse(22, -10, isChasing ? 4 : 3, isChasing ? 4 : 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Angry eyebrows when chasing
+            if (isChasing) {
+                ctx.strokeStyle = '#3d2817';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(8, -18);
+                ctx.lineTo(16, -15);
+                ctx.moveTo(26, -14);
+                ctx.lineTo(18, -16);
+                ctx.stroke();
+            }
+
+            // Legs
+            ctx.fillStyle = isChasing ? '#4a2f1e' : '#5c3d2e';
+            const legOffset = Math.sin(bear.animFrame * 2) * 5;
+            ctx.fillRect(-20, 15 + legOffset, 10, 15);
+            ctx.fillRect(-5, 15 - legOffset, 10, 15);
+            ctx.fillRect(8, 15 + legOffset, 10, 15);
+            ctx.fillRect(18, 15 - legOffset, 10, 15);
+
+            ctx.restore();
+
+            // Status indicator
+            if (bear.cooldownTimer > 0) {
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
+                ctx.font = '10px Arial';
+                ctx.fillText('😴', sx + bear.width/2 - 6, sy - 10);
+            } else if (bear.state === 'chase') {
+                ctx.fillStyle = '#ff0000';
+                ctx.font = 'bold 12px Arial';
+                ctx.fillText('!!!', sx + bear.width/2 - 8, sy - 10);
+            }
+        }
+        // ===== END BEAR DANGER ZONE SYSTEM =====
+
         function spawnSteaks() {
             steaks = [];
             for (let i = 0; i < 200; i++) {
@@ -2559,6 +2993,8 @@
             updateEnergy(dt);
             updateGoldBar(dt);
             updateGoldSparkles(dt);
+            updateBear(dt);
+            updateScreenShake(dt);
 
             if (player.barkCooldown > 0) player.barkCooldown -= dt;
 
@@ -2961,10 +3397,16 @@
         function render() {
             ctx.save();
             ctx.scale(ZOOM_LEVEL, ZOOM_LEVEL);
-            ctx.clearRect(0, 0, camera.width, camera.height);
+
+            // Apply screen shake
+            const shake = getScreenShakeOffset();
+            ctx.translate(shake.x, shake.y);
+
+            ctx.clearRect(-20, -20, camera.width + 40, camera.height + 40);
 
             drawBackground();
             drawZones();
+            drawBearTerritory();
             drawWater();
             drawMountain();
             drawTrees();
@@ -2978,6 +3420,7 @@
             drawRabbits();
             drawMoles();
             drawWizards();
+            drawBear();
             drawPlayer();
             drawClouds();
 
@@ -3802,6 +4245,9 @@
             // Initialize gold bar system - starts with respawn timer
             goldBar.respawnTimer = 30; // First gold spawns after 30 seconds
             goldBar.spawnCheckTimer = GOLD_SPAWN_CHECK_INTERVAL;
+
+            // Initialize bear
+            initBear();
             updateGoldUI();
 
             // Initialize leaderboard display and hide timer until game starts
