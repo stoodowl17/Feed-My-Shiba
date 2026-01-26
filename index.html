@@ -169,6 +169,29 @@
             border: 2px solid #e6a23c;
         }
 
+        #goldCounter {
+            position: absolute;
+            top: 205px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: #FFD700;
+            font-size: 14px;
+            font-weight: bold;
+            border: 2px solid #FFD700;
+            text-shadow: 0 0 5px #FFD700;
+        }
+
+        #goldCounter .gold-icon {
+            animation: goldPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes goldPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
         #notification {
             position: absolute;
             top: 50%;
@@ -655,6 +678,11 @@
         </div>
 
         <div id="steakCounter">🥩 <span id="steakCount">0</span> | ⚔️ <span id="wizardKills">0</span>/5</div>
+
+        <div id="goldCounter">
+            <span class="gold-icon">🪙</span>
+            <span id="goldCount">0</span>/<span>5</span>
+        </div>
 
         <div id="hudBar"></div>
 
@@ -1172,7 +1200,9 @@
             kibbleBoostActive: false,
             kibbleBoostTimer: 0,
             kibbleCooldown: 0,
-            radarActive: false
+            radarActive: false,
+            goldBars: 0,
+            maxGoldBars: 5
         };
 
         // Camera with zoom
@@ -1429,6 +1459,198 @@
         // Collectibles
         let steaks = [];
         let kibbleBowls = [];
+
+        // Gold Bar system
+        let goldBar = {
+            x: 0,
+            y: 0,
+            width: 40,
+            height: 25,
+            active: false,
+            respawnTimer: 0,
+            spawnCheckTimer: 0,
+            glowPhase: 0
+        };
+        const GOLD_RESPAWN_MIN = 180; // 3 minutes
+        const GOLD_RESPAWN_MAX = 300; // 5 minutes
+        const GOLD_SPAWN_CHECK_INTERVAL = 30; // Check every 30 seconds
+        const MAP_EDGE_MARGIN = 500; // How close to edge gold spawns
+
+        function getRandomGoldRespawnTime() {
+            return GOLD_RESPAWN_MIN + Math.random() * (GOLD_RESPAWN_MAX - GOLD_RESPAWN_MIN);
+        }
+
+        function spawnGoldBar() {
+            // Spawn on map edges (outskirts only)
+            const edge = Math.floor(Math.random() * 4); // 0=top, 1=right, 2=bottom, 3=left
+            let x, y, valid = false, attempts = 0;
+
+            while (!valid && attempts < 50) {
+                switch(edge) {
+                    case 0: // Top edge
+                        x = MAP_EDGE_MARGIN + Math.random() * (WORLD_WIDTH - MAP_EDGE_MARGIN * 2);
+                        y = MAP_EDGE_MARGIN + Math.random() * MAP_EDGE_MARGIN;
+                        break;
+                    case 1: // Right edge
+                        x = WORLD_WIDTH - MAP_EDGE_MARGIN - Math.random() * MAP_EDGE_MARGIN;
+                        y = MAP_EDGE_MARGIN + Math.random() * (WORLD_HEIGHT - MAP_EDGE_MARGIN * 2);
+                        break;
+                    case 2: // Bottom edge
+                        x = MAP_EDGE_MARGIN + Math.random() * (WORLD_WIDTH - MAP_EDGE_MARGIN * 2);
+                        y = WORLD_HEIGHT - MAP_EDGE_MARGIN - Math.random() * MAP_EDGE_MARGIN;
+                        break;
+                    case 3: // Left edge
+                        x = MAP_EDGE_MARGIN + Math.random() * MAP_EDGE_MARGIN;
+                        y = MAP_EDGE_MARGIN + Math.random() * (WORLD_HEIGHT - MAP_EDGE_MARGIN * 2);
+                        break;
+                }
+
+                // Avoid player spawn area (6000, 11000) and NPC areas
+                const nearPlayerSpawn = distance(x, y, 6000, 11000) < 800;
+                const nearMountain = isOnMountain(x, y);
+                const inWater = isInWater(x, y);
+                const inUrban = isInUrbanZone(x, y);
+
+                valid = !nearPlayerSpawn && !nearMountain && !inWater && !inUrban;
+                attempts++;
+            }
+
+            if (valid) {
+                goldBar.x = x;
+                goldBar.y = y;
+                goldBar.active = true;
+                goldBar.glowPhase = 0;
+            }
+        }
+
+        function updateGoldBar(dt) {
+            // Update glow animation
+            goldBar.glowPhase += dt * 3;
+
+            // Check spawn timer
+            if (!goldBar.active) {
+                goldBar.respawnTimer -= dt;
+                goldBar.spawnCheckTimer -= dt;
+
+                if (goldBar.spawnCheckTimer <= 0 && goldBar.respawnTimer <= 0) {
+                    spawnGoldBar();
+                    goldBar.spawnCheckTimer = GOLD_SPAWN_CHECK_INTERVAL;
+                }
+            }
+
+            // Check player collision
+            if (goldBar.active) {
+                const d = distance(player.x + player.width/2, player.y + player.height/2,
+                                  goldBar.x + goldBar.width/2, goldBar.y + goldBar.height/2);
+                if (d < 40 && player.goldBars < player.maxGoldBars) {
+                    player.goldBars++;
+                    goldBar.active = false;
+                    goldBar.respawnTimer = getRandomGoldRespawnTime();
+                    goldBar.spawnCheckTimer = GOLD_SPAWN_CHECK_INTERVAL;
+                    showNotification(`✨ GOLD BAR! (${player.goldBars}/${player.maxGoldBars})`, 2000);
+                    updateGoldUI();
+                    if (typeof trackEvent === 'function') trackEvent('Gold Collected', { total: player.goldBars });
+                } else if (d < 40 && player.goldBars >= player.maxGoldBars) {
+                    showNotification('💰 Inventory full! Max 5 gold bars.', 1500);
+                }
+            }
+        }
+
+        function updateGoldUI() {
+            const goldCount = document.getElementById('goldCount');
+            if (goldCount) {
+                goldCount.textContent = player.goldBars;
+            }
+        }
+
+        // Gold sparkle trail particles
+        let goldSparkles = [];
+
+        function updateGoldSparkles(dt) {
+            // Spawn sparkles when carrying gold
+            if (player.goldBars > 0 && player.isMoving && Math.random() < 0.3) {
+                goldSparkles.push({
+                    x: player.x + player.width/2 + (Math.random() - 0.5) * 30,
+                    y: player.y + player.height/2 + (Math.random() - 0.5) * 30,
+                    life: 1,
+                    size: 2 + Math.random() * 3,
+                    vx: (Math.random() - 0.5) * 20,
+                    vy: (Math.random() - 0.5) * 20 - 10
+                });
+            }
+
+            // Update existing sparkles
+            goldSparkles = goldSparkles.filter(s => {
+                s.life -= dt * 2;
+                s.x += s.vx * dt;
+                s.y += s.vy * dt;
+                return s.life > 0;
+            });
+
+            // Limit sparkle count
+            if (goldSparkles.length > 50) {
+                goldSparkles = goldSparkles.slice(-50);
+            }
+        }
+
+        function drawGoldBar() {
+            if (!goldBar.active) return;
+
+            const sx = goldBar.x - camera.x;
+            const sy = goldBar.y - camera.y;
+
+            // Skip if off screen
+            if (sx + goldBar.width < 0 || sx > camera.width ||
+                sy + goldBar.height < 0 || sy > camera.height) return;
+
+            // Glow pulse effect
+            const glowSize = 30 + Math.sin(goldBar.glowPhase) * 10;
+            const glowAlpha = 0.3 + Math.sin(goldBar.glowPhase) * 0.15;
+
+            // Outer glow
+            const gradient = ctx.createRadialGradient(
+                sx + goldBar.width/2, sy + goldBar.height/2, 0,
+                sx + goldBar.width/2, sy + goldBar.height/2, glowSize
+            );
+            gradient.addColorStop(0, `rgba(255, 215, 0, ${glowAlpha})`);
+            gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(sx - glowSize, sy - glowSize, goldBar.width + glowSize * 2, goldBar.height + glowSize * 2);
+
+            // Gold bar body
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(sx, sy, goldBar.width, goldBar.height);
+
+            // Shiny highlight
+            ctx.fillStyle = '#FFF8DC';
+            ctx.fillRect(sx + 3, sy + 3, goldBar.width - 15, 6);
+
+            // Dark edge for 3D effect
+            ctx.fillStyle = '#B8860B';
+            ctx.fillRect(sx, sy + goldBar.height - 4, goldBar.width, 4);
+            ctx.fillRect(sx + goldBar.width - 4, sy, 4, goldBar.height);
+
+            // Center line detail
+            ctx.fillStyle = '#DAA520';
+            ctx.fillRect(sx + goldBar.width/2 - 1, sy + 2, 2, goldBar.height - 4);
+        }
+
+        function drawGoldSparkles() {
+            goldSparkles.forEach(s => {
+                const sx = s.x - camera.x;
+                const sy = s.y - camera.y;
+                ctx.fillStyle = `rgba(255, 215, 0, ${s.life})`;
+                ctx.beginPath();
+                ctx.arc(sx, sy, s.size * s.life, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Star sparkle shape
+                ctx.fillStyle = `rgba(255, 255, 255, ${s.life * 0.8})`;
+                ctx.beginPath();
+                ctx.arc(sx, sy, s.size * s.life * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
 
         function spawnSteaks() {
             steaks = [];
@@ -2335,6 +2557,8 @@
             updateKibble(dt);
             updateClouds(dt);
             updateEnergy(dt);
+            updateGoldBar(dt);
+            updateGoldSparkles(dt);
 
             if (player.barkCooldown > 0) player.barkCooldown -= dt;
 
@@ -2748,6 +2972,8 @@
             drawCaveEntrance();
             drawSteaks();
             drawKibble();
+            drawGoldBar();
+            drawGoldSparkles();
             drawNPCs();
             drawRabbits();
             drawMoles();
@@ -3572,6 +3798,11 @@
             spawnClouds();
             updateHUD();
             updateCamera();
+
+            // Initialize gold bar system - starts with respawn timer
+            goldBar.respawnTimer = 30; // First gold spawns after 30 seconds
+            goldBar.spawnCheckTimer = GOLD_SPAWN_CHECK_INTERVAL;
+            updateGoldUI();
 
             // Initialize leaderboard display and hide timer until game starts
             displayLeaderboard();
