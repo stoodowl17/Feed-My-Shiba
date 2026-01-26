@@ -214,6 +214,120 @@
 
         .shiba-art { font-size: 50px; }
 
+        /* Leaderboard styles */
+        .leaderboard {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #e6a23c;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            max-width: 400px;
+            width: 100%;
+        }
+        .leaderboard h3 {
+            color: #e6a23c;
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            text-align: center;
+        }
+        .leaderboard-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .leaderboard-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 10px;
+            border-bottom: 1px solid #333;
+            font-size: 13px;
+        }
+        .leaderboard-list li:last-child {
+            border-bottom: none;
+        }
+        .leaderboard-list .rank {
+            color: #e6a23c;
+            font-weight: bold;
+            width: 30px;
+        }
+        .leaderboard-list .rank-1 { color: #ffd700; }
+        .leaderboard-list .rank-2 { color: #c0c0c0; }
+        .leaderboard-list .rank-3 { color: #cd7f32; }
+        .leaderboard-list .name {
+            flex: 1;
+            color: #fff;
+            text-align: left;
+            margin-left: 10px;
+        }
+        .leaderboard-list .time {
+            color: #88ff88;
+            font-family: monospace;
+        }
+        .leaderboard-empty {
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            padding: 10px;
+        }
+
+        /* Victory screen additions */
+        .victory-time {
+            font-size: 24px;
+            color: #88ff88;
+            margin: 15px 0;
+        }
+        .victory-input {
+            margin: 20px 0;
+        }
+        .victory-input input {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 2px solid #e6a23c;
+            border-radius: 5px;
+            background: #222;
+            color: #fff;
+            width: 200px;
+            text-align: center;
+        }
+        .victory-input input:focus {
+            outline: none;
+            border-color: #ffcc00;
+        }
+        .submit-btn {
+            background: #228b22;
+            color: #fff;
+            border: 2px solid #32cd32;
+            padding: 10px 25px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-family: inherit;
+        }
+        .submit-btn:hover {
+            background: #32cd32;
+        }
+        .submit-btn:disabled {
+            background: #444;
+            border-color: #666;
+            cursor: not-allowed;
+        }
+
+        /* Game timer display */
+        #gameTimer {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 5px 15px;
+            border-radius: 5px;
+            color: #88ff88;
+            font-size: 16px;
+            font-family: monospace;
+            border: 2px solid #e6a23c;
+        }
+
         #pauseScreen, #caveScreen, #duelScreen, #victoryScreen {
             display: none;
         }
@@ -499,7 +613,16 @@
             <h2>⚠️ Beware</h2>
             <p><strong>Beware of strangers with beards!</strong> They will hunt you down.<br>
             Watch out for <strong>🐰 rabbits</strong> and <strong>🕳️ moles</strong> - they'll distract you!</p>
+
+            <div class="leaderboard">
+                <h3>🏆 Hall of Champions 🏆</h3>
+                <ul class="leaderboard-list" id="leaderboardList">
+                    <li class="leaderboard-empty">No victors yet... Be the first!</li>
+                </ul>
+            </div>
         </div>
+
+        <div id="gameTimer">⏱️ 00:00</div>
 
         <div id="pauseScreen" class="overlay-screen">
             <div class="pause-content">
@@ -556,10 +679,20 @@
             <div class="palo-santo">🌿✨</div>
             <h1>ENLIGHTENMENT ACHIEVED!</h1>
             <p style="font-size: 18px;">Croissant has found the legendary Palo Santo Plant!</p>
-            <p style="margin-top: 20px; font-style: italic; color: #aaa; max-width: 400px;">
+            <div class="victory-time">
+                ⏱️ Your Time: <span id="finalTime">00:00</span>
+            </div>
+            <p style="font-style: italic; color: #aaa; max-width: 400px;">
                 "Deep beneath Palo Alto's earth, through maze and ghost and stone,<br>
                 The brave Shiba found the truth that makes a spirit whole."
             </p>
+            <div class="victory-input" id="nameInputSection">
+                <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="20">
+                <button class="submit-btn" onclick="submitScore()">Submit Score</button>
+            </div>
+            <div id="scoreSubmitted" style="display: none; color: #88ff88; margin: 20px 0;">
+                ✓ Score submitted to leaderboard!
+            </div>
             <button class="start-btn" onclick="location.reload()" style="margin-top: 20px;">Play Again</button>
         </div>
     </div>
@@ -758,6 +891,145 @@
             }, 150);
         }
         // ===== END AUDIO SYSTEM =====
+
+        // ===== LEADERBOARD & TIMER SYSTEM =====
+        let gameStartTime = 0;
+        let gameElapsedTime = 0;
+        let timerInterval = null;
+        const LEADERBOARD_KEY = 'croissantQuestLeaderboard';
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            gameStartTime = Date.now();
+            gameElapsedTime = 0;
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                if (!gamePaused && gameStarted) {
+                    gameElapsedTime = (Date.now() - gameStartTime) / 1000;
+                    updateTimerDisplay();
+                }
+            }, 100);
+        }
+
+        function pauseTimer() {
+            // Store elapsed time when pausing
+            gameElapsedTime = (Date.now() - gameStartTime) / 1000;
+        }
+
+        function resumeTimer() {
+            // Adjust start time to account for pause
+            gameStartTime = Date.now() - (gameElapsedTime * 1000);
+        }
+
+        function updateTimerDisplay() {
+            const timerEl = document.getElementById('gameTimer');
+            if (timerEl) {
+                timerEl.textContent = '⏱️ ' + formatTime(gameElapsedTime);
+            }
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function loadLeaderboard() {
+            try {
+                const data = localStorage.getItem(LEADERBOARD_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveLeaderboard(leaderboard) {
+            try {
+                localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
+            } catch (e) {
+                console.error('Failed to save leaderboard:', e);
+            }
+        }
+
+        function addToLeaderboard(name, time) {
+            const leaderboard = loadLeaderboard();
+            leaderboard.push({
+                name: name.substring(0, 20),
+                time: time,
+                date: new Date().toISOString()
+            });
+            // Sort by time (fastest first) and keep top 10
+            leaderboard.sort((a, b) => a.time - b.time);
+            const top10 = leaderboard.slice(0, 10);
+            saveLeaderboard(top10);
+            return top10;
+        }
+
+        function displayLeaderboard() {
+            const leaderboard = loadLeaderboard();
+            const listEl = document.getElementById('leaderboardList');
+            if (!listEl) return;
+
+            if (leaderboard.length === 0) {
+                listEl.innerHTML = '<li class="leaderboard-empty">No victors yet... Be the first!</li>';
+                return;
+            }
+
+            listEl.innerHTML = leaderboard.map((entry, index) => {
+                const rankClass = index < 3 ? `rank-${index + 1}` : '';
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                return `
+                    <li>
+                        <span class="rank ${rankClass}">${medal}${index + 1}.</span>
+                        <span class="name">${escapeHtml(entry.name)}</span>
+                        <span class="time">${formatTime(entry.time)}</span>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function submitScore() {
+            const nameInput = document.getElementById('playerNameInput');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                nameInput.style.borderColor = '#ff4444';
+                nameInput.placeholder = 'Please enter a name!';
+                return;
+            }
+
+            addToLeaderboard(name, gameElapsedTime);
+
+            // Hide input, show confirmation
+            document.getElementById('nameInputSection').style.display = 'none';
+            document.getElementById('scoreSubmitted').style.display = 'block';
+
+            // Update the leaderboard display (for when they return)
+            displayLeaderboard();
+        }
+
+        function showVictoryWithTime() {
+            stopTimer();
+            stopMusic();
+            document.getElementById('finalTime').textContent = formatTime(gameElapsedTime);
+            document.getElementById('victoryScreen').style.display = 'flex';
+            document.getElementById('nameInputSection').style.display = 'block';
+            document.getElementById('scoreSubmitted').style.display = 'none';
+            document.getElementById('playerNameInput').value = '';
+        }
+        // ===== END LEADERBOARD & TIMER SYSTEM =====
 
         // Fog of war - explored areas
         const exploredChunks = new Set();
@@ -1480,14 +1752,17 @@
             document.getElementById('pauseScreen').style.display = gamePaused ? 'flex' : 'none';
             if (gamePaused) {
                 stopMusic();
+                pauseTimer();
             } else {
                 startMusic();
+                resumeTimer();
             }
         }
 
         function resumeGame() {
             gamePaused = false;
             document.getElementById('pauseScreen').style.display = 'none';
+            resumeTimer();
             startMusic();
         }
 
@@ -1866,8 +2141,8 @@
             if (distance(cave.playerX, cave.playerY, cave.paloSantoX, cave.paloSantoY) < 50) {
                 inCave = false;
                 document.getElementById('caveScreen').style.display = 'none';
-                document.getElementById('victoryScreen').style.display = 'flex';
                 gameStarted = false;
+                showVictoryWithTime(); // Show victory screen with time and name submission
             }
 
             // Update progress
@@ -3128,14 +3403,21 @@
             spawnClouds();
             updateHUD();
             updateCamera();
+
+            // Initialize leaderboard display and hide timer until game starts
+            displayLeaderboard();
+            document.getElementById('gameTimer').style.display = 'none';
+
             requestAnimationFrame(gameLoop);
         }
 
         function startGame() {
             document.getElementById('instructionsScreen').style.display = 'none';
+            document.getElementById('gameTimer').style.display = 'block';
             gameStarted = true;
             initAudio();
             startMusic();
+            startTimer();
             showNotification('Find the hidden cave entrance! Explore the map!', 4000);
         }
 
