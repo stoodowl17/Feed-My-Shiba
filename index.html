@@ -2614,6 +2614,529 @@
         }
         // ===== END ZUCK NPC SYSTEM =====
 
+        // ===== ENVIRONMENTAL FLAVOR SYSTEM =====
+        // Karma and idle system
+        let karma = {
+            xp: 0,
+            level: 1,
+            idleTimer: 0,
+            pausePromptShown: false,
+            meditating: false,
+            visionFlashTimer: 0
+        };
+
+        // Ambient drifting leaves
+        let ambientLeaves = [];
+        const LEAF_COLORS = ['#8B4513', '#D2691E', '#CD853F', '#F4A460', '#228B22'];
+
+        // Wind chimes near buildings
+        let lastWindChime = 0;
+        const WIND_CHIME_COOLDOWN = 10; // seconds between chimes
+
+        // Startup pitch echoes
+        let lastStartupPitch = 0;
+        const STARTUP_PITCHES = [
+            "...disrupting the...",
+            "...AI-powered...",
+            "...blockchain for dogs...",
+            "...pivot to mobile...",
+            "...Series A funding..."
+        ];
+
+        // Sniffable objects
+        const sniffableTypes = {
+            tree: { smell: "🌲 Smells like: Fresh wood and squirrel secrets", particle: '#8B4513' },
+            scooter: { smell: "🛴 Smells like: Rubber and broken dreams", particle: '#333' },
+            flyer: { smell: "📄 *crumble* Another failed startup...", particle: '#fff', crumble: true },
+            bench: { smell: "🪑 A nice spot to rest...", canSit: true },
+            flower: { smell: "🌸 Sweet nectar!", particle: '#ff69b4' }
+        };
+
+        // Benches for sitting
+        let benches = [];
+        let playerSitting = {
+            active: false,
+            bench: null,
+            timer: 0,
+            originalZoom: 1.3
+        };
+
+        // Startup flyers scattered around
+        let startupFlyers = [];
+
+        function initEnvironment() {
+            // Create benches in parks and urban areas
+            const benchLocations = [
+                { x: 6200, y: 8200 },   // Rinconada Park
+                { x: 8200, y: 6200 },   // Mitchell Park
+                { x: 5200, y: 10200 },  // Downtown
+                { x: 3200, y: 7200 },   // California Ave
+                { x: 9200, y: 1000 },   // Baylands
+                { x: 5800, y: 5700 },   // University Ave
+            ];
+
+            benchLocations.forEach(loc => {
+                benches.push({
+                    x: loc.x,
+                    y: loc.y,
+                    width: 50,
+                    height: 25,
+                    occupied: false
+                });
+            });
+
+            // Scatter startup flyers in urban/shop zones
+            for (let i = 0; i < 30; i++) {
+                const zone = zones.find(z => z.type === 'urban' || z.type === 'shops');
+                if (zone) {
+                    startupFlyers.push({
+                        x: zone.x + Math.random() * zone.width,
+                        y: zone.y + Math.random() * zone.height,
+                        width: 20,
+                        height: 25,
+                        crumbled: false,
+                        opacity: 1
+                    });
+                }
+            }
+        }
+
+        function updateEnvironment(dt) {
+            updateAmbientEvents(dt);
+            updateIdleSystem(dt);
+            updateAmbientLeaves(dt);
+            updatePlayerSitting(dt);
+            updateKarmaVision(dt);
+        }
+
+        function updateAmbientEvents(dt) {
+            // Random ambient events (0.1% chance per frame ≈ every ~17 seconds at 60fps)
+            if (Math.random() < 0.001) {
+                const eventType = Math.floor(Math.random() * 4);
+
+                switch(eventType) {
+                    case 0: // Leaves drift
+                        spawnAmbientLeaves();
+                        break;
+                    case 1: // Wind chimes (if near buildings)
+                        if (isNearBuilding(player.x, player.y) && Date.now()/1000 - lastWindChime > WIND_CHIME_COOLDOWN) {
+                            playWindChimes();
+                            lastWindChime = Date.now()/1000;
+                        }
+                        break;
+                    case 2: // Distant startup pitch
+                        if (isInUrbanZone(player.x, player.y) && Date.now()/1000 - lastStartupPitch > 15) {
+                            playStartupPitch();
+                            lastStartupPitch = Date.now()/1000;
+                        }
+                        break;
+                    case 3: // Just ambient silence - nothing happens
+                        break;
+                }
+            }
+        }
+
+        function updateIdleSystem(dt) {
+            // Check if player is moving
+            const isMoving = keys.w || keys.a || keys.s || keys.d ||
+                            keys.ArrowUp || keys.ArrowDown || keys.ArrowLeft || keys.ArrowRight;
+
+            if (!isMoving && gameStarted && !gamePaused && !inCave && !inDuel && !zuckEncounter.active && !playerSitting.active) {
+                karma.idleTimer += dt;
+
+                // Show pause prompt after 5 seconds idle
+                if (karma.idleTimer >= 5 && !karma.pausePromptShown) {
+                    karma.pausePromptShown = true;
+                    showNotification('🐕 Sit. Breathe. Wag tail. (Press E to meditate)', 4000);
+                }
+
+                // If player stays still for meditation
+                if (karma.idleTimer >= 5 && karma.meditating) {
+                    // Award karma every 2 seconds of meditation
+                    if (Math.floor(karma.idleTimer) % 2 === 0 && Math.floor(karma.idleTimer - dt) % 2 !== 0) {
+                        karma.xp += 10;
+                        karma.visionFlashTimer = 0.5;
+                        showNotification(`✨ +10 Karma XP (${karma.xp} total)`, 1500);
+
+                        // Level up every 100 XP
+                        if (karma.xp >= karma.level * 100) {
+                            karma.level++;
+                            showNotification(`🌟 Karma Level ${karma.level}! Inner peace grows.`, 3000);
+                        }
+                    }
+                }
+            } else {
+                karma.idleTimer = 0;
+                karma.pausePromptShown = false;
+                karma.meditating = false;
+            }
+        }
+
+        function updateKarmaVision(dt) {
+            if (karma.visionFlashTimer > 0) {
+                karma.visionFlashTimer -= dt;
+            }
+        }
+
+        function spawnAmbientLeaves() {
+            for (let i = 0; i < 8; i++) {
+                ambientLeaves.push({
+                    x: camera.x + camera.width + Math.random() * 100,
+                    y: camera.y + Math.random() * camera.height,
+                    vx: -50 - Math.random() * 30,
+                    vy: 10 + Math.random() * 20,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 5,
+                    size: 8 + Math.random() * 8,
+                    color: LEAF_COLORS[Math.floor(Math.random() * LEAF_COLORS.length)],
+                    life: 3
+                });
+            }
+        }
+
+        function updateAmbientLeaves(dt) {
+            ambientLeaves = ambientLeaves.filter(leaf => {
+                leaf.life -= dt;
+                leaf.x += leaf.vx * dt;
+                leaf.y += leaf.vy * dt;
+                leaf.rotation += leaf.rotSpeed * dt;
+                // Gentle swaying
+                leaf.vy += Math.sin(leaf.rotation) * 10 * dt;
+                return leaf.life > 0;
+            });
+
+            // Limit leaves
+            if (ambientLeaves.length > 50) {
+                ambientLeaves = ambientLeaves.slice(-50);
+            }
+        }
+
+        function isNearBuilding(x, y) {
+            return buildings.some(b =>
+                distance(x, y, b.x + b.width/2, b.y + b.height/2) < 150
+            );
+        }
+
+        function playWindChimes() {
+            if (!audioCtx || sfxVolume <= 0) return;
+            initAudio();
+
+            // Gentle wind chime notes
+            const chimeNotes = [523, 659, 784, 880, 1047]; // C5, E5, G5, A5, C6
+            chimeNotes.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+
+                const delay = i * 0.15 + Math.random() * 0.1;
+                gain.gain.setValueAtTime(0, audioCtx.currentTime + delay);
+                gain.gain.linearRampToValueAtTime(0.03 * sfxVolume, audioCtx.currentTime + delay + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 1.5);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + delay);
+                osc.stop(audioCtx.currentTime + delay + 1.6);
+            });
+        }
+
+        function playStartupPitch() {
+            if (!audioCtx || sfxVolume <= 0) return;
+            initAudio();
+
+            // Distant muffled voice
+            const pitch = STARTUP_PITCHES[Math.floor(Math.random() * STARTUP_PITCHES.length)];
+            showNotification(`📢 (distant) "${pitch}"`, 2000);
+
+            // Low rumble sound
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 150 + Math.random() * 50;
+
+            gain.gain.setValueAtTime(0.02 * sfxVolume, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.6);
+        }
+
+        function trySniff() {
+            // Check trees
+            for (const tree of trees) {
+                if (distance(player.x, player.y, tree.x, tree.y) < 50) {
+                    showNotification(sniffableTypes.tree.smell, 2000);
+                    spawnSniffParticles(tree.x, tree.y, sniffableTypes.tree.particle);
+                    karma.xp += 1;
+                    return true;
+                }
+            }
+
+            // Check benches
+            for (const bench of benches) {
+                if (distance(player.x, player.y, bench.x, bench.y) < 50) {
+                    showNotification(sniffableTypes.bench.smell, 2000);
+                    return true;
+                }
+            }
+
+            // Check startup flyers
+            for (const flyer of startupFlyers) {
+                if (!flyer.crumbled && distance(player.x, player.y, flyer.x, flyer.y) < 40) {
+                    flyer.crumbled = true;
+                    showNotification(sniffableTypes.flyer.smell, 2000);
+                    spawnSniffParticles(flyer.x, flyer.y, sniffableTypes.flyer.particle);
+                    karma.xp += 2;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function trySitOnBench() {
+            for (const bench of benches) {
+                if (distance(player.x, player.y, bench.x, bench.y) < 60 && !playerSitting.active) {
+                    playerSitting.active = true;
+                    playerSitting.bench = bench;
+                    playerSitting.timer = 0;
+                    bench.occupied = true;
+                    player.x = bench.x;
+                    player.y = bench.y - 10;
+                    showNotification('🪑 Sitting... (E to stand up)', 2000);
+                    playCalmMusic();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function standUpFromBench() {
+            if (playerSitting.active && playerSitting.bench) {
+                playerSitting.bench.occupied = false;
+                playerSitting.active = false;
+                playerSitting.bench = null;
+                showNotification('Standing up, refreshed!', 1500);
+            }
+        }
+
+        function updatePlayerSitting(dt) {
+            if (playerSitting.active) {
+                playerSitting.timer += dt;
+
+                // Gain karma while sitting
+                if (Math.floor(playerSitting.timer) % 3 === 0 && Math.floor(playerSitting.timer - dt) % 3 !== 0) {
+                    karma.xp += 5;
+                    showNotification(`🧘 +5 Karma XP (resting)`, 1000);
+                }
+
+                // Heal slowly while sitting
+                if (playerSitting.timer > 2) {
+                    player.health = Math.min(100, player.health + 0.5 * dt);
+                    player.energy = Math.min(100, player.energy + 1 * dt);
+                }
+            }
+        }
+
+        function playCalmMusic() {
+            if (!audioCtx || musicVolume <= 0) return;
+            initAudio();
+
+            // Gentle ambient pad
+            const notes = [261, 329, 392]; // C, E, G chord
+            notes.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.02 * musicVolume, audioCtx.currentTime + 0.5);
+                gain.gain.setValueAtTime(0.02 * musicVolume, audioCtx.currentTime + 2);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 3);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + 3.1);
+            });
+        }
+
+        let sniffParticles = [];
+
+        function spawnSniffParticles(x, y, color) {
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                sniffParticles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * (30 + Math.random() * 20),
+                    vy: Math.sin(angle) * (30 + Math.random() * 20) - 20,
+                    life: 1,
+                    size: 3 + Math.random() * 3,
+                    color: color
+                });
+            }
+        }
+
+        function updateSniffParticles(dt) {
+            sniffParticles = sniffParticles.filter(p => {
+                p.life -= dt * 1.5;
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.vy += 30 * dt; // gravity
+                return p.life > 0;
+            });
+        }
+
+        function kickLeaves() {
+            // Spawn leaf burst at player position
+            for (let i = 0; i < 15; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 50 + Math.random() * 50;
+                ambientLeaves.push({
+                    x: player.x + player.width/2,
+                    y: player.y + player.height,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 30,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 10,
+                    size: 6 + Math.random() * 6,
+                    color: LEAF_COLORS[Math.floor(Math.random() * LEAF_COLORS.length)],
+                    life: 2
+                });
+            }
+            showNotification('🍂 *kick*', 800);
+            karma.xp += 1;
+        }
+
+        function drawEnvironment() {
+            drawBenches();
+            drawStartupFlyers();
+            drawAmbientLeaves();
+            drawSniffParticles();
+            drawKarmaVisionFlash();
+        }
+
+        function drawBenches() {
+            benches.forEach(bench => {
+                const sx = bench.x - camera.x;
+                const sy = bench.y - camera.y;
+
+                if (sx + bench.width < 0 || sx > camera.width ||
+                    sy + bench.height < 0 || sy > camera.height) return;
+
+                // Bench seat
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(sx, sy, bench.width, bench.height);
+
+                // Bench legs
+                ctx.fillStyle = '#654321';
+                ctx.fillRect(sx + 5, sy + bench.height, 5, 10);
+                ctx.fillRect(sx + bench.width - 10, sy + bench.height, 5, 10);
+
+                // Highlight when player nearby
+                if (distance(player.x, player.y, bench.x, bench.y) < 60 && !playerSitting.active) {
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(sx - 2, sy - 2, bench.width + 4, bench.height + 4);
+                }
+            });
+        }
+
+        function drawStartupFlyers() {
+            startupFlyers.forEach(flyer => {
+                if (flyer.crumbled) return;
+
+                const sx = flyer.x - camera.x;
+                const sy = flyer.y - camera.y;
+
+                if (sx + flyer.width < 0 || sx > camera.width ||
+                    sy + flyer.height < 0 || sy > camera.height) return;
+
+                // Paper
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(sx, sy, flyer.width, flyer.height);
+
+                // Text lines
+                ctx.fillStyle = '#333';
+                ctx.fillRect(sx + 3, sy + 5, flyer.width - 6, 2);
+                ctx.fillRect(sx + 3, sy + 10, flyer.width - 8, 2);
+                ctx.fillRect(sx + 3, sy + 15, flyer.width - 10, 2);
+            });
+        }
+
+        function drawAmbientLeaves() {
+            ambientLeaves.forEach(leaf => {
+                const sx = leaf.x - camera.x;
+                const sy = leaf.y - camera.y;
+
+                ctx.save();
+                ctx.translate(sx, sy);
+                ctx.rotate(leaf.rotation);
+                ctx.globalAlpha = Math.min(1, leaf.life);
+
+                // Leaf shape
+                ctx.fillStyle = leaf.color;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, leaf.size, leaf.size * 0.6, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Leaf vein
+                ctx.strokeStyle = '#00000030';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(-leaf.size * 0.8, 0);
+                ctx.lineTo(leaf.size * 0.8, 0);
+                ctx.stroke();
+
+                ctx.globalAlpha = 1;
+                ctx.restore();
+            });
+        }
+
+        function drawSniffParticles() {
+            sniffParticles.forEach(p => {
+                const sx = p.x - camera.x;
+                const sy = p.y - camera.y;
+
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.beginPath();
+                ctx.arc(sx, sy, p.size * p.life, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            });
+        }
+
+        function drawKarmaVisionFlash() {
+            if (karma.visionFlashTimer > 0) {
+                const alpha = karma.visionFlashTimer * 0.5;
+                ctx.fillStyle = `rgba(255, 215, 0, ${alpha})`;
+                ctx.fillRect(0, 0, camera.width, camera.height);
+            }
+        }
+
+        function drawKarmaUI() {
+            // Karma display in corner
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(10, 160, 90, 35);
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(10, 160, 90, 35);
+
+            ctx.fillStyle = '#FFD700';
+            ctx.font = 'bold 10px Arial';
+            ctx.fillText(`✨ Karma Lv.${karma.level}`, 15, 175);
+            ctx.font = '9px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.fillText(`${karma.xp} / ${karma.level * 100} XP`, 15, 188);
+        }
+        // ===== END ENVIRONMENTAL FLAVOR SYSTEM =====
+
         function spawnSteaks() {
             steaks = [];
             for (let i = 0; i < 200; i++) {
@@ -3018,7 +3541,33 @@
             }
 
             if (e.key.toLowerCase() === 'e' && gameStarted && !gamePaused && !inDuel && !inCave) {
-                interactWithNPC();
+                // If sitting, stand up
+                if (playerSitting.active) {
+                    standUpFromBench();
+                }
+                // If meditating, start/stop
+                else if (karma.pausePromptShown && !karma.meditating) {
+                    karma.meditating = true;
+                    showNotification('🧘 Meditating... breathe...', 2000);
+                }
+                // Try to sit on bench
+                else if (trySitOnBench()) {
+                    // Already handled in trySitOnBench
+                }
+                // Otherwise interact with NPC
+                else {
+                    interactWithNPC();
+                }
+            }
+
+            // F key for sniffing objects
+            if (e.key.toLowerCase() === 'f' && gameStarted && !gamePaused && !inDuel && !inCave && !playerSitting.active) {
+                trySniff();
+            }
+
+            // K key for kicking leaves
+            if (e.key.toLowerCase() === 'k' && gameStarted && !gamePaused && !inDuel && !inCave && !playerSitting.active) {
+                kickLeaves();
             }
 
             // Number keys 1-9 for powerups
@@ -3525,6 +4074,8 @@
             updateScreenShake(dt);
             updateZuckEncounter(dt);
             updateMetaDebuff(dt);
+            updateEnvironment(dt);
+            updateSniffParticles(dt);
 
             if (player.barkCooldown > 0) player.barkCooldown -= dt;
 
@@ -3959,6 +4510,7 @@
             drawWizards();
             drawBear();
             drawZuck();
+            drawEnvironment();
             drawPlayer();
             drawClouds();
 
@@ -3970,6 +4522,7 @@
 
             ctx.restore();
             drawMinimap();
+            drawKarmaUI();
         }
 
         function drawBackground() {
@@ -4794,6 +5347,9 @@
             // Initialize Meta campus
             initMetaCampus();
             updateGoldUI();
+
+            // Initialize environmental flavor
+            initEnvironment();
 
             // Initialize leaderboard display and hide timer until game starts
             displayLeaderboard();
