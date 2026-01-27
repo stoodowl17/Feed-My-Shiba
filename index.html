@@ -662,14 +662,14 @@
 
         <div id="ui">
             <div class="bar-container">
-                <div class="bar-label">❤️ Health</div>
+                <div class="bar-label">Health</div>
                 <div id="healthBar" class="bar"></div>
             </div>
             <div class="bar-container">
-                <div class="bar-label">⚡ Energy</div>
+                <div class="bar-label">Energy</div>
                 <div id="energyBar" class="bar"></div>
             </div>
-            <div id="speedIndicator">🏃 Speed: 1.0x</div>
+            <div id="speedIndicator">Speed: 1.0x</div>
             <div id="sprintIndicator"></div>
         </div>
 
@@ -677,10 +677,10 @@
             <canvas id="minimapCanvas" width="150" height="150"></canvas>
         </div>
 
-        <div id="steakCounter">🥩 <span id="steakCount">0</span> | ⚔️ <span id="wizardKills">0</span>/5</div>
+        <div id="steakCounter">Steaks: <span id="steakCount">0</span> | Wizards: <span id="wizardKills">0</span>/5</div>
 
         <div id="goldCounter">
-            <span class="gold-icon">🪙</span>
+            <span class="gold-icon">Gold:</span>
             <span id="goldCount">0</span>/<span>5</span>
         </div>
 
@@ -695,7 +695,7 @@
         </div>
 
         <div id="waterPrompt">
-            <h3>💧 Water Crossing!</h3>
+            <h3>Water Crossing!</h3>
             <p>Croissant doesn't want to swim...</p>
             <p>Mash <strong>SPACEBAR</strong> to convince him!</p>
             <div class="persuade-bar"><div class="persuade-fill" id="persuadeFill"></div></div>
@@ -703,19 +703,19 @@
         </div>
 
         <div id="moleOverlay">
-            <div>🕳️ MOLE!</div>
+            <div>MOLE!</div>
             <div style="font-size: 16px; margin-top: 10px;">Croissant is frozen with curiosity...</div>
             <div id="moleTimer" style="font-size: 20px; margin-top: 5px;"></div>
         </div>
 
         <div id="instructionsScreen" class="overlay-screen">
-            <div class="shiba-art">🐕</div>
+            <div class="shiba-art" id="shibaArtCanvas"></div>
             <h1>Croissant's Quest for Enlightenment</h1>
             <button class="start-btn" onclick="startGame()" aria-label="Start the game and begin Croissant's adventure">Begin Your Journey!</button>
 
             <p>You are <strong>Croissant</strong>, a brave Shiba Inu seeking the legendary <em>Palo Santo Plant of Enlightenment</em> hidden deep within a mysterious cave in Palo Alto!</p>
 
-            <h2>🎮 Controls</h2>
+            <h2>Controls</h2>
             <ul>
                 <li><strong>WASD / Arrows</strong> - Move</li>
                 <li><strong>Shift + Move</strong> - Sprint (drains energy faster)</li>
@@ -725,40 +725,40 @@
                 <li><strong>ESC</strong> - Pause menu</li>
             </ul>
 
-            <h2>🎯 Quest</h2>
+            <h2>Quest</h2>
             <ul>
                 <li>Find the <strong>hidden cave entrance</strong> to the underground maze</li>
                 <li>Navigate the maze while <strong>barking at ghosts</strong> (face them!)</li>
                 <li>Escape <strong>cave-ins</strong> or the maze resets!</li>
-                <li>Collect <strong>🥩 Steaks</strong> for speed, <strong>🍲 Kibble</strong> for energy</li>
+                <li>Collect <strong>Steaks</strong> for health, <strong>Kibble</strong> for speed boost</li>
                 <li>Climb the <strong>mountain</strong> for the legendary sword</li>
                 <li>Defeat <strong>5 wizards</strong> to gain lightning powers!</li>
             </ul>
 
-            <h2>⚠️ Beware</h2>
+            <h2>Beware</h2>
             <p><strong>Beware of strangers with beards!</strong> They will hunt you down.<br>
-            Watch out for <strong>🐰 rabbits</strong> and <strong>🕳️ moles</strong> - they'll distract you!</p>
+            Watch out for <strong>rabbits</strong> and <strong>moles</strong> - they'll distract you!</p>
 
             <div class="leaderboard">
-                <h3>🏆 Hall of Champions 🏆</h3>
+                <h3>Hall of Champions</h3>
                 <ul class="leaderboard-list" id="leaderboardList">
                     <li class="leaderboard-empty">No victors yet... Be the first!</li>
                 </ul>
             </div>
         </div>
 
-        <div id="gameTimer">⏱️ 00:00</div>
+        <div id="gameTimer">Time: 00:00</div>
 
         <div id="pauseScreen" class="overlay-screen">
             <div class="pause-content">
-                <h2>⏸️ PAUSED</h2>
+                <h2>PAUSED</h2>
                 <div class="volume-control">
-                    <label for="volumeSlider">🔊 Music Volume</label>
+                    <label for="volumeSlider">Music Volume</label>
                     <input type="range" id="volumeSlider" min="0" max="100" value="30" oninput="setMusicVolume(this.value)">
                     <span id="volumeValue">30%</span>
                 </div>
                 <div class="volume-control">
-                    <label for="sfxSlider">🔈 Sound Effects</label>
+                    <label for="sfxSlider">Sound Effects</label>
                     <input type="range" id="sfxSlider" min="0" max="100" value="50" oninput="setSfxVolume(this.value)">
                     <span id="sfxValue">50%</span>
                 </div>
@@ -771,41 +771,41 @@
             <div class="cave-ui">
                 <canvas id="caveCanvas"></canvas>
                 <div class="cave-hud">
-                    <div>🌿 Find the Palo Santo!</div>
+                    <div>Find the Palo Santo!</div>
                     <div id="caveProgress">Progress: 0%</div>
                 </div>
-                <div class="cave-warning" id="caveWarning">⚠️ CAVE-IN! RUN! ⚠️</div>
+                <div class="cave-warning" id="caveWarning">CAVE-IN! RUN!</div>
             </div>
         </div>
 
         <div id="duelScreen" class="overlay-screen">
             <div class="duel-arena">
-                <h2>⚔️ WIZARD DUEL! ⚔️</h2>
+                <h2>WIZARD DUEL!</h2>
                 <p style="color: #aaa; font-size: 12px;">A bearded stranger challenges you!</p>
                 <div class="duel-health-bars">
                     <div class="duel-character">
-                        <div class="name">🐕 Croissant</div>
+                        <div class="name">Croissant</div>
                         <div class="duel-bar"><div class="duel-bar-fill croissant-health" id="duelPlayerHealth"></div></div>
                     </div>
                     <div class="duel-character">
-                        <div class="name">🧙 Wizard</div>
+                        <div class="name">Wizard</div>
                         <div class="duel-bar"><div class="duel-bar-fill wizard-health" id="duelWizardHealth"></div></div>
                     </div>
                 </div>
                 <div class="duel-actions">
-                    <button class="duel-btn bark-btn" onclick="performDuelAction('bark')" aria-label="Bark attack - deal damage to the wizard">🔊 BARK!</button>
-                    <button class="duel-btn dodge-btn" onclick="performDuelAction('dodge')" aria-label="Dodge the wizard's attack">💨 Dodge</button>
+                    <button class="duel-btn bark-btn" onclick="performDuelAction('bark')" aria-label="Bark attack - deal damage to the wizard">BARK!</button>
+                    <button class="duel-btn dodge-btn" onclick="performDuelAction('dodge')" aria-label="Dodge the wizard's attack">Dodge</button>
                 </div>
                 <div id="duelMessage"></div>
             </div>
         </div>
 
         <div id="victoryScreen" class="overlay-screen">
-            <div class="palo-santo">🌿✨</div>
+            <div class="palo-santo" id="paloSantoArt"></div>
             <h1>ENLIGHTENMENT ACHIEVED!</h1>
             <p style="font-size: 18px;">Croissant has found the legendary Palo Santo Plant!</p>
             <div class="victory-time">
-                ⏱️ Your Time: <span id="finalTime">00:00</span>
+                Your Time: <span id="finalTime">00:00</span>
             </div>
             <p style="font-style: italic; color: #aaa; max-width: 400px;">
                 "Deep beneath Palo Alto's earth, through maze and ghost and stone,<br>
@@ -817,7 +817,7 @@
                 <button class="submit-btn" onclick="submitScore()" aria-label="Submit your score to the leaderboard">Submit Score</button>
             </div>
             <div id="scoreSubmitted" style="display: none; color: #88ff88; margin: 20px 0;" role="status" aria-live="polite">
-                ✓ Score submitted to leaderboard!
+                Score submitted to leaderboard!
             </div>
             <button class="start-btn" onclick="location.reload()" style="margin-top: 20px;" aria-label="Play the game again">Play Again</button>
         </div>
@@ -1055,7 +1055,7 @@
         function updateTimerDisplay() {
             const timerEl = document.getElementById('gameTimer');
             if (timerEl) {
-                timerEl.textContent = '⏱️ ' + formatTime(gameElapsedTime);
+                timerEl.textContent = 'Time: ' + formatTime(gameElapsedTime);
             }
         }
 
@@ -1109,7 +1109,7 @@
 
             listEl.innerHTML = leaderboard.map((entry, index) => {
                 const rankClass = index < 3 ? `rank-${index + 1}` : '';
-                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                const medal = index === 0 ? '[1st]' : index === 1 ? '[2nd]' : index === 2 ? '[3rd]' : '';
                 return `
                     <li>
                         <span class="rank ${rankClass}">${medal}${index + 1}.</span>
@@ -1240,6 +1240,7 @@
             trails: [],
             approachPath: [], // Path from outside mountain to trail start
             swordCollected: false,
+            climbStarted: false, // Track if player started climbing (triggers first wizard)
             // Entry point OUTSIDE the mountain (where player can enter)
             entryX: 1400,
             entryY: 2700, // Outside the mountain boundary
@@ -1547,11 +1548,11 @@
                     goldBar.active = false;
                     goldBar.respawnTimer = getRandomGoldRespawnTime();
                     goldBar.spawnCheckTimer = GOLD_SPAWN_CHECK_INTERVAL;
-                    showNotification(`✨ GOLD BAR! (${player.goldBars}/${player.maxGoldBars})`, 2000);
+                    showNotification(`GOLD BAR! (${player.goldBars}/${player.maxGoldBars})`, 2000);
                     updateGoldUI();
                     if (typeof trackEvent === 'function') trackEvent('Gold Collected', { total: player.goldBars });
                 } else if (d < 40 && player.goldBars >= player.maxGoldBars) {
-                    showNotification('💰 Inventory full! Max 5 gold bars.', 1500);
+                    showNotification('Inventory full! Max 5 gold bars.', 1500);
                 }
             }
         }
@@ -1718,7 +1719,7 @@
 
             // Show warning when player first enters
             if (playerInTerritory && !bearWarningShown && bear.cooldownTimer <= 0) {
-                showNotification('⚠️ WARNING: Bear Territory! RUN!', 3000);
+                showNotification('WARNING: Bear Territory! RUN!', 3000);
                 bearWarningShown = true;
             }
             if (!playerInTerritory) {
@@ -1749,7 +1750,7 @@
                         bear.state = 'chase';
                         playBearRoar();
                         triggerScreenShake(15, 0.5);
-                        showNotification('🐻 BEAR IS CHASING YOU!', 2000);
+                        showNotification('BEAR IS CHASING YOU!', 2000);
                     }
                     break;
 
@@ -1783,7 +1784,7 @@
                     if (!playerInTerritory) {
                         bear.state = 'returning';
                         bear.cooldownTimer = BEAR_COOLDOWN;
-                        showNotification('🐻 Bear stopped at territory edge. Safe!', 2000);
+                        showNotification('Bear stopped at territory edge. Safe!', 2000);
                     }
 
                     // Also stop if bear goes too far from territory
@@ -1824,7 +1825,7 @@
             // Strong screen shake
             triggerScreenShake(25, 0.8);
             playBearRoar();
-            showNotification('🐻 BEAR ATTACK! -25% Health!', 2000);
+            showNotification('BEAR ATTACK! -25% Health!', 2000);
 
             // Brief invulnerability - bear backs off slightly
             bear.state = 'returning';
@@ -1959,9 +1960,15 @@
                     ctx.fillText('!', signX, signY - 12);
                     ctx.textAlign = 'left';
 
-                    // Bear icon below sign
-                    ctx.font = '14px Arial';
-                    ctx.fillText('🐻', signX - 7, signY + 25);
+                    // Bear silhouette below sign
+                    ctx.fillStyle = '#4a3728';
+                    ctx.beginPath();
+                    ctx.arc(signX, signY + 18, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(signX - 5, signY + 14, 3, 0, Math.PI * 2);
+                    ctx.arc(signX + 5, signY + 14, 3, 0, Math.PI * 2);
+                    ctx.fill();
                 }
             });
 
@@ -2075,9 +2082,10 @@
 
             // Status indicator
             if (bear.cooldownTimer > 0) {
-                ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
-                ctx.font = '10px Arial';
-                ctx.fillText('😴', sx + bear.width/2 - 6, sy - 10);
+                // Draw Zzz for sleeping
+                ctx.fillStyle = 'rgba(100, 200, 255, 0.9)';
+                ctx.font = 'bold 10px Arial';
+                ctx.fillText('Zzz', sx + bear.width/2 - 8, sy - 10);
             } else if (bear.state === 'chase') {
                 ctx.fillStyle = '#ff0000';
                 ctx.font = 'bold 12px Arial';
@@ -2174,7 +2182,7 @@
 
             // Play initial VR hum
             playVRHum();
-            showNotification('⚠️ VR HEADSET LOCKED - Cannot escape!', 3000);
+            showNotification('VR HEADSET LOCKED - Cannot escape!', 3000);
         }
 
         function updateZuckEncounter(dt) {
@@ -2254,7 +2262,7 @@
 
             // Show "VR headset locked" when player tries to escape
             if (keys.Escape || keys.e || keys.E) {
-                showNotification('🥽 VR headset locked! Please wait...', 1000);
+                showNotification('VR headset locked! Please wait...', 1000);
             }
 
             // Play periodic VR hum
@@ -2277,7 +2285,7 @@
             metaDebuff.active = true;
             metaDebuff.timer = META_DEBUFF_DURATION;
 
-            showNotification("🥽 Escaped! But you've been 'Meta'd' - 10% slower for 30s", 4000);
+            showNotification("Escaped! But you've been 'Meta'd' - 10% slower for 30s", 4000);
 
             // Zuck continues talking to empty air
             setTimeout(() => {
@@ -2536,8 +2544,25 @@
                 if (p.isLizard) {
                     // Lizard silhouette
                     ctx.fillStyle = `rgba(0, 255, 0, ${p.life * 0.5})`;
-                    ctx.font = `${p.size * 3}px Arial`;
-                    ctx.fillText('🦎', px - p.size, py + p.size);
+                    ctx.save();
+                    ctx.translate(px, py);
+                    ctx.scale(p.size / 5, p.size / 5);
+                    // Body
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 8, 4, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Head
+                    ctx.beginPath();
+                    ctx.ellipse(10, 0, 4, 3, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Tail
+                    ctx.beginPath();
+                    ctx.moveTo(-8, 0);
+                    ctx.quadraticCurveTo(-14, -4, -16, 0);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = `rgba(0, 255, 0, ${p.life * 0.5})`;
+                    ctx.stroke();
+                    ctx.restore();
                 } else {
                     ctx.fillStyle = `rgba(24, 119, 242, ${p.life * 0.7})`;
                     ctx.beginPath();
@@ -2610,7 +2635,16 @@
             ctx.fillRect(10, 130, 100, 25);
             ctx.fillStyle = '#fff';
             ctx.font = '10px Arial';
-            ctx.fillText(`🥽 Meta'd: ${Math.ceil(metaDebuff.timer)}s`, 15, 147);
+            ctx.fillText(`Meta'd: ${Math.ceil(metaDebuff.timer)}s`, 15, 147);
+            // VR goggles icon
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(85, 136, 10, 7);
+            ctx.strokeRect(97, 136, 10, 7);
+            ctx.beginPath();
+            ctx.moveTo(95, 139);
+            ctx.lineTo(97, 139);
+            ctx.stroke();
         }
         // ===== END ZUCK NPC SYSTEM =====
 
@@ -2645,11 +2679,11 @@
 
         // Sniffable objects
         const sniffableTypes = {
-            tree: { smell: "🌲 Smells like: Fresh wood and squirrel secrets", particle: '#8B4513' },
-            scooter: { smell: "🛴 Smells like: Rubber and broken dreams", particle: '#333' },
-            flyer: { smell: "📄 *crumble* Another failed startup...", particle: '#fff', crumble: true },
-            bench: { smell: "🪑 A nice spot to rest...", canSit: true },
-            flower: { smell: "🌸 Sweet nectar!", particle: '#ff69b4' }
+            tree: { smell: "Smells like: Fresh wood and squirrel secrets", particle: '#8B4513' },
+            scooter: { smell: "Smells like: Rubber and broken dreams", particle: '#333' },
+            flyer: { smell: "*crumble* Another failed startup...", particle: '#fff', crumble: true },
+            bench: { smell: "A nice spot to rest...", canSit: true },
+            flower: { smell: "Sweet nectar!", particle: '#ff69b4' }
         };
 
         // Benches for sitting
@@ -2747,7 +2781,7 @@
                 // Show pause prompt after 5 seconds idle
                 if (karma.idleTimer >= 5 && !karma.pausePromptShown) {
                     karma.pausePromptShown = true;
-                    showNotification('🐕 Sit. Breathe. Wag tail. (Press E to meditate)', 4000);
+                    showNotification('Sit. Breathe. Wag tail. (Press E to meditate)', 4000);
                 }
 
                 // If player stays still for meditation
@@ -2756,12 +2790,12 @@
                     if (Math.floor(karma.idleTimer) % 2 === 0 && Math.floor(karma.idleTimer - dt) % 2 !== 0) {
                         karma.xp += 10;
                         karma.visionFlashTimer = 0.5;
-                        showNotification(`✨ +10 Karma XP (${karma.xp} total)`, 1500);
+                        showNotification(`+10 Karma XP (${karma.xp} total)`, 1500);
 
                         // Level up every 100 XP
                         if (karma.xp >= karma.level * 100) {
                             karma.level++;
-                            showNotification(`🌟 Karma Level ${karma.level}! Inner peace grows.`, 3000);
+                            showNotification(`Karma Level ${karma.level}! Inner peace grows.`, 3000);
                         }
                     }
                 }
@@ -2847,7 +2881,7 @@
 
             // Distant muffled voice
             const pitch = STARTUP_PITCHES[Math.floor(Math.random() * STARTUP_PITCHES.length)];
-            showNotification(`📢 (distant) "${pitch}"`, 2000);
+            showNotification(`(distant) "${pitch}"`, 2000);
 
             // Low rumble sound
             const osc = audioCtx.createOscillator();
@@ -2906,7 +2940,7 @@
                     bench.occupied = true;
                     player.x = bench.x;
                     player.y = bench.y - 10;
-                    showNotification('🪑 Sitting... (E to stand up)', 2000);
+                    showNotification('Sitting... (E to stand up)', 2000);
                     playCalmMusic();
                     return true;
                 }
@@ -2930,7 +2964,7 @@
                 // Gain karma while sitting
                 if (Math.floor(playerSitting.timer) % 3 === 0 && Math.floor(playerSitting.timer - dt) % 3 !== 0) {
                     karma.xp += 5;
-                    showNotification(`🧘 +5 Karma XP (resting)`, 1000);
+                    showNotification(`+5 Karma XP (resting)`, 1000);
                 }
 
                 // Heal slowly while sitting
@@ -3009,7 +3043,7 @@
                     life: 2
                 });
             }
-            showNotification('🍂 *kick*', 800);
+            showNotification('*kick*', 800);
             karma.xp += 1;
         }
 
@@ -3130,7 +3164,19 @@
 
             ctx.fillStyle = '#FFD700';
             ctx.font = 'bold 10px Arial';
-            ctx.fillText(`✨ Karma Lv.${karma.level}`, 15, 175);
+            // Draw sparkle icon
+            ctx.beginPath();
+            ctx.moveTo(18, 172);
+            ctx.lineTo(20, 168);
+            ctx.lineTo(22, 172);
+            ctx.lineTo(26, 170);
+            ctx.lineTo(22, 172);
+            ctx.lineTo(20, 176);
+            ctx.lineTo(18, 172);
+            ctx.lineTo(14, 170);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillText(`Karma Lv.${karma.level}`, 30, 175);
             ctx.font = '9px Arial';
             ctx.fillStyle = '#fff';
             ctx.fillText(`${karma.xp} / ${karma.level * 100} XP`, 15, 188);
@@ -3153,7 +3199,7 @@
         const specialNpcData = {
             hoodieFounder: {
                 name: "The Hoodie Founder",
-                icon: "👔",
+                iconType: "hoodie",
                 color: "#444",
                 location: { x: 4300, y: 3200 }, // Near Meta campus
                 friendCount: 0,
@@ -3166,7 +3212,7 @@
             },
             steveJobsGhost: {
                 name: "Steve Jobs' Ghost",
-                icon: "👻",
+                iconType: "ghost",
                 color: "#f5f5f7",
                 location: { x: 7000, y: 5500 }, // Apple-ish area
                 impressed: false,
@@ -3175,12 +3221,12 @@
                     critique: ["That collar? Three buttons too many.", "You call that a walk cycle? Skeuomorphic nonsense.", "Your inventory layout offends me on a spiritual level."],
                     android: "You bought an Android? The path to enlightenment must have no unnecessary features.",
                     impressed: "Hmm. You have potential. Take this. One button. That's all you need.",
-                    itemGiven: "Received: The One Button 🔘 (Does everything. Elegantly.)"
+                    itemGiven: "Received: The One Button (Does everything. Elegantly.)"
                 }
             },
             elonProphet: {
                 name: "Tech Prophet",
-                icon: "🚀",
+                iconType: "rocket",
                 color: "#1da1f2",
                 location: { x: 10500, y: 2000 }, // Edge of map
                 pivotCount: 0,
@@ -3192,7 +3238,7 @@
             },
             startupBro: {
                 name: "Stanford Startup Bro",
-                icon: "🧑‍💼",
+                iconType: "suit",
                 color: "#8b0000",
                 location: { x: 2500, y: 2500 }, // Stanford
                 pitchCount: 0,
@@ -3203,7 +3249,7 @@
             },
             vcOracle: {
                 name: "Venture Capital Oracle",
-                icon: "💰",
+                iconType: "money",
                 color: "#ffd700",
                 location: { x: 5500, y: 10500 }, // Downtown
                 dialogues: {
@@ -3215,7 +3261,7 @@
             },
             burnedOutEngineer: {
                 name: "Burned-Out Engineer",
-                icon: "💻",
+                iconType: "laptop",
                 color: "#6b6b6b",
                 location: { x: 3800, y: 5000 },
                 caffeineLevel: 0,
@@ -3229,7 +3275,7 @@
             },
             holmesGuru: {
                 name: "Wellness Guru",
-                icon: "🔮",
+                iconType: "crystal",
                 color: "#8b008b",
                 location: { x: 7500, y: 8000 },
                 deviceSold: false,
@@ -3243,7 +3289,7 @@
             },
             mapsIntern: {
                 name: "Maps Intern",
-                icon: "🗺️",
+                iconType: "map",
                 color: "#4285f4",
                 location: { x: 6000, y: 6000 },
                 routeCount: 0,
@@ -3256,12 +3302,12 @@
                         "Turn right in 500 feet. Recalculating. Recalculating. Recalculating.",
                         "You've arrived! Wait, this isn't right. Or is it?"
                     ],
-                    lakeRoute: "For the scenic route, I recommend swimming. The lake is lovely this time of year. 🏊"
+                    lakeRoute: "For the scenic route, I recommend swimming. The lake is lovely this time of year."
                 }
             },
             ethicsProfessor: {
                 name: "AI Ethics Professor",
-                icon: "🤔",
+                iconType: "book",
                 color: "#800080",
                 location: { x: 2000, y: 3000 }, // Stanford
                 uncomfortable: false,
@@ -3279,7 +3325,7 @@
             },
             barista: {
                 name: "Legendary Barista",
-                icon: "☕",
+                iconType: "coffee",
                 color: "#6f4e37",
                 location: { x: 5900, y: 5800 }, // University Ave
                 rememberCount: 0,
@@ -3287,37 +3333,37 @@
                     initial: "Ah, the usual, right?",
                     usual: ["Your triple-shot oat milk latte with exactly 2.5 pumps vanilla?", "The cortado with the foam art of your face?", "Ethiopian single-origin, wet-processed, at exactly 203 degrees?"],
                     serve: "Here you go! One espresso. You'll feel... energized. Very energized. Maybe too energized.",
-                    effect: "☕ +20% speed for 20s! But also... anxiety."
+                    effect: "+20% speed for 20s! But also... anxiety."
                 }
             },
             ventureMonk: {
                 name: "Venture Monk",
-                icon: "🧘",
+                iconType: "monk",
                 color: "#ff8c00",
                 location: { x: 800, y: 6500 }, // Foothills
                 dialogues: {
                     initial: "*checks phone* Ah, a seeker. Does your quest have product-market fit?",
-                    bark: "A peaceful woof. Take this incense. It smells of term sheets. 🪔",
-                    growl: "Ah, aggression. Here's a pitch deck instead. Very disruptive. 📊",
+                    bark: "A peaceful woof. Take this incense. It smells of term sheets.",
+                    growl: "Ah, aggression. Here's a pitch deck instead. Very disruptive.",
                     hypocrite: "*portfolio notification dings* I've renounced wealth. Mostly. In spirit."
                 }
             },
             enlightenmentClub: {
                 name: "Stanford Enlightenment Club",
-                icon: "🧘‍♂️",
+                iconType: "lotus",
                 color: "#00ced1",
                 location: { x: 1800, y: 2000 }, // Stanford
                 chanting: true,
                 dialogues: {
                     chant: ["Synergy... Leverage... Disrupt...", "Growth... Scale... Exit...", "Network... Pivot... Iterate..."],
                     welcome: "Join us in meditation. Today we manifest thought leadership.",
-                    buff: "You've gained: Thought Leadership™ (+charisma, +LinkedIn connections)",
+                    buff: "You've gained: Thought Leadership (+charisma, +LinkedIn connections)",
                     network: "*everyone exchanges business cards while in lotus position*"
                 }
             },
             aiOracle: {
                 name: "AI Oracle of the Cloud",
-                icon: "☁️",
+                iconType: "cloud",
                 color: "#87ceeb",
                 location: { x: 11000, y: 6000 },
                 predictions: 0,
@@ -3335,7 +3381,7 @@
             },
             wellnessInfluencer: {
                 name: "Wellness Influencer",
-                icon: "✨",
+                iconType: "sparkle",
                 color: "#ff69b4",
                 location: { x: 6500, y: 8500 }, // Park
                 dialogues: {
@@ -3347,7 +3393,7 @@
             },
             homeownerGuardian: {
                 name: "Palo Alto Homeowner",
-                icon: "🏠",
+                iconType: "house",
                 color: "#228b22",
                 location: { x: 4500, y: 7500 },
                 blocking: true,
@@ -3360,7 +3406,7 @@
             },
             ancientShiba: {
                 name: "Ancient Shiba Spirit",
-                icon: "🐕",
+                iconType: "shiba",
                 color: "#ffd700",
                 location: { x: 1500, y: 9500 }, // Near mountain
                 communicated: false,
@@ -3371,7 +3417,7 @@
                     vibe3: "*blinks slowly, conveying the secrets of the universe*",
                     truth: "...",
                     revelation: "The enlightenment was inside you the whole time. But also, the plant is cool.",
-                    buff: "You feel... understood. Wisdom +10. Inner peace +∞."
+                    buff: "You feel... understood. Wisdom +10. Inner peace +infinity."
                 }
             }
         };
@@ -3387,7 +3433,7 @@
                     width: 45,
                     height: 55,
                     name: data.name,
-                    icon: data.icon,
+                    iconType: data.iconType,
                     color: data.color,
                     interactionCount: 0,
                     specialState: {},
@@ -3463,7 +3509,7 @@
 
         function handleHoodieFounder(npc, data) {
             if (npc.interactionCount === 1) {
-                showSpecialDialog(data.name, data.dialogues.initial, data.icon);
+                showSpecialDialog(data.name, data.dialogues.initial);
                 setTimeout(() => {
                     // Shuffle player's powers randomly
                     if (player.powers.length > 1) {
@@ -3478,14 +3524,14 @@
                 }, 2000);
             } else {
                 const clingyMsg = data.dialogues.clingy[Math.floor(Math.random() * data.dialogues.clingy.length)];
-                showSpecialDialog(data.name, clingyMsg, data.icon);
+                showSpecialDialog(data.name, clingyMsg);
                 data.friendCount++;
             }
         }
 
         function handleSteveJobsGhost(npc, data) {
             if (npc.specialState.impressed) {
-                showSpecialDialog(data.name, "One more thing... no wait, I already gave you the thing.", data.icon);
+                showSpecialDialog(data.name, "One more thing... no wait, I already gave you the thing.");
                 return;
             }
 
@@ -3493,7 +3539,7 @@
                 const critique = data.dialogues.critique[npc.interactionCount - 1] || data.dialogues.initial;
                 showSpecialDialog(data.name, critique, data.icon, [
                     { text: "I appreciate minimalism!", action: () => impressSteve(npc, data) },
-                    { text: "I bought an Android", action: () => showSpecialDialog(data.name, data.dialogues.android, data.icon) }
+                    { text: "I bought an Android", action: () => showSpecialDialog(data.name, data.dialogues.android) }
                 ]);
             } else {
                 impressSteve(npc, data);
@@ -3503,13 +3549,13 @@
         function impressSteve(npc, data) {
             if (!npc.specialState.impressed) {
                 npc.specialState.impressed = true;
-                showSpecialDialog(data.name, data.dialogues.impressed, data.icon);
+                showSpecialDialog(data.name, data.dialogues.impressed);
                 setTimeout(() => {
                     // Remove half inventory but grant wisdom
                     const removeCount = Math.floor(player.powers.length / 2);
                     player.powers = player.powers.slice(removeCount);
                     playerBuffs.wisdom += 20;
-                    player.powers.push({ id: 'one_button', name: 'The One Button', icon: '🔘', duration: 60, special: true });
+                    player.powers.push({ id: 'one_button', name: 'The One Button', iconType: 'button', duration: 60, special: true });
                     updateHUD();
                     showNotification(data.dialogues.itemGiven + " Wisdom +20!", 4000);
                 }, 2000);
@@ -3521,25 +3567,25 @@
 
             if (shouldPivot) {
                 const pivot = data.dialogues.pivot[Math.floor(Math.random() * data.dialogues.pivot.length)];
-                showSpecialDialog(data.name, pivot, data.icon);
+                showSpecialDialog(data.name, pivot);
                 npc.specialState.pivotCount = (npc.specialState.pivotCount || 0) + 1;
             } else {
                 const promise = data.dialogues.promise[Math.floor(Math.random() * data.dialogues.promise.length)];
-                showSpecialDialog(data.name, data.dialogues.initial + " " + promise, data.icon);
+                showSpecialDialog(data.name, data.dialogues.initial + " " + promise);
             }
         }
 
         function handleStartupBro(npc, data) {
             const pitch = data.dialogues.pitch[npc.interactionCount % data.dialogues.pitch.length];
             showSpecialDialog(data.name, pitch, data.icon, [
-                { text: "Interesting...", action: () => showSpecialDialog(data.name, data.dialogues.response, data.icon) },
-                { text: "That's dumb", action: () => showSpecialDialog(data.name, data.dialogues.response, data.icon) },
-                { text: "I have a better idea", action: () => showSpecialDialog(data.name, data.dialogues.response, data.icon) }
+                { text: "Interesting...", action: () => showSpecialDialog(data.name, data.dialogues.response) },
+                { text: "That's dumb", action: () => showSpecialDialog(data.name, data.dialogues.response) },
+                { text: "I have a better idea", action: () => showSpecialDialog(data.name, data.dialogues.response) }
             ]);
         }
 
         function handleVcOracle(npc, data) {
-            showSpecialDialog(data.name, data.dialogues.initial, data.icon);
+            showSpecialDialog(data.name, data.dialogues.initial);
             setTimeout(() => {
                 if (goldInventory > 0) {
                     goldInventory += 2;
@@ -3564,12 +3610,12 @@
                 showNotification("Bug fixed! Energy +20!", 2000);
             }
 
-            showSpecialDialog(data.name, dialogue, data.icon);
+            showSpecialDialog(data.name, dialogue);
         }
 
         function handleHolmesGuru(npc, data) {
             if (npc.specialState.deviceSold) {
-                showSpecialDialog(data.name, "Your Wellness Orb is working perfectly! Can't you feel it?", data.icon);
+                showSpecialDialog(data.name, "Your Wellness Orb is working perfectly! Can't you feel it?");
                 showNotification("(You feel nothing. But you look enlightened.)", 3000);
                 return;
             }
@@ -3581,10 +3627,10 @@
                         updateGoldUI();
                         npc.specialState.deviceSold = true;
                         npc.specialState.hasDevice = true;
-                        showSpecialDialog(data.name, data.dialogues.bought, data.icon);
+                        showSpecialDialog(data.name, data.dialogues.bought);
                         setTimeout(() => showNotification(data.dialogues.npcBelieve, 3000), 2000);
                     } else {
-                        showSpecialDialog(data.name, data.dialogues.noGold, data.icon);
+                        showSpecialDialog(data.name, data.dialogues.noGold);
                     }
                 }},
                 { text: "No thanks", action: () => closeSpecialDialog() }
@@ -3596,16 +3642,16 @@
 
             // Easter egg: every 5th route goes through a lake
             if (npc.specialState.routeCount % 5 === 0) {
-                showSpecialDialog(data.name, data.dialogues.lakeRoute, data.icon);
+                showSpecialDialog(data.name, data.dialogues.lakeRoute);
             } else {
                 const route = data.dialogues.routes[Math.floor(Math.random() * data.dialogues.routes.length)];
-                showSpecialDialog(data.name, data.dialogues.initial + " " + route, data.icon);
+                showSpecialDialog(data.name, data.dialogues.initial + " " + route);
             }
         }
 
         function handleEthicsProfessor(npc, data) {
             if (npc.specialState.uncomfortable) {
-                showSpecialDialog(data.name, data.dialogues.existential, data.icon);
+                showSpecialDialog(data.name, data.dialogues.existential);
                 return;
             }
 
@@ -3613,7 +3659,7 @@
             showSpecialDialog(data.name, question, data.icon, [
                 { text: "You're just an NPC", action: () => {
                     npc.specialState.uncomfortable = true;
-                    showSpecialDialog(data.name, data.dialogues.npcMention, data.icon);
+                    showSpecialDialog(data.name, data.dialogues.npcMention);
                 }},
                 { text: "I'll think about it", action: () => {
                     karma.xp += 5;
@@ -3628,7 +3674,7 @@
             showSpecialDialog(data.name, data.dialogues.initial + " " + usual, data.icon, [
                 { text: "Yes, that's right!", action: () => giveEspressoBoost(npc, data) },
                 { text: "How do you know that?", action: () => {
-                    showSpecialDialog(data.name, "I remember EVERYONE. It's a blessing and a curse.", data.icon);
+                    showSpecialDialog(data.name, "I remember EVERYONE. It's a blessing and a curse.");
                     setTimeout(() => giveEspressoBoost(npc, data), 2000);
                 }}
             ]);
@@ -3637,21 +3683,21 @@
         function giveEspressoBoost(npc, data) {
             playerBuffs.espressoBoost = 20;
             playerBuffs.espressoAnxiety = true;
-            showSpecialDialog(data.name, data.dialogues.serve, data.icon);
+            showSpecialDialog(data.name, data.dialogues.serve);
             showNotification(data.dialogues.effect, 3000);
         }
 
         function handleVentureMonk(npc, data) {
             showSpecialDialog(data.name, data.dialogues.initial, data.icon, [
                 { text: "*Bark peacefully*", action: () => {
-                    showSpecialDialog(data.name, data.dialogues.bark, data.icon);
+                    showSpecialDialog(data.name, data.dialogues.bark);
                     karma.xp += 10;
-                    showNotification("Received incense! +10 Karma XP 🪔", 2000);
+                    showNotification("Received incense! +10 Karma XP", 2000);
                 }},
                 { text: "*Growl*", action: () => {
-                    showSpecialDialog(data.name, data.dialogues.growl, data.icon);
+                    showSpecialDialog(data.name, data.dialogues.growl);
                     playerBuffs.wisdom += 5;
-                    showNotification("Received pitch deck! +5 Wisdom 📊", 2000);
+                    showNotification("Received pitch deck! +5 Wisdom", 2000);
                 }}
             ]);
         }
@@ -3661,11 +3707,11 @@
             showSpecialDialog(data.name, "*chanting* " + chant, data.icon, [
                 { text: "Join meditation", action: () => {
                     playerBuffs.thoughtLeadership = 30;
-                    showSpecialDialog(data.name, data.dialogues.buff, data.icon);
+                    showSpecialDialog(data.name, data.dialogues.buff);
                     showNotification("Thought Leadership™ active for 30s!", 3000);
                 }},
                 { text: "Exchange business cards", action: () => {
-                    showSpecialDialog(data.name, data.dialogues.network, data.icon);
+                    showSpecialDialog(data.name, data.dialogues.network);
                     karma.xp += 3;
                 }}
             ]);
@@ -3676,13 +3722,13 @@
 
             // Meta prediction about player input
             if (npc.specialState.predictions % 3 === 0) {
-                showSpecialDialog(data.name, data.dialogues.meta, data.icon);
+                showSpecialDialog(data.name, data.dialogues.meta);
             } else {
                 const prediction = data.dialogues.predictions[Math.floor(Math.random() * data.dialogues.predictions.length)];
                 showSpecialDialog(data.name, prediction, data.icon, [
                     { text: "Grant me insight", action: () => {
                         playerBuffs.algorithmicInsight = 45;
-                        showSpecialDialog(data.name, data.dialogues.buff, data.icon);
+                        showSpecialDialog(data.name, data.dialogues.buff);
                         showNotification("Algorithmic Insight: +luck, -free will (45s)", 3000);
                     }}
                 ]);
@@ -3691,18 +3737,18 @@
 
         function handleWellnessInfluencer(npc, data) {
             if (npc.interactionCount === 1) {
-                showSpecialDialog(data.name, data.dialogues.initial, data.icon);
+                showSpecialDialog(data.name, data.dialogues.initial);
             } else if (npc.interactionCount === 2) {
                 npc.specialState.glitching = true;
-                showSpecialDialog(data.name, data.dialogues.glitch, data.icon);
+                showSpecialDialog(data.name, data.dialogues.glitch);
             } else {
-                showSpecialDialog(data.name, data.dialogues.pitch, data.icon);
+                showSpecialDialog(data.name, data.dialogues.pitch);
             }
         }
 
         function handleHomeownerGuardian(npc, data) {
             if (npc.specialState.passed) {
-                showSpecialDialog(data.name, "*watches suspiciously*", data.icon);
+                showSpecialDialog(data.name, "*watches suspiciously*");
                 return;
             }
 
@@ -3710,14 +3756,14 @@
                 { text: "I'm an emotional support startup", action: () => {
                     if (goldInventory >= 1 || playerBuffs.thoughtLeadership > 0) {
                         npc.specialState.passed = true;
-                        showSpecialDialog(data.name, data.dialogues.pass, data.icon);
+                        showSpecialDialog(data.name, data.dialogues.pass);
                         showNotification("Path unlocked! (Homeowner still judging)", 3000);
                     } else {
-                        showSpecialDialog(data.name, "You don't LOOK like a startup. Where's your funding?", data.icon);
+                        showSpecialDialog(data.name, "You don't LOOK like a startup. Where's your funding?");
                     }
                 }},
                 { text: "Just passing through", action: () => {
-                    showSpecialDialog(data.name, data.dialogues.initial, data.icon);
+                    showSpecialDialog(data.name, data.dialogues.initial);
                 }}
             ]);
         }
@@ -3727,20 +3773,20 @@
             const vibes = [data.dialogues.initial, data.dialogues.vibe1, data.dialogues.vibe2, data.dialogues.vibe3];
 
             if (npc.interactionCount <= 4) {
-                showSpecialDialog(data.name, vibes[npc.interactionCount - 1], data.icon);
+                showSpecialDialog(data.name, vibes[npc.interactionCount - 1]);
             } else if (npc.interactionCount === 5) {
-                showSpecialDialog(data.name, data.dialogues.revelation, data.icon);
+                showSpecialDialog(data.name, data.dialogues.revelation);
                 playerBuffs.wisdom += 10;
                 karma.xp += 50;
                 showNotification(data.dialogues.buff, 4000);
             } else {
-                showSpecialDialog(data.name, data.dialogues.truth, data.icon);
+                showSpecialDialog(data.name, data.dialogues.truth);
                 // The empty dialogue IS the message
             }
         }
 
-        function showSpecialDialog(name, text, icon, choices = null) {
-            specialNpcDialogActive = { name, text, icon, choices };
+        function showSpecialDialog(name, text, choices = null) {
+            specialNpcDialogActive = { name, text, choices };
             dialogChoices = choices || [];
 
             // Create or update dialog UI
@@ -3765,7 +3811,7 @@
                 document.getElementById('gameContainer').appendChild(dialogEl);
             }
 
-            let html = `<div style="font-size:14px;margin-bottom:8px;"><span style="font-size:20px">${icon}</span> <strong style="color:#e6a23c">${name}</strong></div>`;
+            let html = `<div style="font-size:14px;margin-bottom:8px;"><strong style="color:#e6a23c">${name}</strong></div>`;
             html += `<div style="font-size:12px;line-height:1.4;margin-bottom:10px;">"${text}"</div>`;
 
             if (choices && choices.length > 0) {
@@ -3826,7 +3872,7 @@
                     }
                     // Occasionally call out
                     if (Math.random() < 0.001) {
-                        showNotification("👔 (distant) " + specialNpcData.hoodieFounder.dialogues.ignored, 2000);
+                        showNotification("(distant) " + specialNpcData.hoodieFounder.dialogues.ignored, 2000);
                     }
                 }
             }
@@ -3836,6 +3882,106 @@
             if (influencer && influencer.specialState.glitching) {
                 influencer.specialState.glitchOffset = Math.sin(Date.now() / 100) * 3;
             }
+        }
+
+        function drawSpecialNpcIcon(ctx, iconType, x, y, size) {
+            ctx.save();
+            switch(iconType) {
+                case 'hoodie':
+                    // Draw hoodie shape
+                    ctx.fillStyle = '#333';
+                    ctx.beginPath();
+                    ctx.moveTo(x, y + size);
+                    ctx.lineTo(x + size/2, y);
+                    ctx.lineTo(x + size, y + size);
+                    ctx.closePath();
+                    ctx.fill();
+                    break;
+                case 'ghost':
+                    // Draw ghost shape
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(x + size/2, y + size/3, size/3, Math.PI, 0);
+                    ctx.lineTo(x + size, y + size);
+                    ctx.lineTo(x + size*0.75, y + size*0.8);
+                    ctx.lineTo(x + size/2, y + size);
+                    ctx.lineTo(x + size*0.25, y + size*0.8);
+                    ctx.lineTo(x, y + size);
+                    ctx.closePath();
+                    ctx.fill();
+                    break;
+                case 'rocket':
+                    // Draw rocket
+                    ctx.fillStyle = '#c0c0c0';
+                    ctx.beginPath();
+                    ctx.moveTo(x + size/2, y);
+                    ctx.lineTo(x + size*0.7, y + size*0.7);
+                    ctx.lineTo(x + size*0.3, y + size*0.7);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.fillStyle = '#ff4500';
+                    ctx.fillRect(x + size*0.35, y + size*0.7, size*0.3, size*0.3);
+                    break;
+                case 'money':
+                    // Draw coin
+                    ctx.fillStyle = '#ffd700';
+                    ctx.beginPath();
+                    ctx.arc(x + size/2, y + size/2, size/2 - 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#b8860b';
+                    ctx.font = (size*0.6) + 'px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('$', x + size/2, y + size*0.7);
+                    break;
+                case 'coffee':
+                    // Draw coffee cup
+                    ctx.fillStyle = '#8b4513';
+                    ctx.fillRect(x + size*0.2, y + size*0.3, size*0.6, size*0.6);
+                    ctx.strokeStyle = '#8b4513';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(x + size*0.85, y + size*0.5, size*0.15, -Math.PI/2, Math.PI/2);
+                    ctx.stroke();
+                    break;
+                case 'cloud':
+                    // Draw cloud
+                    ctx.fillStyle = '#87ceeb';
+                    ctx.beginPath();
+                    ctx.arc(x + size*0.3, y + size*0.6, size*0.25, 0, Math.PI * 2);
+                    ctx.arc(x + size*0.5, y + size*0.4, size*0.3, 0, Math.PI * 2);
+                    ctx.arc(x + size*0.7, y + size*0.6, size*0.25, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+                case 'shiba':
+                    // Draw shiba face
+                    ctx.fillStyle = '#d2691e';
+                    ctx.beginPath();
+                    ctx.arc(x + size/2, y + size/2, size/2 - 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(x + size*0.35, y + size*0.4, size*0.1, 0, Math.PI * 2);
+                    ctx.arc(x + size*0.65, y + size*0.4, size*0.1, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath();
+                    ctx.arc(x + size*0.35, y + size*0.4, size*0.05, 0, Math.PI * 2);
+                    ctx.arc(x + size*0.65, y + size*0.4, size*0.05, 0, Math.PI * 2);
+                    ctx.arc(x + size*0.5, y + size*0.6, size*0.08, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+                default:
+                    // Default: colored circle with first letter
+                    ctx.fillStyle = '#888';
+                    ctx.beginPath();
+                    ctx.arc(x + size/2, y + size/2, size/2 - 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold ' + (size*0.5) + 'px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(iconType.charAt(0).toUpperCase(), x + size/2, y + size*0.65);
+            }
+            ctx.restore();
         }
 
         function drawSpecialNpcs() {
@@ -3850,38 +3996,13 @@
                     sx += npc.specialState.glitchOffset || 0;
                 }
 
-                // Draw NPC body
-                ctx.fillStyle = npc.color;
-                ctx.fillRect(sx + 10, sy + 20, 25, 30);
-
-                // Draw head
-                ctx.fillStyle = '#ffe4c4';
-                ctx.beginPath();
-                ctx.arc(sx + 22, sy + 12, 12, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Draw icon above head
-                ctx.font = '20px Arial';
-                ctx.fillText(npc.icon, sx + 10, sy - 5);
-
-                // Draw name
-                ctx.fillStyle = '#fff';
-                ctx.font = '8px Courier New';
-                ctx.textAlign = 'center';
-                ctx.fillText(npc.name, sx + 22, sy + 58);
-                ctx.textAlign = 'left';
-
-                // Interaction indicator
-                const dist = distance(player.x, player.y, npc.x, npc.y);
-                if (dist < 80) {
-                    ctx.fillStyle = '#ffd700';
-                    ctx.font = '12px Arial';
-                    ctx.fillText('❗', sx + 30, sy + 5);
+                // Special effects for ghost (draw first, behind)
+                if (npc.id === 'steveJobsGhost') {
+                    ctx.globalAlpha = 0.7 + Math.sin(Date.now() / 500) * 0.2;
                 }
 
-                // Special effects
+                // Special effects for ancient shiba
                 if (npc.id === 'ancientShiba') {
-                    // Golden glow
                     const gradient = ctx.createRadialGradient(sx + 22, sy + 25, 0, sx + 22, sy + 25, 40);
                     gradient.addColorStop(0, 'rgba(255,215,0,0.3)');
                     gradient.addColorStop(1, 'rgba(255,215,0,0)');
@@ -3891,14 +4012,82 @@
                     ctx.fill();
                 }
 
-                if (npc.id === 'steveJobsGhost') {
-                    // Ghostly transparency
-                    ctx.globalAlpha = 0.7 + Math.sin(Date.now() / 500) * 0.2;
-                    ctx.fillStyle = '#fff';
+                // Draw legs
+                ctx.fillStyle = '#3a3a3a';
+                ctx.fillRect(sx + 12, sy + 45, 6, 12);
+                ctx.fillRect(sx + 26, sy + 45, 6, 12);
+
+                // Draw body/torso
+                ctx.fillStyle = npc.color;
+                ctx.fillRect(sx + 8, sy + 22, 28, 25);
+
+                // Draw arms
+                ctx.fillStyle = npc.color;
+                ctx.fillRect(sx + 2, sy + 24, 6, 18);
+                ctx.fillRect(sx + 36, sy + 24, 6, 18);
+
+                // Draw hands
+                ctx.fillStyle = '#ffe4c4';
+                ctx.beginPath();
+                ctx.arc(sx + 5, sy + 44, 4, 0, Math.PI * 2);
+                ctx.arc(sx + 39, sy + 44, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw neck
+                ctx.fillStyle = '#ffe4c4';
+                ctx.fillRect(sx + 18, sy + 16, 8, 8);
+
+                // Draw head
+                ctx.fillStyle = '#ffe4c4';
+                ctx.beginPath();
+                ctx.arc(sx + 22, sy + 10, 10, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw hair
+                ctx.fillStyle = '#3a2a1a';
+                ctx.beginPath();
+                ctx.arc(sx + 22, sy + 7, 9, Math.PI, 0);
+                ctx.fill();
+
+                // Draw eyes
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.arc(sx + 18, sy + 10, 2, 0, Math.PI * 2);
+                ctx.arc(sx + 26, sy + 10, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw mouth
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(sx + 22, sy + 14, 3, 0.1, Math.PI - 0.1);
+                ctx.stroke();
+
+                ctx.globalAlpha = 1;
+
+                // Draw icon above head
+                drawSpecialNpcIcon(ctx, npc.iconType, sx + 10, sy - 18, 16);
+
+                // Draw name
+                ctx.fillStyle = '#fff';
+                ctx.font = '8px Courier New';
+                ctx.textAlign = 'center';
+                ctx.fillText(npc.name, sx + 22, sy + 66);
+                ctx.textAlign = 'left';
+
+                // Interaction indicator (yellow exclamation drawn)
+                const dist = distance(player.x, player.y, npc.x, npc.y);
+                if (dist < 80) {
+                    ctx.fillStyle = '#ffd700';
                     ctx.beginPath();
-                    ctx.arc(sx + 22, sy + 25, 25, 0, Math.PI * 2);
+                    ctx.moveTo(sx + 35, sy - 5);
+                    ctx.lineTo(sx + 38, sy + 8);
+                    ctx.lineTo(sx + 32, sy + 8);
+                    ctx.closePath();
                     ctx.fill();
-                    ctx.globalAlpha = 1;
+                    ctx.beginPath();
+                    ctx.arc(sx + 35, sy + 12, 2, 0, Math.PI * 2);
+                    ctx.fill();
                 }
             });
         }
@@ -3946,12 +4135,12 @@
         // NPCs - power givers and Stanford startup people
         let npcs = [];
         const powerGivers = [
-            { name: 'Professor Oak', gift: { id: 'speed_boost', name: 'Speed Amulet', icon: '⚡', duration: 30 }, message: 'Take this Speed Amulet! Double speed for 30 seconds!' },
-            { name: 'Mystic Maya', gift: { id: 'shield', name: 'Magic Shield', icon: '🛡️', duration: 15 }, message: 'This shield protects from wizard attacks!' },
-            { name: 'Chef Carlos', gift: { id: 'mega_bark', name: 'Mega Bark', icon: '📢', duration: 0 }, message: 'Mega Bark will blast the wizard across the map!' },
-            { name: 'Hiker Hannah', gift: { id: 'water_walker', name: 'Water Walker', icon: '🌊', duration: 25 }, message: 'Walk on water for 25 seconds!' },
-            { name: 'Tech Tim', gift: { id: 'radar', name: 'Radar', icon: '📡', duration: 30 }, message: 'See nearby items on radar!' },
-            { name: 'Dr. Energy', gift: { id: 'energy_regen', name: 'Energy Crystal', icon: '💎', duration: 20 }, message: 'Regenerate energy for 20 seconds!' },
+            { name: 'Professor Oak', gift: { id: 'speed_boost', name: 'Speed Amulet', iconType: 'speed', duration: 30 }, message: 'Take this Speed Amulet! Double speed for 30 seconds!' },
+            { name: 'Mystic Maya', gift: { id: 'shield', name: 'Magic Shield', iconType: 'shield', duration: 15 }, message: 'This shield protects from wizard attacks!' },
+            { name: 'Chef Carlos', gift: { id: 'mega_bark', name: 'Mega Bark', iconType: 'bark', duration: 0 }, message: 'Mega Bark will blast the wizard across the map!' },
+            { name: 'Hiker Hannah', gift: { id: 'water_walker', name: 'Water Walker', iconType: 'water', duration: 25 }, message: 'Walk on water for 25 seconds!' },
+            { name: 'Tech Tim', gift: { id: 'radar', name: 'Radar', iconType: 'radar', duration: 30 }, message: 'See nearby items on radar!' },
+            { name: 'Dr. Energy', gift: { id: 'energy_regen', name: 'Energy Crystal', iconType: 'crystal', duration: 20 }, message: 'Regenerate energy for 20 seconds!' },
         ];
 
         const startupIdeas = [
@@ -4324,7 +4513,7 @@
                 // If meditating, start/stop
                 else if (karma.pausePromptShown && !karma.meditating) {
                     karma.meditating = true;
-                    showNotification('🧘 Meditating... breathe...', 2000);
+                    showNotification('Meditating... breathe...', 2000);
                 }
                 // Try to sit on bench
                 else if (trySitOnBench()) {
@@ -4383,7 +4572,7 @@
 
             if (player.hasWizardPower) {
                 // Lightning attack
-                showNotification('⚡ LIGHTNING!', 800);
+                showNotification('LIGHTNING!', 800);
                 wizards.forEach(wiz => {
                     const dist = distance(player.x, player.y, wiz.x, wiz.y);
                     if (dist < 300) {
@@ -4394,7 +4583,7 @@
                 });
             } else if (player.megaBarkReady) {
                 // Mega bark - send wizard across map
-                showNotification('📢 MEGA WOOF!!!', 1000);
+                showNotification('MEGA WOOF!!!', 1000);
                 player.megaBarkReady = false;
                 wizards.forEach(wiz => {
                     const dist = distance(player.x, player.y, wiz.x, wiz.y);
@@ -4410,7 +4599,7 @@
                 });
             } else {
                 // Normal bark
-                showNotification('🔊 WOOF!', 600);
+                showNotification('WOOF!', 600);
                 wizards.forEach(wiz => {
                     const dist = distance(player.x, player.y, wiz.x, wiz.y);
                     if (dist < 150) {
@@ -4437,10 +4626,10 @@
 
                             if (player.wizardsDefeated >= 5) {
                                 player.hasWizardPower = true;
-                                showNotification('⚡ WIZARD POWER UNLOCKED! Lightning replaces bark!', 4000);
+                                showNotification('WIZARD POWER UNLOCKED! Lightning replaces bark!', 4000);
                             }
                         } else {
-                            showNotification(`⚔️ Hit! ${8 - wiz.hitsTaken} more hits needed!`, 1000);
+                            showNotification(`Hit! ${8 - wiz.hitsTaken} more hits needed!`, 1000);
                         }
                     }
                 });
@@ -4535,7 +4724,7 @@
                 player.x = waterCrossingTarget.x;
                 player.y = waterCrossingTarget.y;
                 document.getElementById('waterPrompt').style.display = 'none';
-                showNotification('🏊 Croissant is swimming!', 1500);
+                showNotification('Croissant is swimming!', 1500);
             } else if (waterCrossingTimer <= 0) {
                 inWaterCrossing = false;
                 document.getElementById('waterPrompt').style.display = 'none';
@@ -4565,7 +4754,7 @@
             if (action === 'bark') {
                 const damage = player.hasWizardPower ? 40 : (player.megaBarkReady ? 50 : 15 + Math.floor(Math.random() * 10));
                 duelState.wizardHealth -= damage;
-                document.getElementById('duelMessage').textContent = `🔊 WOOF! Dealt ${damage} damage!`;
+                document.getElementById('duelMessage').textContent = `WOOF! Dealt ${damage} damage!`;
 
                 if (duelState.wizardHealth <= 0) {
                     endDuel(true);
@@ -4573,7 +4762,7 @@
                 }
             } else if (action === 'dodge') {
                 if (Math.random() > 0.35) {
-                    document.getElementById('duelMessage').textContent = '💨 Dodged the attack!';
+                    document.getElementById('duelMessage').textContent = 'Dodged the attack!';
                     setTimeout(() => { duelState.cooldown = 0; }, 400);
                     updateDuelUI();
                     return;
@@ -4617,7 +4806,7 @@
             document.getElementById('duelScreen').style.display = 'none';
 
             if (playerWon) {
-                showNotification('🎉 You won the duel! The wizard retreats...', 3000);
+                showNotification('You won the duel! The wizard retreats...', 3000);
                 if (duelState.currentWizard) {
                     duelState.currentWizard.x = Math.random() * WORLD_WIDTH;
                     duelState.currentWizard.y = Math.random() * WORLD_HEIGHT;
@@ -4626,7 +4815,7 @@
                 }
                 player.health = Math.min(player.maxHealth, duelState.playerHealth + 10);
             } else {
-                showNotification('💀 The wizard defeated you!', 3000);
+                showNotification(' The wizard defeated you!', 3000);
                 player.health = 30;
                 player.x = 6000;
                 player.y = 11000;
@@ -4686,7 +4875,7 @@
                 }
             });
 
-            showNotification('🔊 WOOF!', 500);
+            showNotification('WOOF!', 500);
         }
 
         function updateCave(dt) {
@@ -4736,7 +4925,7 @@
                     if (gDist < 35) {
                         cave.playerX = (cave.width / 2);
                         cave.playerY = cave.height - cave.cellSize;
-                        showNotification('👻 Ghost caught you! Back to the start!', 2000);
+                        showNotification('Ghost caught you! Back to the start!', 2000);
                     }
                 }
 
@@ -4751,7 +4940,7 @@
                 cave.caveInActive = true;
                 cave.escapeTimer = 8;
                 document.getElementById('caveWarning').style.display = 'block';
-                showNotification('⚠️ CAVE-IN! Get out NOW!', 2000);
+                showNotification('CAVE-IN! Get out NOW!', 2000);
             }
 
             // Cave-in timer
@@ -4810,23 +4999,88 @@
             gradient.addColorStop(1, '#ffd70000');
             cCtx.fillStyle = gradient;
             cCtx.fillRect(psX - glowSize, psY - glowSize, glowSize * 2, glowSize * 2);
-            cCtx.font = '35px Arial';
-            cCtx.fillText('🌿', psX - 15, psY + 12);
+            // Draw palo santo bundle
+            cCtx.fillStyle = '#8B4513';
+            cCtx.fillRect(psX - 3, psY - 10, 6, 25);
+            cCtx.fillStyle = '#228B22';
+            for (let i = 0; i < 5; i++) {
+                cCtx.beginPath();
+                cCtx.ellipse(psX + (i-2)*4, psY - 12, 4, 8, 0, 0, Math.PI * 2);
+                cCtx.fill();
+            }
 
             // Draw ghosts
             cave.ghosts.forEach(ghost => {
-                cCtx.font = '30px Arial';
-                cCtx.fillText('👻', ghost.x - camX - 15, ghost.y - camY + 10);
+                const gx = ghost.x - camX;
+                const gy = ghost.y - camY;
+                // Ghost body
+                cCtx.fillStyle = '#ffffff90';
+                cCtx.beginPath();
+                cCtx.arc(gx, gy - 5, 12, Math.PI, 0);
+                cCtx.lineTo(gx + 12, gy + 10);
+                cCtx.quadraticCurveTo(gx + 8, gy + 5, gx + 4, gy + 10);
+                cCtx.quadraticCurveTo(gx, gy + 5, gx - 4, gy + 10);
+                cCtx.quadraticCurveTo(gx - 8, gy + 5, gx - 12, gy + 10);
+                cCtx.lineTo(gx - 12, gy - 5);
+                cCtx.fill();
+                // Ghost eyes
+                cCtx.fillStyle = '#000';
+                cCtx.beginPath();
+                cCtx.arc(gx - 4, gy - 5, 3, 0, Math.PI * 2);
+                cCtx.arc(gx + 4, gy - 5, 3, 0, Math.PI * 2);
+                cCtx.fill();
             });
 
-            // Draw player
+            // Draw player (shiba in cave)
             const px = caveCanvas.width / 2;
             const py = caveCanvas.height / 2;
-            cCtx.font = '35px Arial';
             cCtx.save();
             cCtx.translate(px, py);
             if (cave.playerDir === 'left') cCtx.scale(-1, 1);
-            cCtx.fillText('🐕', -17, 12);
+            // Body
+            cCtx.fillStyle = '#D2691E';
+            cCtx.beginPath();
+            cCtx.ellipse(0, 5, 14, 10, 0, 0, Math.PI * 2);
+            cCtx.fill();
+            // Head
+            cCtx.beginPath();
+            cCtx.arc(12, -2, 10, 0, Math.PI * 2);
+            cCtx.fill();
+            // Ears
+            cCtx.beginPath();
+            cCtx.moveTo(8, -10);
+            cCtx.lineTo(5, -20);
+            cCtx.lineTo(12, -12);
+            cCtx.fill();
+            cCtx.beginPath();
+            cCtx.moveTo(16, -10);
+            cCtx.lineTo(19, -20);
+            cCtx.lineTo(14, -12);
+            cCtx.fill();
+            // Snout
+            cCtx.fillStyle = '#F5DEB3';
+            cCtx.beginPath();
+            cCtx.ellipse(20, 0, 5, 4, 0, 0, Math.PI * 2);
+            cCtx.fill();
+            // Nose
+            cCtx.fillStyle = '#000';
+            cCtx.beginPath();
+            cCtx.arc(24, -1, 2, 0, Math.PI * 2);
+            cCtx.fill();
+            // Eye
+            cCtx.beginPath();
+            cCtx.arc(15, -4, 2, 0, Math.PI * 2);
+            cCtx.fill();
+            // Tail
+            cCtx.fillStyle = '#D2691E';
+            cCtx.beginPath();
+            cCtx.moveTo(-12, 0);
+            cCtx.quadraticCurveTo(-20, -10, -15, -15);
+            cCtx.quadraticCurveTo(-10, -10, -12, 0);
+            cCtx.fill();
+            // Legs
+            cCtx.fillRect(-8, 12, 4, 8);
+            cCtx.fillRect(4, 12, 4, 8);
             cCtx.restore();
 
             // Direction indicator
@@ -4949,6 +5203,25 @@
             const onApproach = isOnApproachPath(playerCenterX, playerCenterY);
             const nearEntrance = isNearMountainEntrance(playerCenterX, playerCenterY);
 
+            // Spawn first wizard when player starts climbing the mountain
+            if (onMountain && onTrail && !mountain.climbStarted) {
+                mountain.climbStarted = true;
+                showNotification('A dark presence stirs... A wizard appears near the mountain!', 3000);
+                // Spawn wizard near the mountain
+                wizards.push({
+                    x: mountain.entryX + 200 + Math.random() * 300,
+                    y: mountain.entryY + 200 + Math.random() * 200,
+                    width: 50, height: 60,
+                    speed: 120,
+                    health: 100,
+                    maxHealth: 100,
+                    hitsTaken: 0,
+                    state: 'hunting',
+                    stunTimer: 0,
+                    retreatTimer: 0
+                });
+            }
+
             // If on mountain but not on trail
             if (onMountain && !onTrail) {
                 // Check if entering through the entrance (from approach path)
@@ -4996,7 +5269,7 @@
             if (distance(newX, newY, caveEntrance.x, caveEntrance.y) < 40) {
                 if (!caveEntrance.found) {
                     caveEntrance.found = true;
-                    showNotification('🕳️ You found the cave entrance! Press forward to enter...', 3000);
+                    showNotification('You found the cave entrance! Press forward to enter...', 3000);
                 }
                 if (distance(player.x, player.y, caveEntrance.x, caveEntrance.y) > 30 &&
                     distance(newX, newY, caveEntrance.x, caveEntrance.y) < 25) {
@@ -5009,7 +5282,7 @@
             if (player.hasSword === false && isOnMountainPeak(newX, newY) && !mountain.swordCollected) {
                 mountain.swordCollected = true;
                 player.hasSword = true;
-                showNotification('⚔️ You found the legendary SWORD! 4 more wizards appear!', 4000);
+                showNotification('You found the legendary SWORD! 4 more wizards appear!', 4000);
                 spawnWizards(4);
             }
 
@@ -5080,7 +5353,7 @@
                 if (playerDist < 120 && !player.isChasing && !player.frozenByMole && rabbit.runTimer > 0) {
                     player.isChasing = true;
                     player.chaseTarget = rabbit;
-                    showNotification('🐰 A rabbit! Must... chase...!', 1500);
+                    showNotification('A rabbit! Must... chase...!', 1500);
                 }
             });
 
@@ -5165,7 +5438,7 @@
                     // Steak now gives health (+1%) and energy (+5%), no speed boost
                     player.health = Math.min(100, player.health + 1);
                     player.energy = Math.min(100, player.energy + 5);
-                    showNotification('🥩 Steak! Health +1%, Energy +5%', 1000);
+                    showNotification('Steak! Health +1%, Energy +5%', 1000);
                     if (typeof trackSteakCollected === 'function') trackSteakCollected();
                 }
             });
@@ -5178,7 +5451,7 @@
                 if (player.kibbleBoostTimer <= 0) {
                     player.kibbleBoostActive = false;
                     player.kibbleBoostTimer = 0;
-                    showNotification('🍲 Speed boost ended!', 1000);
+                    showNotification(' Speed boost ended!', 1000);
                 }
             }
 
@@ -5205,9 +5478,9 @@
                         player.kibbleBoostActive = true;
                         player.kibbleBoostTimer = 10; // 10 seconds of speed boost
                         player.kibbleCooldown = 30; // 30 second cooldown
-                        showNotification('🍲 Kibble! SPEED BOOST for 10 seconds!', 2000);
+                        showNotification(' Kibble! SPEED BOOST for 10 seconds!', 2000);
                     } else {
-                        showNotification(`🍲 Kibble on cooldown! ${Math.ceil(player.kibbleCooldown)}s remaining`, 1500);
+                        showNotification(`Kibble on cooldown! ${Math.ceil(player.kibbleCooldown)}s remaining`, 1500);
                     }
                     if (typeof trackKibbleCollected === 'function') trackKibbleCollected();
                 }
@@ -5242,7 +5515,7 @@
             player.energy = Math.max(0, Math.min(player.maxEnergy, player.energy));
 
             if (player.energy <= 0) {
-                showNotification('💀 Croissant collapsed!', 3000);
+                showNotification(' Croissant collapsed!', 3000);
                 player.energy = 30;
                 player.x = 6000;
                 player.y = 11000;
@@ -5265,14 +5538,14 @@
             // Speed indicator - show kibble boost status
             let currentSpeedMult = player.speedMultiplier;
             if (player.kibbleBoostActive) currentSpeedMult *= 1.5;
-            let speedText = `🏃 Speed: ${currentSpeedMult.toFixed(1)}x`;
+            let speedText = `Speed: ${currentSpeedMult.toFixed(1)}x`;
             if (player.kibbleBoostActive) {
-                speedText += ` ⚡${Math.ceil(player.kibbleBoostTimer)}s`;
+                speedText += ` BOOST ${Math.ceil(player.kibbleBoostTimer)}s`;
             } else if (player.kibbleCooldown > 0) {
                 speedText += ` (CD: ${Math.ceil(player.kibbleCooldown)}s)`;
             }
             document.getElementById('speedIndicator').textContent = speedText;
-            document.getElementById('sprintIndicator').textContent = player.isSprinting ? '🔥 SPRINTING' : '';
+            document.getElementById('sprintIndicator').textContent = player.isSprinting ? 'SPRINTING' : '';
         }
 
         // Rendering
@@ -5436,8 +5709,6 @@
             if (!mountain.swordCollected) {
                 const px = sx + mountain.width/2;
                 const py = sy + mountain.height/2;
-                ctx.font = '30px Arial';
-                ctx.fillText('⚔️', px - 15, py + 10);
 
                 // Glow
                 const gradient = ctx.createRadialGradient(px, py, 0, px, py, 40);
@@ -5445,6 +5716,14 @@
                 gradient.addColorStop(1, '#ffd70000');
                 ctx.fillStyle = gradient;
                 ctx.fillRect(px - 40, py - 40, 80, 80);
+
+                // Draw sword
+                ctx.fillStyle = '#c0c0c0';
+                ctx.fillRect(px - 3, py - 20, 6, 30);
+                ctx.fillStyle = '#ffd700';
+                ctx.fillRect(px - 10, py + 8, 20, 4);
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(px - 2, py + 12, 4, 10);
             }
         }
 
@@ -5509,8 +5788,14 @@
             ctx.fill();
 
             if (caveEntrance.found) {
-                ctx.font = '12px Arial';
-                ctx.fillText('🕳️', sx + 18, sy + 30);
+                // Draw cave hole indicator
+                ctx.fillStyle = '#1a1a1a';
+                ctx.beginPath();
+                ctx.ellipse(sx + 25, sy + 28, 10, 6, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
             }
         }
 
@@ -5525,8 +5810,22 @@
                 ctx.beginPath();
                 ctx.arc(sx + steak.width/2, sy + steak.height/2, 18, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.font = '22px Arial';
-                ctx.fillText('🥩', sx, sy + 22);
+                // Draw steak shape
+                ctx.fillStyle = '#8B0000';
+                ctx.beginPath();
+                ctx.ellipse(sx + 17, sy + 17, 12, 8, -0.3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#CD5C5C';
+                ctx.beginPath();
+                ctx.ellipse(sx + 17, sy + 15, 8, 5, -0.3, 0, Math.PI * 2);
+                ctx.fill();
+                // Bone
+                ctx.fillStyle = '#F5F5DC';
+                ctx.beginPath();
+                ctx.arc(sx + 5, sy + 12, 4, 0, Math.PI * 2);
+                ctx.arc(sx + 28, sy + 22, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillRect(sx + 7, sy + 13, 20, 4);
             });
         }
 
@@ -5541,8 +5840,22 @@
                 ctx.beginPath();
                 ctx.arc(sx + k.width/2, sy + k.height/2, 22, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.font = '28px Arial';
-                ctx.fillText('🍲', sx, sy + 30);
+                // Draw bowl
+                ctx.fillStyle = '#8B4513';
+                ctx.beginPath();
+                ctx.ellipse(sx + 22, sy + 28, 18, 8, 0, 0, Math.PI);
+                ctx.fill();
+                ctx.fillStyle = '#A0522D';
+                ctx.beginPath();
+                ctx.ellipse(sx + 22, sy + 20, 16, 6, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // Kibble pieces
+                ctx.fillStyle = '#DAA520';
+                for (let i = 0; i < 5; i++) {
+                    ctx.beginPath();
+                    ctx.arc(sx + 14 + i * 4, sy + 18 + (i % 2) * 3, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             });
         }
 
@@ -5552,30 +5865,123 @@
                 const sy = npc.y - camera.y;
                 if (sx + npc.width < 0 || sx > camera.width || sy + npc.height < 0 || sy > camera.height) return;
 
-                ctx.fillStyle = '#f5deb3';
-                ctx.fillRect(sx + 10, sy + 15, 20, 25);
+                // Get shirt color based on NPC type
+                let shirtColor;
+                if (npc.type === 'power') {
+                    const colors = { speed_boost: '#ff6b6b', shield: '#6b6bff', mega_bark: '#ffff6b', water_walker: '#6bffff', radar: '#ff6bff', energy_regen: '#6bff6b' };
+                    shirtColor = colors[npc.data.gift.id] || '#888';
+                } else {
+                    shirtColor = '#4488ff'; // Stanford blue
+                }
+
+                // Draw legs (pants)
+                ctx.fillStyle = '#2a2a5a';
+                ctx.fillRect(sx + 12, sy + 42, 6, 14);
+                ctx.fillRect(sx + 22, sy + 42, 6, 14);
+
+                // Draw shoes
+                ctx.fillStyle = '#333';
+                ctx.fillRect(sx + 10, sy + 54, 9, 4);
+                ctx.fillRect(sx + 21, sy + 54, 9, 4);
+
+                // Draw body/torso
+                ctx.fillStyle = shirtColor;
+                ctx.fillRect(sx + 8, sy + 20, 24, 24);
+
+                // Draw collar detail
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.moveTo(sx + 16, sy + 20);
+                ctx.lineTo(sx + 20, sy + 26);
+                ctx.lineTo(sx + 24, sy + 20);
+                ctx.fill();
+
+                // Draw arms
+                ctx.fillStyle = shirtColor;
+                ctx.fillRect(sx + 2, sy + 22, 6, 16);
+                ctx.fillRect(sx + 32, sy + 22, 6, 16);
+
+                // Draw hands (skin color)
+                ctx.fillStyle = '#ffe4c4';
+                ctx.beginPath();
+                ctx.arc(sx + 5, sy + 40, 4, 0, Math.PI * 2);
+                ctx.arc(sx + 35, sy + 40, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw head (skin)
                 ctx.fillStyle = '#ffe4c4';
                 ctx.beginPath();
                 ctx.arc(sx + 20, sy + 10, 10, 0, Math.PI * 2);
                 ctx.fill();
 
-                if (npc.type === 'power') {
-                    const colors = { speed_boost: '#ff6b6b', shield: '#6b6bff', mega_bark: '#ffff6b', water_walker: '#6bffff', radar: '#ff6bff', energy_regen: '#6bff6b' };
-                    ctx.fillStyle = colors[npc.data.gift.id] || '#888';
-                } else {
-                    ctx.fillStyle = '#4488ff'; // Stanford blue
-                }
-                ctx.fillRect(sx + 10, sy + 15, 20, 12);
+                // Draw hair
+                const hairColors = ['#3a2a1a', '#1a1a1a', '#5a3a2a', '#8a6a3a', '#2a1a0a'];
+                ctx.fillStyle = hairColors[(npc.data.name.length + (npc.x || 0)) % hairColors.length];
+                ctx.beginPath();
+                ctx.arc(sx + 20, sy + 6, 9, Math.PI, 0);
+                ctx.fill();
+                // Side hair
+                ctx.fillRect(sx + 11, sy + 4, 3, 8);
+                ctx.fillRect(sx + 26, sy + 4, 3, 8);
 
+                // Draw eyes
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(sx + 16, sy + 9, 3, 0, Math.PI * 2);
+                ctx.arc(sx + 24, sy + 9, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#3a2a1a';
+                ctx.beginPath();
+                ctx.arc(sx + 16, sy + 9, 1.5, 0, Math.PI * 2);
+                ctx.arc(sx + 24, sy + 9, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw eyebrows
+                ctx.strokeStyle = hairColors[(npc.data.name.length + (npc.x || 0)) % hairColors.length];
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(sx + 13, sy + 5);
+                ctx.lineTo(sx + 19, sy + 6);
+                ctx.moveTo(sx + 21, sy + 6);
+                ctx.lineTo(sx + 27, sy + 5);
+                ctx.stroke();
+
+                // Draw nose
+                ctx.fillStyle = '#ddc4b4';
+                ctx.beginPath();
+                ctx.moveTo(sx + 20, sy + 10);
+                ctx.lineTo(sx + 18, sy + 14);
+                ctx.lineTo(sx + 22, sy + 14);
+                ctx.closePath();
+                ctx.fill();
+
+                // Draw mouth (smile)
+                ctx.strokeStyle = '#a06050';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(sx + 20, sy + 15, 3, 0.2, Math.PI - 0.2);
+                ctx.stroke();
+
+                // Draw exclamation for power givers
                 if (npc.type === 'power' && !npc.hasGivenGift) {
                     ctx.fillStyle = '#ffd700';
-                    ctx.font = '14px Arial';
-                    ctx.fillText('❗', sx + 15, sy - 3);
+                    ctx.beginPath();
+                    ctx.moveTo(sx + 18, sy - 15);
+                    ctx.lineTo(sx + 22, sy - 5);
+                    ctx.lineTo(sx + 14, sy - 5);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(sx + 18, sy - 1, 2, 0, Math.PI * 2);
+                    ctx.fill();
                 }
 
+                // Draw name
                 ctx.fillStyle = '#fff';
                 ctx.font = '8px Courier New';
-                ctx.fillText(npc.data.name, sx - 5, sy + 48);
+                ctx.textAlign = 'center';
+                ctx.fillText(npc.data.name, sx + 20, sy + 68);
+                ctx.textAlign = 'left';
             });
         }
 
@@ -5585,8 +5991,31 @@
                 const sx = r.x - camera.x;
                 const sy = r.y - camera.y;
                 if (sx + r.width < 0 || sx > camera.width || sy + r.height < 0 || sy > camera.height) return;
-                ctx.font = '18px Arial';
-                ctx.fillText('🐰', sx, sy + 18);
+                // Draw rabbit
+                ctx.fillStyle = '#d3d3d3';
+                // Body
+                ctx.beginPath();
+                ctx.ellipse(sx + 12, sy + 15, 10, 8, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // Head
+                ctx.beginPath();
+                ctx.arc(sx + 20, sy + 10, 6, 0, Math.PI * 2);
+                ctx.fill();
+                // Ears
+                ctx.beginPath();
+                ctx.ellipse(sx + 17, sy + 2, 2, 6, -0.3, 0, Math.PI * 2);
+                ctx.ellipse(sx + 23, sy + 2, 2, 6, 0.3, 0, Math.PI * 2);
+                ctx.fill();
+                // Eye
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(sx + 22, sy + 9, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+                // Tail
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(sx + 3, sy + 14, 3, 0, Math.PI * 2);
+                ctx.fill();
             });
         }
 
@@ -5604,8 +6033,33 @@
                 ctx.fill();
 
                 if (m.state === 'up') {
-                    ctx.font = '24px Arial';
-                    ctx.fillText('🐿️', sx, sy + 18);
+                    // Draw mole/chipmunk
+                    ctx.fillStyle = '#8B4513';
+                    // Body
+                    ctx.beginPath();
+                    ctx.ellipse(sx + 15, sy + 12, 10, 8, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Head
+                    ctx.beginPath();
+                    ctx.arc(sx + 15, sy + 5, 7, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Ears
+                    ctx.fillStyle = '#D2691E';
+                    ctx.beginPath();
+                    ctx.arc(sx + 8, sy + 2, 3, 0, Math.PI * 2);
+                    ctx.arc(sx + 22, sy + 2, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Eyes
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath();
+                    ctx.arc(sx + 12, sy + 4, 1.5, 0, Math.PI * 2);
+                    ctx.arc(sx + 18, sy + 4, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Nose
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath();
+                    ctx.arc(sx + 15, sy + 8, 2, 0, Math.PI * 2);
+                    ctx.fill();
                 }
             });
         }
@@ -5976,13 +6430,26 @@
             drawShibaSprite(ctx, sx + player.width/2 - 10, sy + player.height/2 - 5, player.direction, isWalking, animTime);
 
             if (player.hasSword) {
-                ctx.font = '16px Arial';
-                ctx.fillText('⚔️', sx + player.width - 5, sy + 5);
+                // Draw sword icon
+                ctx.fillStyle = '#C0C0C0';
+                ctx.fillRect(sx + player.width + 2, sy - 2, 3, 14);
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(sx + player.width - 1, sy + 10, 9, 3);
+                ctx.fillRect(sx + player.width + 2, sy + 12, 3, 5);
             }
 
             if (player.hasWizardPower) {
-                ctx.font = '12px Arial';
-                ctx.fillText('⚡', sx - 5, sy + 5);
+                // Draw lightning bolt
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.moveTo(sx - 2, sy - 5);
+                ctx.lineTo(sx + 4, sy + 2);
+                ctx.lineTo(sx + 1, sy + 2);
+                ctx.lineTo(sx + 5, sy + 10);
+                ctx.lineTo(sx - 1, sy + 3);
+                ctx.lineTo(sx + 2, sy + 3);
+                ctx.closePath();
+                ctx.fill();
             }
 
             if (player.isSprinting) {
@@ -6128,7 +6595,7 @@
             spawnSteaks();
             spawnKibble();
             spawnNPCs();
-            spawnWizards(1);
+            // Don't spawn wizards initially - they spawn when climbing mountain
             spawnClouds();
             updateHUD();
             updateCamera();
