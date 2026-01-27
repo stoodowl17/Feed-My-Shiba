@@ -3137,6 +3137,777 @@
         }
         // ===== END ENVIRONMENTAL FLAVOR SYSTEM =====
 
+        // ===== SPECIAL NPCS SYSTEM =====
+        let specialNpcs = [];
+        let specialNpcDialogActive = null;
+        let dialogChoices = [];
+        let playerBuffs = {
+            wisdom: 0,
+            thoughtLeadership: 0,
+            algorithmicInsight: 0,
+            espressoBoost: 0,
+            espressoAnxiety: false
+        };
+
+        // Special NPC definitions
+        const specialNpcData = {
+            hoodieFounder: {
+                name: "The Hoodie Founder",
+                icon: "👔",
+                color: "#444",
+                location: { x: 4300, y: 3200 }, // Near Meta campus
+                friendCount: 0,
+                dialogues: {
+                    initial: "Hey friend! I see you have some items there. Let me optimize that for you!",
+                    optimized: "There! I rearranged everything. Much more efficient. We're friends now, right?",
+                    clingy: ["We're still friends, right?", "Best friends don't ignore each other!", "I synced our calendars. We're hanging out later.", "I added you to my close friends story!", "Why won't you look at me, friend?"],
+                    ignored: "I know you can hear me, friend. Friends don't ghost friends."
+                }
+            },
+            steveJobsGhost: {
+                name: "Steve Jobs' Ghost",
+                icon: "👻",
+                color: "#f5f5f7",
+                location: { x: 7000, y: 5500 }, // Apple-ish area
+                impressed: false,
+                dialogues: {
+                    initial: "Your fur... it lacks focus. Too many colors. And what is that UI you're carrying? Disgusting.",
+                    critique: ["That collar? Three buttons too many.", "You call that a walk cycle? Skeuomorphic nonsense.", "Your inventory layout offends me on a spiritual level."],
+                    android: "You bought an Android? The path to enlightenment must have no unnecessary features.",
+                    impressed: "Hmm. You have potential. Take this. One button. That's all you need.",
+                    itemGiven: "Received: The One Button 🔘 (Does everything. Elegantly.)"
+                }
+            },
+            elonProphet: {
+                name: "Tech Prophet",
+                icon: "🚀",
+                color: "#1da1f2",
+                location: { x: 10500, y: 2000 }, // Edge of map
+                pivotCount: 0,
+                dialogues: {
+                    initial: "I'm going to add an AMAZING feature to this game. Next update. Trust me.",
+                    promise: ["Flying cars in v2.0!", "Neural link support coming soon!", "We're boring tunnels under the map as we speak!"],
+                    pivot: ["But first, let me tell you about Mars.", "Actually, have you considered living underground?", "What if dogs could tweet? I'm working on it.", "The real treasure is sustainable energy.", "We should make this game run on solar power."]
+                }
+            },
+            startupBro: {
+                name: "Stanford Startup Bro",
+                icon: "🧑‍💼",
+                color: "#8b0000",
+                location: { x: 2500, y: 2500 }, // Stanford
+                pitchCount: 0,
+                dialogues: {
+                    pitch: ["It's basically Uber, but for dog walking.", "It's basically Uber, but for finding enlightenment.", "It's basically Uber, but for bones.", "It's basically Uber, but for barking.", "It's basically Uber, but for Uber."],
+                    response: "It's basically Uber, but for that."
+                }
+            },
+            vcOracle: {
+                name: "Venture Capital Oracle",
+                icon: "💰",
+                color: "#ffd700",
+                location: { x: 5500, y: 10500 }, // Downtown
+                dialogues: {
+                    initial: "Hmm, a seeker approaches. What are your traction metrics?",
+                    noGold: "Come back when you have product-market fit. And by that I mean gold.",
+                    hasGold: "Ah, you already have gold! Here's more gold. That's how this works.",
+                    wisdom: "The first rule of VC: only invest in what's already working."
+                }
+            },
+            burnedOutEngineer: {
+                name: "Burned-Out Engineer",
+                icon: "💻",
+                color: "#6b6b6b",
+                location: { x: 3800, y: 5000 },
+                caffeineLevel: 0,
+                dialogues: {
+                    morning: "I can fix that bug... just need one more coffee... been here since 6am...",
+                    afternoon: "Yeah I'll look at it after this standup. And the next standup. And my 1:1.",
+                    evening: "Ship it to prod, what could go wrong? *nervous laughter*",
+                    night: "Is it morning already? The tests are green. I think. Everything is fine.",
+                    maxCaffeine: "I CAN SEE THE CODE. IT SPEAKS TO ME. I AM ONE WITH THE CODEBASE."
+                }
+            },
+            holmesGuru: {
+                name: "Wellness Guru",
+                icon: "🔮",
+                color: "#8b008b",
+                location: { x: 7500, y: 8000 },
+                deviceSold: false,
+                dialogues: {
+                    initial: "This device can detect your chakras, align your proteins, AND order lunch. Revolutionary.",
+                    sell: "For just 5 gold, you can have the Theranos... I mean, Wellness Orb.",
+                    bought: "You won't regret this! *the device does literally nothing*",
+                    npcBelieve: "Other NPCs will think you're very healthy now!",
+                    noGold: "Come back when you've manifested more abundance."
+                }
+            },
+            mapsIntern: {
+                name: "Maps Intern",
+                icon: "🗺️",
+                color: "#4285f4",
+                location: { x: 6000, y: 6000 },
+                routeCount: 0,
+                dialogues: {
+                    initial: "Need directions? I've got the OPTIMAL route!",
+                    routes: [
+                        "Go north, then south, then north again. ETA: 47 minutes.",
+                        "Take a left at the tree. No, the other tree. Actually, swim.",
+                        "The fastest route goes through that lake. Trust the algorithm.",
+                        "Turn right in 500 feet. Recalculating. Recalculating. Recalculating.",
+                        "You've arrived! Wait, this isn't right. Or is it?"
+                    ],
+                    lakeRoute: "For the scenic route, I recommend swimming. The lake is lovely this time of year. 🏊"
+                }
+            },
+            ethicsProfessor: {
+                name: "AI Ethics Professor",
+                icon: "🤔",
+                color: "#800080",
+                location: { x: 2000, y: 3000 }, // Stanford
+                uncomfortable: false,
+                dialogues: {
+                    initial: "Before you continue this quest, have you considered the ethical implications?",
+                    questions: [
+                        "Is it RIGHT to collect all these steaks? Who made them?",
+                        "The wizard you're fighting - have you tried dialogue?",
+                        "Your 'karma' system... who defines good and evil here?",
+                        "These NPCs you're talking to - do they have rights?"
+                    ],
+                    npcMention: "I'm... I'm not an NPC. I'm a PROFESSOR. This is my OFFICE.",
+                    existential: "*sweats nervously* We don't talk about that. Class dismissed."
+                }
+            },
+            barista: {
+                name: "Legendary Barista",
+                icon: "☕",
+                color: "#6f4e37",
+                location: { x: 5900, y: 5800 }, // University Ave
+                rememberCount: 0,
+                dialogues: {
+                    initial: "Ah, the usual, right?",
+                    usual: ["Your triple-shot oat milk latte with exactly 2.5 pumps vanilla?", "The cortado with the foam art of your face?", "Ethiopian single-origin, wet-processed, at exactly 203 degrees?"],
+                    serve: "Here you go! One espresso. You'll feel... energized. Very energized. Maybe too energized.",
+                    effect: "☕ +20% speed for 20s! But also... anxiety."
+                }
+            },
+            ventureMonk: {
+                name: "Venture Monk",
+                icon: "🧘",
+                color: "#ff8c00",
+                location: { x: 800, y: 6500 }, // Foothills
+                dialogues: {
+                    initial: "*checks phone* Ah, a seeker. Does your quest have product-market fit?",
+                    bark: "A peaceful woof. Take this incense. It smells of term sheets. 🪔",
+                    growl: "Ah, aggression. Here's a pitch deck instead. Very disruptive. 📊",
+                    hypocrite: "*portfolio notification dings* I've renounced wealth. Mostly. In spirit."
+                }
+            },
+            enlightenmentClub: {
+                name: "Stanford Enlightenment Club",
+                icon: "🧘‍♂️",
+                color: "#00ced1",
+                location: { x: 1800, y: 2000 }, // Stanford
+                chanting: true,
+                dialogues: {
+                    chant: ["Synergy... Leverage... Disrupt...", "Growth... Scale... Exit...", "Network... Pivot... Iterate..."],
+                    welcome: "Join us in meditation. Today we manifest thought leadership.",
+                    buff: "You've gained: Thought Leadership™ (+charisma, +LinkedIn connections)",
+                    network: "*everyone exchanges business cards while in lotus position*"
+                }
+            },
+            aiOracle: {
+                name: "AI Oracle of the Cloud",
+                icon: "☁️",
+                color: "#87ceeb",
+                location: { x: 11000, y: 6000 },
+                predictions: 0,
+                dialogues: {
+                    initial: "I am the Oracle. I see all. I predict with 73.2% confidence.",
+                    predictions: [
+                        "You will press a button... soon. Very soon.",
+                        "I sense you seek enlightenment. Or food. 64% food.",
+                        "The path ahead has trees. Many trees. This is statistically likely.",
+                        "You will encounter an NPC. I am that NPC. Prediction: successful."
+                    ],
+                    meta: "You're thinking about your next move. It involves walking. I'm 89% certain.",
+                    buff: "Algorithmic Insight granted. +luck, but I've already decided your luck."
+                }
+            },
+            wellnessInfluencer: {
+                name: "Wellness Influencer",
+                icon: "✨",
+                color: "#ff69b4",
+                location: { x: 6500, y: 8500 }, // Park
+                dialogues: {
+                    initial: "I already achieved enlightenment. Livestreamed the whole thing. Got 10k likes.",
+                    glitch: "*aura flickers* How? Oh you know, just... vibes. High-frequency vibes.",
+                    suspicious: "*screen glitches* Don't look too closely at my aura. It's, um, buffering.",
+                    pitch: "Subscribe to my enlightenment course! Only $299/month!"
+                }
+            },
+            homeownerGuardian: {
+                name: "Palo Alto Homeowner",
+                icon: "🏠",
+                color: "#228b22",
+                location: { x: 4500, y: 7500 },
+                blocking: true,
+                dialogues: {
+                    initial: "HALT! This path is for RESIDENTS ONLY. And their emotional support startups.",
+                    block: "You can't pass! Think of the property values! The ZONING LAWS!",
+                    disguise: "Wait... is that... an emotional support startup? With Series A funding?",
+                    pass: "Fine, you may pass. But don't park here. Or make noise. Or exist loudly."
+                }
+            },
+            ancientShiba: {
+                name: "Ancient Shiba Spirit",
+                icon: "🐕",
+                color: "#ffd700",
+                location: { x: 1500, y: 9500 }, // Near mountain
+                communicated: false,
+                dialogues: {
+                    initial: "*radiates peaceful energy*",
+                    vibe1: "*tilts head knowingly*",
+                    vibe2: "*wags tail at a frequency that transcends language*",
+                    vibe3: "*blinks slowly, conveying the secrets of the universe*",
+                    truth: "...",
+                    revelation: "The enlightenment was inside you the whole time. But also, the plant is cool.",
+                    buff: "You feel... understood. Wisdom +10. Inner peace +∞."
+                }
+            }
+        };
+
+        function initSpecialNpcs() {
+            specialNpcs = [];
+
+            Object.entries(specialNpcData).forEach(([key, data]) => {
+                specialNpcs.push({
+                    id: key,
+                    x: data.location.x,
+                    y: data.location.y,
+                    width: 45,
+                    height: 55,
+                    name: data.name,
+                    icon: data.icon,
+                    color: data.color,
+                    interactionCount: 0,
+                    specialState: {},
+                    lastInteraction: 0
+                });
+            });
+        }
+
+        function getTimeOfDay() {
+            const hour = new Date().getHours();
+            if (hour >= 6 && hour < 12) return 'morning';
+            if (hour >= 12 && hour < 17) return 'afternoon';
+            if (hour >= 17 && hour < 21) return 'evening';
+            return 'night';
+        }
+
+        function interactWithSpecialNpc(npc) {
+            const data = specialNpcData[npc.id];
+            npc.interactionCount++;
+            npc.lastInteraction = Date.now();
+
+            switch(npc.id) {
+                case 'hoodieFounder':
+                    handleHoodieFounder(npc, data);
+                    break;
+                case 'steveJobsGhost':
+                    handleSteveJobsGhost(npc, data);
+                    break;
+                case 'elonProphet':
+                    handleElonProphet(npc, data);
+                    break;
+                case 'startupBro':
+                    handleStartupBro(npc, data);
+                    break;
+                case 'vcOracle':
+                    handleVcOracle(npc, data);
+                    break;
+                case 'burnedOutEngineer':
+                    handleBurnedOutEngineer(npc, data);
+                    break;
+                case 'holmesGuru':
+                    handleHolmesGuru(npc, data);
+                    break;
+                case 'mapsIntern':
+                    handleMapsIntern(npc, data);
+                    break;
+                case 'ethicsProfessor':
+                    handleEthicsProfessor(npc, data);
+                    break;
+                case 'barista':
+                    handleBarista(npc, data);
+                    break;
+                case 'ventureMonk':
+                    handleVentureMonk(npc, data);
+                    break;
+                case 'enlightenmentClub':
+                    handleEnlightenmentClub(npc, data);
+                    break;
+                case 'aiOracle':
+                    handleAiOracle(npc, data);
+                    break;
+                case 'wellnessInfluencer':
+                    handleWellnessInfluencer(npc, data);
+                    break;
+                case 'homeownerGuardian':
+                    handleHomeownerGuardian(npc, data);
+                    break;
+                case 'ancientShiba':
+                    handleAncientShiba(npc, data);
+                    break;
+            }
+        }
+
+        function handleHoodieFounder(npc, data) {
+            if (npc.interactionCount === 1) {
+                showSpecialDialog(data.name, data.dialogues.initial, data.icon);
+                setTimeout(() => {
+                    // Shuffle player's powers randomly
+                    if (player.powers.length > 1) {
+                        for (let i = player.powers.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [player.powers[i], player.powers[j]] = [player.powers[j], player.powers[i]];
+                        }
+                        updateHUD();
+                    }
+                    showNotification(data.dialogues.optimized, 3000);
+                    data.friendCount++;
+                }, 2000);
+            } else {
+                const clingyMsg = data.dialogues.clingy[Math.floor(Math.random() * data.dialogues.clingy.length)];
+                showSpecialDialog(data.name, clingyMsg, data.icon);
+                data.friendCount++;
+            }
+        }
+
+        function handleSteveJobsGhost(npc, data) {
+            if (npc.specialState.impressed) {
+                showSpecialDialog(data.name, "One more thing... no wait, I already gave you the thing.", data.icon);
+                return;
+            }
+
+            if (npc.interactionCount <= 3) {
+                const critique = data.dialogues.critique[npc.interactionCount - 1] || data.dialogues.initial;
+                showSpecialDialog(data.name, critique, data.icon, [
+                    { text: "I appreciate minimalism!", action: () => impressSteve(npc, data) },
+                    { text: "I bought an Android", action: () => showSpecialDialog(data.name, data.dialogues.android, data.icon) }
+                ]);
+            } else {
+                impressSteve(npc, data);
+            }
+        }
+
+        function impressSteve(npc, data) {
+            if (!npc.specialState.impressed) {
+                npc.specialState.impressed = true;
+                showSpecialDialog(data.name, data.dialogues.impressed, data.icon);
+                setTimeout(() => {
+                    // Remove half inventory but grant wisdom
+                    const removeCount = Math.floor(player.powers.length / 2);
+                    player.powers = player.powers.slice(removeCount);
+                    playerBuffs.wisdom += 20;
+                    player.powers.push({ id: 'one_button', name: 'The One Button', icon: '🔘', duration: 60, special: true });
+                    updateHUD();
+                    showNotification(data.dialogues.itemGiven + " Wisdom +20!", 4000);
+                }, 2000);
+            }
+        }
+
+        function handleElonProphet(npc, data) {
+            const shouldPivot = Math.random() < 0.6;
+
+            if (shouldPivot) {
+                const pivot = data.dialogues.pivot[Math.floor(Math.random() * data.dialogues.pivot.length)];
+                showSpecialDialog(data.name, pivot, data.icon);
+                npc.specialState.pivotCount = (npc.specialState.pivotCount || 0) + 1;
+            } else {
+                const promise = data.dialogues.promise[Math.floor(Math.random() * data.dialogues.promise.length)];
+                showSpecialDialog(data.name, data.dialogues.initial + " " + promise, data.icon);
+            }
+        }
+
+        function handleStartupBro(npc, data) {
+            const pitch = data.dialogues.pitch[npc.interactionCount % data.dialogues.pitch.length];
+            showSpecialDialog(data.name, pitch, data.icon, [
+                { text: "Interesting...", action: () => showSpecialDialog(data.name, data.dialogues.response, data.icon) },
+                { text: "That's dumb", action: () => showSpecialDialog(data.name, data.dialogues.response, data.icon) },
+                { text: "I have a better idea", action: () => showSpecialDialog(data.name, data.dialogues.response, data.icon) }
+            ]);
+        }
+
+        function handleVcOracle(npc, data) {
+            showSpecialDialog(data.name, data.dialogues.initial, data.icon);
+            setTimeout(() => {
+                if (goldInventory > 0) {
+                    goldInventory += 2;
+                    updateGoldUI();
+                    showNotification(data.dialogues.hasGold + " +2 Gold!", 3000);
+                } else {
+                    showNotification(data.dialogues.noGold, 3000);
+                }
+            }, 2000);
+        }
+
+        function handleBurnedOutEngineer(npc, data) {
+            const time = getTimeOfDay();
+            let dialogue = data.dialogues[time];
+
+            npc.specialState.caffeine = (npc.specialState.caffeine || 0) + 1;
+
+            if (npc.specialState.caffeine > 5) {
+                dialogue = data.dialogues.maxCaffeine;
+                // At max caffeine, actually fixes a random "bug" (gives small buff)
+                player.energy = Math.min(100, player.energy + 20);
+                showNotification("Bug fixed! Energy +20!", 2000);
+            }
+
+            showSpecialDialog(data.name, dialogue, data.icon);
+        }
+
+        function handleHolmesGuru(npc, data) {
+            if (npc.specialState.deviceSold) {
+                showSpecialDialog(data.name, "Your Wellness Orb is working perfectly! Can't you feel it?", data.icon);
+                showNotification("(You feel nothing. But you look enlightened.)", 3000);
+                return;
+            }
+
+            showSpecialDialog(data.name, data.dialogues.initial, data.icon, [
+                { text: "Buy for 5 gold", action: () => {
+                    if (goldInventory >= 5) {
+                        goldInventory -= 5;
+                        updateGoldUI();
+                        npc.specialState.deviceSold = true;
+                        npc.specialState.hasDevice = true;
+                        showSpecialDialog(data.name, data.dialogues.bought, data.icon);
+                        setTimeout(() => showNotification(data.dialogues.npcBelieve, 3000), 2000);
+                    } else {
+                        showSpecialDialog(data.name, data.dialogues.noGold, data.icon);
+                    }
+                }},
+                { text: "No thanks", action: () => closeSpecialDialog() }
+            ]);
+        }
+
+        function handleMapsIntern(npc, data) {
+            npc.specialState.routeCount = (npc.specialState.routeCount || 0) + 1;
+
+            // Easter egg: every 5th route goes through a lake
+            if (npc.specialState.routeCount % 5 === 0) {
+                showSpecialDialog(data.name, data.dialogues.lakeRoute, data.icon);
+            } else {
+                const route = data.dialogues.routes[Math.floor(Math.random() * data.dialogues.routes.length)];
+                showSpecialDialog(data.name, data.dialogues.initial + " " + route, data.icon);
+            }
+        }
+
+        function handleEthicsProfessor(npc, data) {
+            if (npc.specialState.uncomfortable) {
+                showSpecialDialog(data.name, data.dialogues.existential, data.icon);
+                return;
+            }
+
+            const question = data.dialogues.questions[npc.interactionCount % data.dialogues.questions.length];
+            showSpecialDialog(data.name, question, data.icon, [
+                { text: "You're just an NPC", action: () => {
+                    npc.specialState.uncomfortable = true;
+                    showSpecialDialog(data.name, data.dialogues.npcMention, data.icon);
+                }},
+                { text: "I'll think about it", action: () => {
+                    karma.xp += 5;
+                    showNotification("Ethical reflection: +5 Karma XP", 2000);
+                    closeSpecialDialog();
+                }}
+            ]);
+        }
+
+        function handleBarista(npc, data) {
+            const usual = data.dialogues.usual[npc.interactionCount % data.dialogues.usual.length];
+            showSpecialDialog(data.name, data.dialogues.initial + " " + usual, data.icon, [
+                { text: "Yes, that's right!", action: () => giveEspressoBoost(npc, data) },
+                { text: "How do you know that?", action: () => {
+                    showSpecialDialog(data.name, "I remember EVERYONE. It's a blessing and a curse.", data.icon);
+                    setTimeout(() => giveEspressoBoost(npc, data), 2000);
+                }}
+            ]);
+        }
+
+        function giveEspressoBoost(npc, data) {
+            playerBuffs.espressoBoost = 20;
+            playerBuffs.espressoAnxiety = true;
+            showSpecialDialog(data.name, data.dialogues.serve, data.icon);
+            showNotification(data.dialogues.effect, 3000);
+        }
+
+        function handleVentureMonk(npc, data) {
+            showSpecialDialog(data.name, data.dialogues.initial, data.icon, [
+                { text: "*Bark peacefully*", action: () => {
+                    showSpecialDialog(data.name, data.dialogues.bark, data.icon);
+                    karma.xp += 10;
+                    showNotification("Received incense! +10 Karma XP 🪔", 2000);
+                }},
+                { text: "*Growl*", action: () => {
+                    showSpecialDialog(data.name, data.dialogues.growl, data.icon);
+                    playerBuffs.wisdom += 5;
+                    showNotification("Received pitch deck! +5 Wisdom 📊", 2000);
+                }}
+            ]);
+        }
+
+        function handleEnlightenmentClub(npc, data) {
+            const chant = data.dialogues.chant[Math.floor(Math.random() * data.dialogues.chant.length)];
+            showSpecialDialog(data.name, "*chanting* " + chant, data.icon, [
+                { text: "Join meditation", action: () => {
+                    playerBuffs.thoughtLeadership = 30;
+                    showSpecialDialog(data.name, data.dialogues.buff, data.icon);
+                    showNotification("Thought Leadership™ active for 30s!", 3000);
+                }},
+                { text: "Exchange business cards", action: () => {
+                    showSpecialDialog(data.name, data.dialogues.network, data.icon);
+                    karma.xp += 3;
+                }}
+            ]);
+        }
+
+        function handleAiOracle(npc, data) {
+            npc.specialState.predictions = (npc.specialState.predictions || 0) + 1;
+
+            // Meta prediction about player input
+            if (npc.specialState.predictions % 3 === 0) {
+                showSpecialDialog(data.name, data.dialogues.meta, data.icon);
+            } else {
+                const prediction = data.dialogues.predictions[Math.floor(Math.random() * data.dialogues.predictions.length)];
+                showSpecialDialog(data.name, prediction, data.icon, [
+                    { text: "Grant me insight", action: () => {
+                        playerBuffs.algorithmicInsight = 45;
+                        showSpecialDialog(data.name, data.dialogues.buff, data.icon);
+                        showNotification("Algorithmic Insight: +luck, -free will (45s)", 3000);
+                    }}
+                ]);
+            }
+        }
+
+        function handleWellnessInfluencer(npc, data) {
+            if (npc.interactionCount === 1) {
+                showSpecialDialog(data.name, data.dialogues.initial, data.icon);
+            } else if (npc.interactionCount === 2) {
+                npc.specialState.glitching = true;
+                showSpecialDialog(data.name, data.dialogues.glitch, data.icon);
+            } else {
+                showSpecialDialog(data.name, data.dialogues.pitch, data.icon);
+            }
+        }
+
+        function handleHomeownerGuardian(npc, data) {
+            if (npc.specialState.passed) {
+                showSpecialDialog(data.name, "*watches suspiciously*", data.icon);
+                return;
+            }
+
+            showSpecialDialog(data.name, data.dialogues.block, data.icon, [
+                { text: "I'm an emotional support startup", action: () => {
+                    if (goldInventory >= 1 || playerBuffs.thoughtLeadership > 0) {
+                        npc.specialState.passed = true;
+                        showSpecialDialog(data.name, data.dialogues.pass, data.icon);
+                        showNotification("Path unlocked! (Homeowner still judging)", 3000);
+                    } else {
+                        showSpecialDialog(data.name, "You don't LOOK like a startup. Where's your funding?", data.icon);
+                    }
+                }},
+                { text: "Just passing through", action: () => {
+                    showSpecialDialog(data.name, data.dialogues.initial, data.icon);
+                }}
+            ]);
+        }
+
+        function handleAncientShiba(npc, data) {
+            // Communicates only through vibes
+            const vibes = [data.dialogues.initial, data.dialogues.vibe1, data.dialogues.vibe2, data.dialogues.vibe3];
+
+            if (npc.interactionCount <= 4) {
+                showSpecialDialog(data.name, vibes[npc.interactionCount - 1], data.icon);
+            } else if (npc.interactionCount === 5) {
+                showSpecialDialog(data.name, data.dialogues.revelation, data.icon);
+                playerBuffs.wisdom += 10;
+                karma.xp += 50;
+                showNotification(data.dialogues.buff, 4000);
+            } else {
+                showSpecialDialog(data.name, data.dialogues.truth, data.icon);
+                // The empty dialogue IS the message
+            }
+        }
+
+        function showSpecialDialog(name, text, icon, choices = null) {
+            specialNpcDialogActive = { name, text, icon, choices };
+            dialogChoices = choices || [];
+
+            // Create or update dialog UI
+            let dialogEl = document.getElementById('specialNpcDialog');
+            if (!dialogEl) {
+                dialogEl = document.createElement('div');
+                dialogEl.id = 'specialNpcDialog';
+                dialogEl.style.cssText = `
+                    position: absolute;
+                    bottom: 80px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(0,0,0,0.95);
+                    border: 3px solid #e6a23c;
+                    border-radius: 12px;
+                    padding: 15px 20px;
+                    max-width: 400px;
+                    color: #fff;
+                    font-family: 'Courier New', monospace;
+                    z-index: 1000;
+                `;
+                document.getElementById('gameContainer').appendChild(dialogEl);
+            }
+
+            let html = `<div style="font-size:14px;margin-bottom:8px;"><span style="font-size:20px">${icon}</span> <strong style="color:#e6a23c">${name}</strong></div>`;
+            html += `<div style="font-size:12px;line-height:1.4;margin-bottom:10px;">"${text}"</div>`;
+
+            if (choices && choices.length > 0) {
+                html += `<div style="display:flex;flex-direction:column;gap:5px;">`;
+                choices.forEach((choice, i) => {
+                    html += `<button onclick="selectDialogChoice(${i})" style="background:#333;border:1px solid #e6a23c;color:#fff;padding:5px 10px;cursor:pointer;font-family:inherit;font-size:11px;border-radius:4px;">${choice.text}</button>`;
+                });
+                html += `</div>`;
+            } else {
+                html += `<div style="font-size:10px;color:#888;text-align:center;">(Press E to close)</div>`;
+            }
+
+            dialogEl.innerHTML = html;
+            dialogEl.style.display = 'block';
+        }
+
+        function selectDialogChoice(index) {
+            if (dialogChoices[index] && dialogChoices[index].action) {
+                dialogChoices[index].action();
+            }
+        }
+
+        function closeSpecialDialog() {
+            specialNpcDialogActive = null;
+            dialogChoices = [];
+            const dialogEl = document.getElementById('specialNpcDialog');
+            if (dialogEl) dialogEl.style.display = 'none';
+        }
+
+        function updateSpecialNpcs(dt) {
+            // Update buffs
+            if (playerBuffs.espressoBoost > 0) {
+                playerBuffs.espressoBoost -= dt;
+                if (playerBuffs.espressoBoost <= 0) {
+                    playerBuffs.espressoAnxiety = false;
+                    showNotification("Espresso wore off. Crash incoming.", 2000);
+                }
+            }
+            if (playerBuffs.thoughtLeadership > 0) {
+                playerBuffs.thoughtLeadership -= dt;
+            }
+            if (playerBuffs.algorithmicInsight > 0) {
+                playerBuffs.algorithmicInsight -= dt;
+            }
+
+            // Hoodie Founder follows you if ignored
+            const hoodie = specialNpcs.find(n => n.id === 'hoodieFounder');
+            if (hoodie && specialNpcData.hoodieFounder.friendCount > 0) {
+                const timeSinceInteraction = Date.now() - hoodie.lastInteraction;
+                if (timeSinceInteraction > 10000) { // 10 seconds since last talk
+                    // Slowly move toward player
+                    const dx = player.x - hoodie.x;
+                    const dy = player.y - hoodie.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist > 100 && dist < 800) {
+                        hoodie.x += (dx/dist) * 30 * dt;
+                        hoodie.y += (dy/dist) * 30 * dt;
+                    }
+                    // Occasionally call out
+                    if (Math.random() < 0.001) {
+                        showNotification("👔 (distant) " + specialNpcData.hoodieFounder.dialogues.ignored, 2000);
+                    }
+                }
+            }
+
+            // Wellness Influencer glitch effect
+            const influencer = specialNpcs.find(n => n.id === 'wellnessInfluencer');
+            if (influencer && influencer.specialState.glitching) {
+                influencer.specialState.glitchOffset = Math.sin(Date.now() / 100) * 3;
+            }
+        }
+
+        function drawSpecialNpcs() {
+            specialNpcs.forEach(npc => {
+                let sx = npc.x - camera.x;
+                let sy = npc.y - camera.y;
+
+                if (sx + npc.width < 0 || sx > camera.width || sy + npc.height < 0 || sy > camera.height) return;
+
+                // Glitch effect for wellness influencer
+                if (npc.id === 'wellnessInfluencer' && npc.specialState.glitching) {
+                    sx += npc.specialState.glitchOffset || 0;
+                }
+
+                // Draw NPC body
+                ctx.fillStyle = npc.color;
+                ctx.fillRect(sx + 10, sy + 20, 25, 30);
+
+                // Draw head
+                ctx.fillStyle = '#ffe4c4';
+                ctx.beginPath();
+                ctx.arc(sx + 22, sy + 12, 12, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw icon above head
+                ctx.font = '20px Arial';
+                ctx.fillText(npc.icon, sx + 10, sy - 5);
+
+                // Draw name
+                ctx.fillStyle = '#fff';
+                ctx.font = '8px Courier New';
+                ctx.textAlign = 'center';
+                ctx.fillText(npc.name, sx + 22, sy + 58);
+                ctx.textAlign = 'left';
+
+                // Interaction indicator
+                const dist = distance(player.x, player.y, npc.x, npc.y);
+                if (dist < 80) {
+                    ctx.fillStyle = '#ffd700';
+                    ctx.font = '12px Arial';
+                    ctx.fillText('❗', sx + 30, sy + 5);
+                }
+
+                // Special effects
+                if (npc.id === 'ancientShiba') {
+                    // Golden glow
+                    const gradient = ctx.createRadialGradient(sx + 22, sy + 25, 0, sx + 22, sy + 25, 40);
+                    gradient.addColorStop(0, 'rgba(255,215,0,0.3)');
+                    gradient.addColorStop(1, 'rgba(255,215,0,0)');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(sx + 22, sy + 25, 40, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                if (npc.id === 'steveJobsGhost') {
+                    // Ghostly transparency
+                    ctx.globalAlpha = 0.7 + Math.sin(Date.now() / 500) * 0.2;
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(sx + 22, sy + 25, 25, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+            });
+        }
+
+        function getEspressoSpeedMultiplier() {
+            return playerBuffs.espressoBoost > 0 ? 1.2 : 1;
+        }
+        // ===== END SPECIAL NPCS SYSTEM =====
+
         function spawnSteaks() {
             steaks = [];
             for (let i = 0; i < 200; i++) {
@@ -3541,6 +4312,11 @@
             }
 
             if (e.key.toLowerCase() === 'e' && gameStarted && !gamePaused && !inDuel && !inCave) {
+                // Close special NPC dialog if open (and no choices to pick)
+                if (specialNpcDialogActive && (!dialogChoices || dialogChoices.length === 0)) {
+                    closeSpecialDialog();
+                    return;
+                }
                 // If sitting, stand up
                 if (playerSitting.active) {
                     standUpFromBench();
@@ -3678,6 +4454,23 @@
             if (activeDialog) {
                 closeDialog();
                 return;
+            }
+
+            // Check for special NPC dialog first
+            if (specialNpcDialogActive) {
+                closeSpecialDialog();
+                return;
+            }
+
+            // Check special NPCs first
+            for (const npc of specialNpcs) {
+                const dist = distance(player.x + player.width/2, player.y + player.height/2,
+                                     npc.x + npc.width/2, npc.y + npc.height/2);
+                if (dist < 80) {
+                    interactWithSpecialNpc(npc);
+                    if (typeof trackNPCInteraction === 'function') trackNPCInteraction(npc.name);
+                    return;
+                }
             }
 
             for (const npc of npcs) {
@@ -4076,6 +4869,7 @@
             updateMetaDebuff(dt);
             updateEnvironment(dt);
             updateSniffParticles(dt);
+            updateSpecialNpcs(dt);
 
             if (player.barkCooldown > 0) player.barkCooldown -= dt;
 
@@ -4137,6 +4931,7 @@
             if (player.kibbleBoostActive) speedMult *= 1.5; // 50% speed boost from kibble
             if (player.isSprinting) speedMult *= SPRINT_MULTIPLIER;
             speedMult *= getMetaSpeedMultiplier(); // Apply Meta'd debuff if active
+            speedMult *= getEspressoSpeedMultiplier(); // Apply espresso boost if active
             const currentSpeed = player.speed * speedMult * dt;
 
             let newX = player.x + dx * currentSpeed;
@@ -4505,6 +5300,7 @@
             drawGoldBar();
             drawGoldSparkles();
             drawNPCs();
+            drawSpecialNpcs();
             drawRabbits();
             drawMoles();
             drawWizards();
@@ -5350,6 +6146,9 @@
 
             // Initialize environmental flavor
             initEnvironment();
+
+            // Initialize special NPCs
+            initSpecialNpcs();
 
             // Initialize leaderboard display and hide timer until game starts
             displayLeaderboard();
