@@ -6446,15 +6446,38 @@
                 const sy = b.y - camera.y;
                 if (sx + b.width < 0 || sx > camera.width || sy + b.height < 0 || sy > camera.height) return;
 
+                // Top-down satellite view: flat rooftop
+                // Drop shadow (offset south-east)
+                ctx.fillStyle = 'rgba(0,0,0,0.25)';
+                ctx.fillRect(sx + 4, sy + 4, b.width, b.height);
+
+                // Rooftop base
                 ctx.fillStyle = b.color;
                 ctx.fillRect(sx, sy, b.width, b.height);
-                ctx.fillStyle = '#333';
-                ctx.fillRect(sx - 2, sy - 4, b.width + 4, 6);
-                ctx.fillStyle = '#87ceeb';
-                for (let wy = sy + 12; wy < sy + b.height - 12; wy += 18) {
-                    for (let wx = sx + 8; wx < sx + b.width - 12; wx += 18) {
-                        ctx.fillRect(wx, wy, 8, 8);
-                    }
+
+                // Rooftop edge/parapet (lighter border)
+                ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(sx + 1, sy + 1, b.width - 2, b.height - 2);
+
+                // AC units / rooftop equipment (small grey rectangles)
+                ctx.fillStyle = 'rgba(150,150,150,0.6)';
+                if (b.width > 50 && b.height > 50) {
+                    ctx.fillRect(sx + 6, sy + 6, 10, 8);
+                    ctx.fillRect(sx + b.width - 18, sy + 6, 10, 8);
+                }
+                if (b.width > 70) {
+                    ctx.fillRect(sx + b.width / 2 - 5, sy + b.height / 2 - 4, 10, 8);
+                }
+
+                // Rooftop ventilation lines
+                ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+                ctx.lineWidth = 0.5;
+                for (let ly = sy + 15; ly < sy + b.height - 10; ly += 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(sx + 4, ly);
+                    ctx.lineTo(sx + b.width - 4, ly);
+                    ctx.stroke();
                 }
             });
         }
@@ -6465,64 +6488,202 @@
                 const sy = campus.y - camera.y;
                 if (sx + campus.width < 0 || sx > camera.width || sy + campus.height < 0 || sy > camera.height) return;
 
-                // Campus ground/lawn
-                ctx.fillStyle = '#3a6a3a';
-                ctx.fillRect(sx - 8, sy - 8, campus.width + 16, campus.height + 16);
+                // === TOP-DOWN SATELLITE VIEW ===
 
-                // Main building
-                ctx.fillStyle = campus.color;
-                ctx.fillRect(sx, sy, campus.width, campus.height);
-
-                // Building top edge
-                ctx.fillStyle = 'rgba(255,255,255,0.2)';
-                ctx.fillRect(sx, sy, campus.width, 4);
-
-                // Building shadow edge
-                ctx.fillStyle = 'rgba(0,0,0,0.2)';
-                ctx.fillRect(sx, sy + campus.height - 3, campus.width, 3);
-
-                // Windows
-                ctx.fillStyle = 'rgba(200,220,255,0.6)';
-                const windowRows = Math.floor(campus.height / 25);
-                const windowCols = Math.floor(campus.width / 25);
-                for (let wy = 0; wy < windowRows; wy++) {
-                    for (let wx = 0; wx < windowCols; wx++) {
-                        ctx.fillRect(sx + 8 + wx * 25, sy + 12 + wy * 25, 12, 10);
+                // Campus ground/lawn with landscaping
+                ctx.fillStyle = '#3a7a3a';
+                ctx.fillRect(sx - 12, sy - 12, campus.width + 24, campus.height + 24);
+                // Lawn texture stripes (mowing pattern)
+                ctx.fillStyle = 'rgba(50,100,50,0.3)';
+                for (let ly = sy - 10; ly < sy + campus.height + 12; ly += 8) {
+                    if (Math.floor(ly / 8) % 2 === 0) {
+                        ctx.fillRect(sx - 10, ly, campus.width + 20, 4);
                     }
                 }
 
-                // Entrance
-                ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                ctx.fillRect(sx + campus.width / 2 - 10, sy + campus.height - 20, 20, 20);
+                // Parking lot (south side)
+                ctx.fillStyle = '#555';
+                ctx.fillRect(sx - 8, sy + campus.height + 2, campus.width + 16, 18);
+                // Parking lines
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 0.5;
+                for (let px = sx - 4; px < sx + campus.width + 12; px += 12) {
+                    ctx.beginPath();
+                    ctx.moveTo(px, sy + campus.height + 3);
+                    ctx.lineTo(px, sy + campus.height + 18);
+                    ctx.stroke();
+                }
 
-                // Company name label
+                // Building drop shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(sx + 5, sy + 5, campus.width, campus.height);
+
+                // Special rendering for Apple (circular campus ring)
+                if (campus.name === 'Apple') {
+                    // Circular ring building
+                    const cx = sx + campus.width / 2;
+                    const cy = sy + campus.height / 2;
+                    const outerR = campus.width / 2 - 15;
+                    const innerR = campus.width / 2 - 60;
+
+                    // Building ring
+                    ctx.fillStyle = campus.color;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Inner courtyard park
+                    ctx.fillStyle = '#4a9a4a';
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Inner courtyard trees (dots)
+                    ctx.fillStyle = '#2d6a2d';
+                    for (let a = 0; a < Math.PI * 2; a += 0.5) {
+                        const tr = innerR * 0.6;
+                        ctx.beginPath();
+                        ctx.arc(cx + Math.cos(a) * tr, cy + Math.sin(a) * tr, 6, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    // Ring roof detail
+                    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, outerR - 5, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, innerR + 5, 0, Math.PI * 2);
+                    ctx.stroke();
+                    // Solar panels on roof
+                    ctx.fillStyle = 'rgba(40,60,100,0.4)';
+                    for (let a = 0; a < Math.PI * 2; a += 0.3) {
+                        const mr = (outerR + innerR) / 2;
+                        ctx.fillRect(cx + Math.cos(a) * mr - 8, cy + Math.sin(a) * mr - 4, 16, 8);
+                    }
+                    // Entrance marker
+                    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                    ctx.fillRect(cx - 8, cy + outerR - 6, 16, 12);
+                } else if (campus.name === 'Google') {
+                    // Google - multi-building campus (colorful buildings)
+                    const gColors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853'];
+                    const bw = campus.width / 2 - 10;
+                    const bh = campus.height / 2 - 10;
+                    gColors.forEach((c, i) => {
+                        const bx = sx + (i % 2) * (bw + 10) + 5;
+                        const by = sy + Math.floor(i / 2) * (bh + 10) + 5;
+                        ctx.fillStyle = c;
+                        ctx.fillRect(bx, by, bw, bh);
+                        // Rooftop parapet
+                        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(bx + 2, by + 2, bw - 4, bh - 4);
+                        // Rooftop equipment
+                        ctx.fillStyle = 'rgba(200,200,200,0.5)';
+                        ctx.fillRect(bx + bw / 2 - 6, by + 5, 12, 8);
+                    });
+                    // Central courtyard/path
+                    ctx.fillStyle = '#ccc';
+                    ctx.fillRect(sx + campus.width / 2 - 4, sy + 5, 8, campus.height - 10);
+                    ctx.fillRect(sx + 5, sy + campus.height / 2 - 4, campus.width - 10, 8);
+                } else if (campus.name === 'Meta') {
+                    // Meta - large single building with rooftop garden
+                    ctx.fillStyle = campus.color;
+                    ctx.fillRect(sx, sy, campus.width, campus.height);
+                    // Rooftop garden
+                    ctx.fillStyle = '#4a8a4a';
+                    ctx.fillRect(sx + 15, sy + 15, campus.width - 30, campus.height / 3);
+                    // Walking paths on roof
+                    ctx.strokeStyle = 'rgba(200,200,200,0.5)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(sx + 20, sy + campus.height / 3 + 20);
+                    ctx.lineTo(sx + campus.width - 20, sy + campus.height / 3 + 20);
+                    ctx.stroke();
+                    // Thumbs up logo marker
+                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                    ctx.beginPath();
+                    ctx.arc(sx + campus.width / 2, sy + campus.height * 0.65, 20, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Parapet
+                    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(sx + 2, sy + 2, campus.width - 4, campus.height - 4);
+                    // Entrance
+                    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                    ctx.fillRect(sx + campus.width / 2 - 10, sy + campus.height - 4, 20, 8);
+                } else {
+                    // Standard campus - top-down flat roof view
+                    ctx.fillStyle = campus.color;
+                    ctx.fillRect(sx, sy, campus.width, campus.height);
+
+                    // Rooftop parapet edge
+                    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(sx + 2, sy + 2, campus.width - 4, campus.height - 4);
+
+                    // Rooftop HVAC/AC units
+                    ctx.fillStyle = 'rgba(180,180,180,0.5)';
+                    ctx.fillRect(sx + 8, sy + 8, 14, 10);
+                    ctx.fillRect(sx + campus.width - 24, sy + 8, 14, 10);
+                    if (campus.width > 300) {
+                        ctx.fillRect(sx + campus.width / 2 - 7, sy + 8, 14, 10);
+                    }
+
+                    // Rooftop helipad or logo area (center circle for large buildings)
+                    if (campus.width > 350 && campus.height > 300) {
+                        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.arc(sx + campus.width / 2, sy + campus.height / 2, 25, 0, Math.PI * 2);
+                        ctx.stroke();
+                        // H or company initial
+                        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                        ctx.font = 'bold 14px Courier New';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(campus.name[0], sx + campus.width / 2, sy + campus.height / 2 + 5);
+                        ctx.textAlign = 'left';
+                    }
+
+                    // Solar panel rows on roof
+                    ctx.fillStyle = 'rgba(40,60,100,0.25)';
+                    for (let py = sy + 25; py < sy + campus.height - 20; py += 18) {
+                        ctx.fillRect(sx + 20, py, campus.width - 40, 8);
+                    }
+
+                    // Entrance marker (south side)
+                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                    ctx.fillRect(sx + campus.width / 2 - 8, sy + campus.height - 3, 16, 6);
+                }
+
+                // Walkways from parking to entrance
+                ctx.fillStyle = 'rgba(200,200,200,0.5)';
+                ctx.fillRect(sx + campus.width / 2 - 3, sy + campus.height, 6, 22);
+
+                // Company name label (above building)
                 ctx.fillStyle = '#fff';
                 ctx.font = 'bold 10px Courier New';
                 ctx.textAlign = 'center';
-                ctx.fillText(campus.name, sx + campus.width / 2, sy - 12);
+                ctx.fillText(campus.name, sx + campus.width / 2, sy - 16);
                 ctx.textAlign = 'left';
 
-                // Special rendering for Apple (circular campus)
-                if (campus.name === 'Apple') {
-                    ctx.strokeStyle = campus.color;
-                    ctx.lineWidth = 20;
-                    ctx.beginPath();
-                    ctx.arc(sx + campus.width / 2, sy + campus.height / 2, campus.width / 2 - 30, 0, Math.PI * 2);
-                    ctx.stroke();
-                    // Inner park
-                    ctx.fillStyle = '#4a8a4a';
-                    ctx.beginPath();
-                    ctx.arc(sx + campus.width / 2, sy + campus.height / 2, campus.width / 2 - 50, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-
-                // Special rendering for Google (colorful campus)
-                if (campus.name === 'Google') {
-                    const colors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853'];
-                    colors.forEach((c, i) => {
-                        ctx.fillStyle = c;
-                        ctx.fillRect(sx + i * (campus.width / 4), sy + campus.height - 8, campus.width / 4, 8);
-                    });
+                // Enterable indicator if quest available
+                const quest = companyQuests[campus.name];
+                if (quest) {
+                    const questState = campusQuestStates[campus.name];
+                    if (!questState || !questState.completed) {
+                        // Pulsing entrance indicator
+                        const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 400);
+                        ctx.fillStyle = `rgba(255,215,0,${pulse * 0.8})`;
+                        ctx.beginPath();
+                        ctx.arc(sx + campus.width / 2, sy + campus.height + 6, 5, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else {
+                        // Completed checkmark
+                        ctx.fillStyle = '#4a4';
+                        ctx.font = 'bold 12px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('\u2713', sx + campus.width / 2, sy + campus.height + 10);
+                        ctx.textAlign = 'left';
+                    }
                 }
             });
         }
@@ -7188,60 +7349,54 @@
             ctx.closePath();
             ctx.fill();
 
-            // === Ears (triangular with rounded tips, thick and forward-set like real shiba) ===
-            // Left ear outer
+            // === Ears (sharp triangles, erect and forward-set like real shiba) ===
+            // Left ear outer - sharp triangle
             ctx.fillStyle = furMain;
             ctx.beginPath();
-            ctx.moveTo(-4, 6 + bodyBob);
-            ctx.bezierCurveTo(-7, 6 + bodyBob, -12, 10 + bodyBob, -11, 15 + bodyBob);
-            ctx.bezierCurveTo(-10.5, 17.5 + bodyBob, -8, 18 + bodyBob, -6, 17 + bodyBob);
-            ctx.bezierCurveTo(-3, 15 + bodyBob, -3, 11 + bodyBob, -4, 6 + bodyBob);
+            ctx.moveTo(-3, 8 + bodyBob);        // base inner
+            ctx.lineTo(-8, 17 + bodyBob);        // tip (pointy top)
+            ctx.lineTo(-11, 8 + bodyBob);        // base outer
             ctx.closePath();
             ctx.fill();
             // Left ear dark edge (fur shadow)
             ctx.fillStyle = furDark;
             ctx.beginPath();
-            ctx.moveTo(-4.5, 7 + bodyBob);
-            ctx.bezierCurveTo(-7, 7 + bodyBob, -11.5, 10 + bodyBob, -10.5, 14 + bodyBob);
-            ctx.bezierCurveTo(-10, 15 + bodyBob, -9, 15.5 + bodyBob, -8, 15 + bodyBob);
-            ctx.bezierCurveTo(-6, 13 + bodyBob, -5, 10 + bodyBob, -4.5, 7 + bodyBob);
+            ctx.moveTo(-10, 8.5 + bodyBob);
+            ctx.lineTo(-8.5, 16 + bodyBob);
+            ctx.lineTo(-6.5, 9 + bodyBob);
             ctx.closePath();
             ctx.fill();
-            // Left inner ear
+            // Left inner ear - smaller triangle
             ctx.fillStyle = innerEar;
             ctx.beginPath();
-            ctx.moveTo(-5, 8.5 + bodyBob);
-            ctx.bezierCurveTo(-7, 9 + bodyBob, -9.5, 11.5 + bodyBob, -9, 14.5 + bodyBob);
-            ctx.bezierCurveTo(-8.5, 15.5 + bodyBob, -7, 16 + bodyBob, -6, 15 + bodyBob);
-            ctx.bezierCurveTo(-4.5, 13 + bodyBob, -4.5, 10 + bodyBob, -5, 8.5 + bodyBob);
+            ctx.moveTo(-4.5, 9.5 + bodyBob);
+            ctx.lineTo(-8, 15.5 + bodyBob);
+            ctx.lineTo(-9.5, 9.5 + bodyBob);
             ctx.closePath();
             ctx.fill();
 
-            // Right ear outer
+            // Right ear outer - sharp triangle
             ctx.fillStyle = furMain;
             ctx.beginPath();
-            ctx.moveTo(4, 6 + bodyBob);
-            ctx.bezierCurveTo(7, 6 + bodyBob, 12, 10 + bodyBob, 11, 15 + bodyBob);
-            ctx.bezierCurveTo(10.5, 17.5 + bodyBob, 8, 18 + bodyBob, 6, 17 + bodyBob);
-            ctx.bezierCurveTo(3, 15 + bodyBob, 3, 11 + bodyBob, 4, 6 + bodyBob);
+            ctx.moveTo(3, 8 + bodyBob);          // base inner
+            ctx.lineTo(8, 17 + bodyBob);          // tip (pointy top)
+            ctx.lineTo(11, 8 + bodyBob);          // base outer
             ctx.closePath();
             ctx.fill();
             // Right ear dark edge
             ctx.fillStyle = furDark;
             ctx.beginPath();
-            ctx.moveTo(4.5, 7 + bodyBob);
-            ctx.bezierCurveTo(7, 7 + bodyBob, 11.5, 10 + bodyBob, 10.5, 14 + bodyBob);
-            ctx.bezierCurveTo(10, 15 + bodyBob, 9, 15.5 + bodyBob, 8, 15 + bodyBob);
-            ctx.bezierCurveTo(6, 13 + bodyBob, 5, 10 + bodyBob, 4.5, 7 + bodyBob);
+            ctx.moveTo(10, 8.5 + bodyBob);
+            ctx.lineTo(8.5, 16 + bodyBob);
+            ctx.lineTo(6.5, 9 + bodyBob);
             ctx.closePath();
             ctx.fill();
-            // Right inner ear
+            // Right inner ear - smaller triangle
             ctx.fillStyle = innerEar;
             ctx.beginPath();
-            ctx.moveTo(5, 8.5 + bodyBob);
-            ctx.bezierCurveTo(7, 9 + bodyBob, 9.5, 11.5 + bodyBob, 9, 14.5 + bodyBob);
-            ctx.bezierCurveTo(8.5, 15.5 + bodyBob, 7, 16 + bodyBob, 6, 15 + bodyBob);
-            ctx.bezierCurveTo(4.5, 13 + bodyBob, 4.5, 10 + bodyBob, 5, 8.5 + bodyBob);
+            ctx.moveTo(4.5, 9.5 + bodyBob);
+            ctx.lineTo(8, 15.5 + bodyBob);
+            ctx.lineTo(9.5, 9.5 + bodyBob);
             ctx.closePath();
             ctx.fill();
 
