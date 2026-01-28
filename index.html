@@ -1376,6 +1376,64 @@
             { name: 'Golden Gate Park', x: 2500, y: 1000, width: 2000, height: 800, color: '#228b22', type: 'park' },
         ];
 
+        // ===== ROAD NETWORK (Silicon Valley highways and streets) =====
+        const roads = [
+            // US-101 (major highway, north-south along east side of peninsula)
+            { name: 'US-101', type: 'highway', points: [
+                {x: 6000, y: 200}, {x: 6500, y: 2000}, {x: 7000, y: 4500},
+                {x: 7200, y: 6500}, {x: 7800, y: 8000}, {x: 8000, y: 10000},
+                {x: 8200, y: 11500}, {x: 8500, y: 13500}, {x: 8800, y: 15500},
+                {x: 9000, y: 17000}, {x: 9200, y: 19000}, {x: 9500, y: 20500},
+                {x: 9800, y: 22000}, {x: 10000, y: 24000}, {x: 10200, y: 25800}
+            ]},
+            // I-280 (secondary highway, further west)
+            { name: 'I-280', type: 'highway', points: [
+                {x: 3500, y: 3000}, {x: 3200, y: 5000}, {x: 3000, y: 7000},
+                {x: 3200, y: 9000}, {x: 3500, y: 11000}, {x: 3200, y: 13000},
+                {x: 3000, y: 15000}, {x: 3200, y: 17000}, {x: 3500, y: 19000},
+                {x: 4000, y: 21000}, {x: 5000, y: 23000}, {x: 5500, y: 25000}
+            ]},
+            // El Camino Real (main surface street through heart of peninsula)
+            { name: 'El Camino Real', type: 'arterial', points: [
+                {x: 5000, y: 4000}, {x: 5000, y: 6000}, {x: 5200, y: 8000},
+                {x: 5300, y: 10000}, {x: 5200, y: 12000}, {x: 5000, y: 14000},
+                {x: 5200, y: 16000}, {x: 5500, y: 18000}, {x: 5800, y: 20000},
+                {x: 6500, y: 22000}, {x: 7000, y: 24000}, {x: 7000, y: 25500}
+            ]},
+            // Cross streets connecting highways at key zones
+            // SF cross streets
+            { name: 'Market St', type: 'arterial', points: [{x: 3000, y: 2000}, {x: 7500, y: 2000}] },
+            { name: 'Howard St', type: 'street', points: [{x: 4000, y: 3000}, {x: 8000, y: 3000}] },
+            // South SF / San Bruno
+            { name: 'Grand Ave', type: 'street', points: [{x: 3500, y: 5500}, {x: 7000, y: 5500}] },
+            { name: 'San Bruno Ave', type: 'street', points: [{x: 3500, y: 7000}, {x: 7500, y: 7000}] },
+            // San Mateo / Foster City
+            { name: 'Hillsdale Blvd', type: 'street', points: [{x: 3500, y: 8500}, {x: 8000, y: 8500}] },
+            { name: 'SR-92', type: 'arterial', points: [{x: 3000, y: 9500}, {x: 9000, y: 9500}, {x: 14000, y: 12000}] },
+            // Redwood City
+            { name: 'Woodside Rd', type: 'street', points: [{x: 3000, y: 10500}, {x: 8000, y: 10500}] },
+            // Menlo Park
+            { name: 'Willow Rd', type: 'street', points: [{x: 3000, y: 12000}, {x: 8500, y: 12000}] },
+            // Palo Alto / Stanford
+            { name: 'Oregon Expy', type: 'street', points: [{x: 2000, y: 14500}, {x: 8500, y: 14500}] },
+            { name: 'Page Mill Rd', type: 'street', points: [{x: 1500, y: 15500}, {x: 8800, y: 15500}] },
+            // Mountain View / Sunnyvale
+            { name: 'Central Expy', type: 'arterial', points: [{x: 4000, y: 17000}, {x: 9500, y: 17000}] },
+            { name: 'Mathilda Ave', type: 'street', points: [{x: 6500, y: 16000}, {x: 6500, y: 19500}] },
+            // Cupertino
+            { name: 'Stevens Creek Blvd', type: 'arterial', points: [{x: 2000, y: 19000}, {x: 9500, y: 19000}] },
+            { name: 'De Anza Blvd', type: 'street', points: [{x: 3500, y: 18000}, {x: 3500, y: 20500}] },
+            // Santa Clara
+            { name: 'Great America Pkwy', type: 'street', points: [{x: 8000, y: 19500}, {x: 8000, y: 22000}] },
+            { name: 'Lawrence Expy', type: 'arterial', points: [{x: 5500, y: 17500}, {x: 5500, y: 22000}] },
+            // San Jose
+            { name: 'SR-87', type: 'highway', points: [{x: 7500, y: 19500}, {x: 7000, y: 22500}, {x: 6800, y: 25000}] },
+            { name: '1st St', type: 'street', points: [{x: 7200, y: 22000}, {x: 7200, y: 25000}] },
+            // East Bay connector
+            { name: 'Dumbarton Bridge', type: 'arterial', points: [{x: 9000, y: 15500}, {x: 14500, y: 17500}] },
+            { name: 'I-880', type: 'highway', points: [{x: 14000, y: 14000}, {x: 14500, y: 17500}, {x: 14000, y: 20500}, {x: 12000, y: 22000}] },
+        ];
+
         // ===== TECH COMPANY CAMPUSES =====
         const companyCampuses = [
             // San Francisco
@@ -6204,6 +6262,7 @@
 
             drawBackground();
             drawZones();
+            drawRoads();
             drawBearTerritory();
             drawMetaCampus();
             drawWater();
@@ -6303,11 +6362,198 @@
                 const sy = zone.y - camera.y;
                 if (sx + zone.width < 0 || sx > camera.width || sy + zone.height < 0 || sy > camera.height) return;
 
-                ctx.fillStyle = zone.color + '60';
+                // Base zone color overlay
+                ctx.fillStyle = zone.color + '50';
                 ctx.fillRect(sx, sy, zone.width, zone.height);
-                ctx.fillStyle = '#fff';
+
+                // Type-specific satellite texture
+                if (zone.type === 'urban' || zone.type === 'shops') {
+                    // Urban grid texture (city blocks from above)
+                    ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+                    ctx.lineWidth = 0.5;
+                    const blockSize = zone.type === 'shops' ? 60 : 80;
+                    for (let gx = sx; gx < sx + zone.width; gx += blockSize) {
+                        ctx.beginPath();
+                        ctx.moveTo(gx, sy);
+                        ctx.lineTo(gx, sy + zone.height);
+                        ctx.stroke();
+                    }
+                    for (let gy = sy; gy < sy + zone.height; gy += blockSize) {
+                        ctx.beginPath();
+                        ctx.moveTo(sx, gy);
+                        ctx.lineTo(sx + zone.width, gy);
+                        ctx.stroke();
+                    }
+                } else if (zone.type === 'park' || zone.type === 'nature') {
+                    // Nature texture (scattered vegetation dots)
+                    ctx.fillStyle = 'rgba(34,100,34,0.15)';
+                    for (let nx = sx + 10; nx < sx + zone.width - 10; nx += 30) {
+                        for (let ny = sy + 10; ny < sy + zone.height - 10; ny += 30) {
+                            const jx = nx + Math.sin(nx * 0.1 + ny * 0.07) * 8;
+                            const jy = ny + Math.cos(nx * 0.07 + ny * 0.1) * 8;
+                            ctx.beginPath();
+                            ctx.arc(jx, jy, 4 + Math.sin(nx + ny) * 2, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                } else if (zone.type === 'forest') {
+                    // Dense tree canopy texture
+                    ctx.fillStyle = 'rgba(20,60,20,0.12)';
+                    for (let fx = sx + 5; fx < sx + zone.width - 5; fx += 18) {
+                        for (let fy = sy + 5; fy < sy + zone.height - 5; fy += 18) {
+                            const jr = 3 + Math.sin(fx * 0.2 + fy * 0.15) * 2;
+                            ctx.beginPath();
+                            ctx.arc(fx + Math.sin(fy) * 4, fy + Math.cos(fx) * 4, jr, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                } else if (zone.type === 'campus') {
+                    // Campus - quad pattern with walkways
+                    ctx.strokeStyle = 'rgba(180,150,100,0.15)';
+                    ctx.lineWidth = 2;
+                    // Diagonal walkways
+                    for (let dx = sx; dx < sx + zone.width; dx += 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(dx, sy);
+                        ctx.lineTo(dx + 100, sy + zone.height);
+                        ctx.stroke();
+                    }
+                }
+
+                // Zone boundary (subtle dashed line)
+                ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([6, 4]);
+                ctx.strokeRect(sx, sy, zone.width, zone.height);
+                ctx.setLineDash([]);
+
+                // Zone name label with background
+                const labelText = zone.name;
                 ctx.font = '11px Courier New';
-                ctx.fillText(zone.name, sx + 8, sy + 16);
+                const textWidth = ctx.measureText(labelText).width;
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.fillRect(sx + 5, sy + 4, textWidth + 8, 16);
+                ctx.fillStyle = '#fff';
+                ctx.fillText(labelText, sx + 9, sy + 16);
+            });
+        }
+
+        function drawRoads() {
+            roads.forEach(road => {
+                const pts = road.points;
+                if (pts.length < 2) return;
+
+                // Compute bounding box for culling
+                let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+                pts.forEach(p => {
+                    if (p.x < minX) minX = p.x;
+                    if (p.x > maxX) maxX = p.x;
+                    if (p.y < minY) minY = p.y;
+                    if (p.y > maxY) maxY = p.y;
+                });
+                const sx1 = minX - camera.x;
+                const sy1 = minY - camera.y;
+                const sx2 = maxX - camera.x;
+                const sy2 = maxY - camera.y;
+                if (sx2 < -200 || sx1 > camera.width + 200 || sy2 < -200 || sy1 > camera.height + 200) return;
+
+                const isHighway = road.type === 'highway';
+                const isArterial = road.type === 'arterial';
+                const roadWidth = isHighway ? 28 : (isArterial ? 16 : 10);
+
+                // Road shadow
+                ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+                ctx.lineWidth = roadWidth + 4;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+                pts.forEach((p, i) => {
+                    const px = p.x - camera.x + 2;
+                    const py = p.y - camera.y + 2;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+
+                // Road surface
+                ctx.strokeStyle = isHighway ? '#555' : (isArterial ? '#666' : '#777');
+                ctx.lineWidth = roadWidth;
+                ctx.beginPath();
+                pts.forEach((p, i) => {
+                    const px = p.x - camera.x;
+                    const py = p.y - camera.y;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+
+                // Road edge lines (white for highways, grey for others)
+                if (isHighway || isArterial) {
+                    ctx.strokeStyle = isHighway ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.2)';
+                    ctx.lineWidth = roadWidth + 2;
+                    ctx.beginPath();
+                    pts.forEach((p, i) => {
+                        const px = p.x - camera.x;
+                        const py = p.y - camera.y;
+                        if (i === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    });
+                    ctx.stroke();
+                    // Re-draw surface over edge lines to create bordered effect
+                    ctx.strokeStyle = isHighway ? '#555' : '#666';
+                    ctx.lineWidth = roadWidth - 2;
+                    ctx.beginPath();
+                    pts.forEach((p, i) => {
+                        const px = p.x - camera.x;
+                        const py = p.y - camera.y;
+                        if (i === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    });
+                    ctx.stroke();
+                }
+
+                // Center line (dashed for highways/arterials)
+                if (isHighway) {
+                    ctx.strokeStyle = 'rgba(255,200,0,0.5)';
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([12, 8]);
+                    ctx.beginPath();
+                    pts.forEach((p, i) => {
+                        const px = p.x - camera.x;
+                        const py = p.y - camera.y;
+                        if (i === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    });
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                } else if (isArterial) {
+                    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([8, 10]);
+                    ctx.beginPath();
+                    pts.forEach((p, i) => {
+                        const px = p.x - camera.x;
+                        const py = p.y - camera.y;
+                        if (i === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    });
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+
+                // Road name labels (at midpoint of road, for highways/arterials only)
+                if (isHighway || isArterial) {
+                    const midIdx = Math.floor(pts.length / 2);
+                    const mx = pts[midIdx].x - camera.x;
+                    const my = pts[midIdx].y - camera.y;
+                    if (mx > -100 && mx < camera.width + 100 && my > -100 && my < camera.height + 100) {
+                        ctx.fillStyle = isHighway ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.4)';
+                        ctx.font = isHighway ? 'bold 9px Courier New' : '8px Courier New';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(road.name, mx, my - roadWidth / 2 - 4);
+                        ctx.textAlign = 'left';
+                    }
+                }
             });
         }
 
@@ -6317,33 +6563,100 @@
                 const sy = water.y - camera.y;
                 if (sx + water.width < 0 || sx > camera.width || sy + water.height < 0 || sy > camera.height) return;
 
-                const gradient = ctx.createLinearGradient(sx, sy, sx, sy + water.height);
-                gradient.addColorStop(0, '#1a5f7a');
-                gradient.addColorStop(0.5, '#2980b9');
-                gradient.addColorStop(1, '#1a5f7a');
+                // === TOP-DOWN SATELLITE WATER ===
+
+                // Shoreline / muddy edge (drawn slightly larger than water)
+                ctx.fillStyle = '#8a7a5a';
+                ctx.fillRect(sx - 3, sy - 3, water.width + 6, water.height + 6);
+
+                // Sandy/marshy shoreline band
+                ctx.fillStyle = '#a09070';
+                ctx.fillRect(sx - 1, sy - 1, water.width + 2, water.height + 2);
+
+                // Main water body with depth gradient (deeper blue in center)
+                const gradient = ctx.createRadialGradient(
+                    sx + water.width / 2, sy + water.height / 2, 0,
+                    sx + water.width / 2, sy + water.height / 2, Math.max(water.width, water.height) / 2
+                );
+                gradient.addColorStop(0, '#1a4a6a');   // Deep center
+                gradient.addColorStop(0.5, '#1f6088');  // Mid depth
+                gradient.addColorStop(0.8, '#2a7aaa');  // Shallows
+                gradient.addColorStop(1, '#3a8ab5');    // Near-shore
                 ctx.fillStyle = gradient;
                 ctx.fillRect(sx, sy, water.width, water.height);
 
-                ctx.strokeStyle = '#ffffff30';
+                // Subtle wave ripple pattern (satellite shimmer)
+                const time = Date.now() / 2000;
+                ctx.strokeStyle = 'rgba(255,255,255,0.12)';
                 ctx.lineWidth = 1;
-                const time = Date.now() / 1000;
-                for (let i = 0; i < water.width; i += 25) {
+                for (let wy = sy + 8; wy < sy + water.height - 5; wy += 14) {
                     ctx.beginPath();
-                    ctx.moveTo(sx + i, sy + Math.sin(time + i * 0.1) * 4 + water.height/2);
-                    ctx.lineTo(sx + i + 15, sy + Math.sin(time + i * 0.1 + 1) * 4 + water.height/2);
+                    for (let wx = sx; wx < sx + water.width; wx += 3) {
+                        const yOff = Math.sin(time + wx * 0.03 + wy * 0.02) * 2;
+                        if (wx === sx) ctx.moveTo(wx, wy + yOff);
+                        else ctx.lineTo(wx, wy + yOff);
+                    }
                     ctx.stroke();
                 }
+
+                // Sun reflection glint (bright spot)
+                const glintX = sx + water.width * 0.3 + Math.sin(time * 1.5) * 10;
+                const glintY = sy + water.height * 0.3 + Math.cos(time * 1.2) * 5;
+                const glintGrad = ctx.createRadialGradient(glintX, glintY, 0, glintX, glintY, 20);
+                glintGrad.addColorStop(0, 'rgba(255,255,255,0.2)');
+                glintGrad.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = glintGrad;
+                ctx.beginPath();
+                ctx.arc(glintX, glintY, 20, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Shallow edge tint (lighter blue near edges)
+                ctx.fillStyle = 'rgba(80,160,200,0.15)';
+                // Top edge
+                ctx.fillRect(sx, sy, water.width, 6);
+                // Bottom edge
+                ctx.fillRect(sx, sy + water.height - 6, water.width, 6);
+                // Left edge
+                ctx.fillRect(sx, sy, 6, water.height);
+                // Right edge
+                ctx.fillRect(sx + water.width - 6, sy, 6, water.height);
             });
         }
 
         function drawMountain() {
             const sx = mountain.x - camera.x;
             const sy = mountain.y - camera.y;
+            const mcx = sx + mountain.width / 2;
+            const mcy = sy + mountain.height / 2;
+            const baseR = mountain.width / 2;
 
             // Draw approach path first (even if mountain is off screen, path might be visible)
-            ctx.strokeStyle = '#8B7355';
-            ctx.lineWidth = 50;
+            // Path shadow
+            ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+            ctx.lineWidth = 54;
             ctx.lineCap = 'round';
+            ctx.beginPath();
+            mountain.approachPath.forEach((t, i) => {
+                const tx = t.x - camera.x + 3;
+                const ty = t.y - camera.y + 3;
+                if (i === 0) ctx.moveTo(tx, ty);
+                else ctx.lineTo(tx, ty);
+            });
+            ctx.stroke();
+            // Main path (dirt trail)
+            ctx.strokeStyle = '#9B8365';
+            ctx.lineWidth = 50;
+            ctx.beginPath();
+            mountain.approachPath.forEach((t, i) => {
+                const tx = t.x - camera.x;
+                const ty = t.y - camera.y;
+                if (i === 0) ctx.moveTo(tx, ty);
+                else ctx.lineTo(tx, ty);
+            });
+            ctx.stroke();
+            // Path center line (worn dirt)
+            ctx.strokeStyle = '#B09878';
+            ctx.lineWidth = 20;
             ctx.beginPath();
             mountain.approachPath.forEach((t, i) => {
                 const tx = t.x - camera.x;
@@ -6358,32 +6671,126 @@
                 const entranceX = mountain.entryX - camera.x;
                 const entranceY = mountain.entryY - camera.y;
                 if (entranceX > -100 && entranceX < camera.width + 100 && entranceY > -100 && entranceY < camera.height + 100) {
+                    // Sign shadow
+                    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                    ctx.fillRect(entranceX - 23, entranceY + 14, 50, 40);
+                    // Sign board
                     ctx.fillStyle = '#5a3d2b';
                     ctx.fillRect(entranceX - 25, entranceY + 10, 50, 40);
+                    // Sign border
+                    ctx.strokeStyle = '#3a2515';
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(entranceX - 25, entranceY + 10, 50, 40);
                     ctx.fillStyle = '#fff';
                     ctx.font = 'bold 10px Arial';
                     ctx.textAlign = 'center';
                     ctx.fillText('MOUNTAIN', entranceX, entranceY + 28);
-                    ctx.fillText('PATH →', entranceX, entranceY + 40);
+                    ctx.fillText('TRAIL', entranceX, entranceY + 40);
                     ctx.textAlign = 'left';
                 }
             }
 
             if (sx + mountain.width < 0 || sx > camera.width || sy + mountain.height < 0 || sy > camera.height) return;
 
-            // Mountain base
-            ctx.fillStyle = '#5a5a5a';
+            // === TOP-DOWN SATELLITE MOUNTAIN ===
+
+            // Outer shadow (mountain casts shadow south-east)
+            ctx.fillStyle = 'rgba(0,0,0,0.15)';
             ctx.beginPath();
-            ctx.arc(sx + mountain.width/2, sy + mountain.height/2, mountain.width/2, 0, Math.PI * 2);
+            ctx.ellipse(mcx + 8, mcy + 10, baseR + 5, baseR * 0.9 + 5, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Peak
-            ctx.fillStyle = '#888';
+            // Mountain base - forested lower slopes (dark green)
+            ctx.fillStyle = '#3a6a35';
             ctx.beginPath();
-            ctx.arc(sx + mountain.width/2, sy + mountain.height/2, 80, 0, Math.PI * 2);
+            ctx.arc(mcx, mcy, baseR, 0, Math.PI * 2);
             ctx.fill();
 
-            // Trail (25% wider)
+            // Elevation ring 1 - mid-slope (medium green-brown)
+            ctx.fillStyle = '#5a7a48';
+            ctx.beginPath();
+            ctx.arc(mcx, mcy, baseR * 0.78, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Elevation ring 2 - upper slope (tan-brown, treeline)
+            ctx.fillStyle = '#8a7a5a';
+            ctx.beginPath();
+            ctx.arc(mcx, mcy, baseR * 0.55, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Elevation ring 3 - rocky upper (grey-brown)
+            ctx.fillStyle = '#7a7a72';
+            ctx.beginPath();
+            ctx.arc(mcx, mcy, baseR * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Peak - rocky summit (light grey)
+            ctx.fillStyle = '#9a9a92';
+            ctx.beginPath();
+            ctx.arc(mcx, mcy, baseR * 0.18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Snow cap at very peak
+            ctx.fillStyle = 'rgba(240,245,255,0.7)';
+            ctx.beginPath();
+            ctx.arc(mcx, mcy, baseR * 0.09, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Contour lines (topographic rings)
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 0.8;
+            for (let r = baseR * 0.15; r < baseR; r += baseR * 0.1) {
+                ctx.beginPath();
+                ctx.arc(mcx, mcy, r, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Scattered trees on lower slopes (tiny green dots)
+            ctx.fillStyle = '#2a5a28';
+            for (let a = 0; a < Math.PI * 2; a += 0.25) {
+                for (let rd = baseR * 0.6; rd < baseR * 0.95; rd += baseR * 0.12) {
+                    const jitter = (Math.sin(a * 7 + rd * 0.1) * 0.5 + 0.5) * baseR * 0.05;
+                    const tx = mcx + Math.cos(a) * (rd + jitter);
+                    const ty = mcy + Math.sin(a) * (rd + jitter);
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, 4 + Math.sin(a * 3) * 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Rocky texture on upper slopes (tiny grey specks)
+            ctx.fillStyle = 'rgba(100,100,90,0.4)';
+            for (let a = 0; a < Math.PI * 2; a += 0.4) {
+                for (let rd = baseR * 0.2; rd < baseR * 0.5; rd += baseR * 0.08) {
+                    const tx = mcx + Math.cos(a + rd * 0.02) * rd;
+                    const ty = mcy + Math.sin(a + rd * 0.02) * rd;
+                    ctx.fillRect(tx - 2, ty - 1, 4, 3);
+                }
+            }
+
+            // Ridge lines radiating from peak (subtle shadow lines)
+            ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+            ctx.lineWidth = 2;
+            for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+                ctx.beginPath();
+                ctx.moveTo(mcx + Math.cos(a) * baseR * 0.15, mcy + Math.sin(a) * baseR * 0.15);
+                ctx.lineTo(mcx + Math.cos(a) * baseR * 0.8, mcy + Math.sin(a) * baseR * 0.8);
+                ctx.stroke();
+            }
+
+            // Trail (25% wider) - shadow first
+            ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+            ctx.lineWidth = 48;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            mountain.trails.forEach((t, i) => {
+                const tx = t.x - camera.x + 3;
+                const ty = t.y - camera.y + 3;
+                if (i === 0) ctx.moveTo(tx, ty);
+                else ctx.lineTo(tx, ty);
+            });
+            ctx.stroke();
+            // Trail (dirt path)
             ctx.strokeStyle = '#8B7355';
             ctx.lineWidth = 44;
             ctx.lineCap = 'round';
@@ -6395,26 +6802,54 @@
                 else ctx.lineTo(tx, ty);
             });
             ctx.stroke();
+            // Trail center worn line
+            ctx.strokeStyle = '#A08A6A';
+            ctx.lineWidth = 16;
+            ctx.beginPath();
+            mountain.trails.forEach((t, i) => {
+                const tx = t.x - camera.x;
+                const ty = t.y - camera.y;
+                if (i === 0) ctx.moveTo(tx, ty);
+                else ctx.lineTo(tx, ty);
+            });
+            ctx.stroke();
 
             // Sword at peak
             if (!mountain.swordCollected) {
-                const px = sx + mountain.width/2;
-                const py = sy + mountain.height/2;
+                const px = mcx;
+                const py = mcy;
 
                 // Glow
                 const gradient = ctx.createRadialGradient(px, py, 0, px, py, 40);
-                gradient.addColorStop(0, '#ffd70050');
+                gradient.addColorStop(0, '#ffd70060');
+                gradient.addColorStop(0.6, '#ffd70020');
                 gradient.addColorStop(1, '#ffd70000');
                 ctx.fillStyle = gradient;
-                ctx.fillRect(px - 40, py - 40, 80, 80);
+                ctx.beginPath();
+                ctx.arc(px, py, 40, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Sword shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.25)';
+                ctx.fillRect(px - 2, py - 18, 6, 30);
 
                 // Draw sword
-                ctx.fillStyle = '#c0c0c0';
+                ctx.fillStyle = '#d0d0d8';
                 ctx.fillRect(px - 3, py - 20, 6, 30);
+                // Blade edge highlight
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.fillRect(px - 1, py - 18, 2, 26);
+                // Cross guard
                 ctx.fillStyle = '#ffd700';
                 ctx.fillRect(px - 10, py + 8, 20, 4);
-                ctx.fillStyle = '#8B4513';
+                // Grip
+                ctx.fillStyle = '#6B3A1F';
                 ctx.fillRect(px - 2, py + 12, 4, 10);
+                // Pommel
+                ctx.fillStyle = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(px, py + 23, 3, 0, Math.PI * 2);
+                ctx.fill();
             }
         }
 
@@ -6424,17 +6859,64 @@
                 const sy = tree.y - camera.y;
                 if (sx + tree.width < 0 || sx > camera.width || sy + tree.height < 0 || sy > camera.height) return;
 
+                const cx = sx + tree.width / 2;
+                const cy = sy + tree.height / 2;
+
                 if (tree.type === 'tree') {
-                    ctx.fillStyle = '#5d4037';
-                    ctx.fillRect(sx + tree.width/3, sy + tree.height/2, tree.width/3, tree.height/2);
-                    ctx.fillStyle = tree.blocking ? '#1a4a1a' : '#2e7d32';
+                    // === Top-down satellite view: canopy from above with cast shadow ===
+                    const canopyR = tree.width / 2;
+
+                    // Cast shadow (offset south-east)
+                    ctx.fillStyle = 'rgba(0,0,0,0.2)';
                     ctx.beginPath();
-                    ctx.arc(sx + tree.width/2, sy + tree.height/3, tree.width/2, 0, Math.PI * 2);
+                    ctx.ellipse(cx + 4, cy + 5, canopyR * 0.9, canopyR * 0.8, 0, 0, Math.PI * 2);
                     ctx.fill();
-                } else {
-                    ctx.fillStyle = tree.blocking ? '#1a5a1a' : '#388e3c';
+
+                    // Outer canopy (darker edge)
+                    ctx.fillStyle = tree.blocking ? '#1a4a1a' : '#1e6b22';
                     ctx.beginPath();
-                    ctx.arc(sx + tree.width/2, sy + tree.height/2, tree.width/2.5, 0, Math.PI * 2);
+                    ctx.arc(cx, cy, canopyR, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Inner canopy (brighter center - sunlit crown)
+                    ctx.fillStyle = tree.blocking ? '#245a24' : '#2e8b32';
+                    ctx.beginPath();
+                    ctx.arc(cx - 1, cy - 1, canopyR * 0.7, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Crown highlight (sun reflection on leaves)
+                    ctx.fillStyle = tree.blocking ? '#2a6a2a' : '#40a840';
+                    ctx.beginPath();
+                    ctx.arc(cx - 2, cy - 3, canopyR * 0.35, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Tiny trunk gap visible through canopy center (optional realism)
+                    if (canopyR > 12) {
+                        ctx.fillStyle = 'rgba(60,40,20,0.15)';
+                        ctx.beginPath();
+                        ctx.arc(cx, cy + 1, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                } else {
+                    // === Bush / shrub: smaller, flatter canopy blob ===
+                    const bushR = tree.width / 2.5;
+
+                    // Cast shadow
+                    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                    ctx.beginPath();
+                    ctx.ellipse(cx + 3, cy + 3, bushR * 0.9, bushR * 0.7, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Bush body
+                    ctx.fillStyle = tree.blocking ? '#1a5a1a' : '#2d8a38';
+                    ctx.beginPath();
+                    ctx.ellipse(cx, cy, bushR, bushR * 0.8, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Bush highlight
+                    ctx.fillStyle = tree.blocking ? '#226a22' : '#44a048';
+                    ctx.beginPath();
+                    ctx.ellipse(cx - 1, cy - 1, bushR * 0.5, bushR * 0.4, 0, 0, Math.PI * 2);
                     ctx.fill();
                 }
             });
@@ -7797,6 +8279,26 @@
                     minimapCtx.fillStyle = '#2980b9';
                     minimapCtx.fillRect(w.x * scale, w.y * scale, w.width * scale, w.height * scale);
                 }
+            });
+
+            // Roads (show explored segments)
+            roads.forEach(road => {
+                const pts = road.points;
+                if (pts.length < 2) return;
+                const isHighway = road.type === 'highway';
+                minimapCtx.strokeStyle = isHighway ? 'rgba(200,200,200,0.5)' : 'rgba(180,180,180,0.3)';
+                minimapCtx.lineWidth = isHighway ? 1.5 : 0.8;
+                minimapCtx.beginPath();
+                let started = false;
+                pts.forEach((p, i) => {
+                    const chunkX = Math.floor(p.x / CHUNK_SIZE);
+                    const chunkY = Math.floor(p.y / CHUNK_SIZE);
+                    if (exploredChunks.has(`${chunkX},${chunkY}`)) {
+                        if (!started) { minimapCtx.moveTo(p.x * scale, p.y * scale); started = true; }
+                        else minimapCtx.lineTo(p.x * scale, p.y * scale);
+                    }
+                });
+                if (started) minimapCtx.stroke();
             });
 
             // Mountain (if explored)
