@@ -717,11 +717,13 @@
 
             <h2>Controls</h2>
             <ul>
-                <li><strong>WASD / Arrows</strong> - Move</li>
+                <li><strong>WASD / Arrows</strong> - Move (8 directions)</li>
                 <li><strong>Shift + Move</strong> - Sprint (drains energy faster)</li>
-                <li><strong>Spacebar</strong> - Bark / Lightning (after wizard power)</li>
+                <li><strong>Space</strong> - Jump</li>
+                <li><strong>F</strong> - Bark / Lightning (after wizard power)</li>
+                <li><strong>E</strong> - Interact (talk, sit, sniff, meditate)</li>
+                <li><strong>K</strong> - Kick leaves</li>
                 <li><strong>1-9</strong> - Use power-ups from HUD</li>
-                <li><strong>E</strong> - Talk to people</li>
                 <li><strong>ESC</strong> - Pause menu</li>
             </ul>
 
@@ -731,13 +733,15 @@
                 <li>Navigate the maze while <strong>barking at ghosts</strong> (face them!)</li>
                 <li>Escape <strong>cave-ins</strong> or the maze resets!</li>
                 <li>Collect <strong>Steaks</strong> for health, <strong>Kibble</strong> for speed boost</li>
+                <li>Collect <strong>Gold Bars</strong> scattered across the world</li>
                 <li>Climb the <strong>mountain</strong> for the legendary sword</li>
                 <li>Defeat <strong>5 wizards</strong> to gain lightning powers!</li>
+                <li>Talk to <strong>special NPCs</strong> across Silicon Valley</li>
             </ul>
 
             <h2>Beware</h2>
             <p><strong>Beware of strangers with beards!</strong> They will hunt you down.<br>
-            Watch out for <strong>rabbits</strong> and <strong>moles</strong> - they'll distract you!</p>
+            Watch out for <strong>rabbits</strong>, <strong>moles</strong>, <strong>bears</strong>, and <strong>Zuck</strong>!</p>
 
             <div class="leaderboard">
                 <h3>Hall of Champions</h3>
@@ -3767,7 +3771,7 @@
 
             if (npc.interactionCount <= 3) {
                 const critique = data.dialogues.critique[npc.interactionCount - 1] || data.dialogues.initial;
-                showSpecialDialog(data.name, critique, data.icon, [
+                showSpecialDialog(data.name, critique, [
                     { text: "I appreciate minimalism!", action: () => impressSteve(npc, data) },
                     { text: "I bought an Android", action: () => showSpecialDialog(data.name, data.dialogues.android) }
                 ]);
@@ -3807,7 +3811,7 @@
 
         function handleStartupBro(npc, data) {
             const pitch = data.dialogues.pitch[npc.interactionCount % data.dialogues.pitch.length];
-            showSpecialDialog(data.name, pitch, data.icon, [
+            showSpecialDialog(data.name, pitch, [
                 { text: "Interesting...", action: () => showSpecialDialog(data.name, data.dialogues.response) },
                 { text: "That's dumb", action: () => showSpecialDialog(data.name, data.dialogues.response) },
                 { text: "I have a better idea", action: () => showSpecialDialog(data.name, data.dialogues.response) }
@@ -3817,8 +3821,8 @@
         function handleVcOracle(npc, data) {
             showSpecialDialog(data.name, data.dialogues.initial);
             setTimeout(() => {
-                if (goldInventory > 0) {
-                    goldInventory += 2;
+                if (player.goldBars > 0) {
+                    player.goldBars += 2;
                     updateGoldUI();
                     showNotification(data.dialogues.hasGold + " +2 Gold!", 3000);
                 } else {
@@ -3850,10 +3854,10 @@
                 return;
             }
 
-            showSpecialDialog(data.name, data.dialogues.initial, data.icon, [
+            showSpecialDialog(data.name, data.dialogues.initial, [
                 { text: "Buy for 5 gold", action: () => {
-                    if (goldInventory >= 5) {
-                        goldInventory -= 5;
+                    if (player.goldBars >= 5) {
+                        player.goldBars -= 5;
                         updateGoldUI();
                         npc.specialState.deviceSold = true;
                         npc.specialState.hasDevice = true;
@@ -3886,7 +3890,7 @@
             }
 
             const question = data.dialogues.questions[npc.interactionCount % data.dialogues.questions.length];
-            showSpecialDialog(data.name, question, data.icon, [
+            showSpecialDialog(data.name, question, [
                 { text: "You're just an NPC", action: () => {
                     npc.specialState.uncomfortable = true;
                     showSpecialDialog(data.name, data.dialogues.npcMention);
@@ -3901,7 +3905,7 @@
 
         function handleBarista(npc, data) {
             const usual = data.dialogues.usual[npc.interactionCount % data.dialogues.usual.length];
-            showSpecialDialog(data.name, data.dialogues.initial + " " + usual, data.icon, [
+            showSpecialDialog(data.name, data.dialogues.initial + " " + usual, [
                 { text: "Yes, that's right!", action: () => giveEspressoBoost(npc, data) },
                 { text: "How do you know that?", action: () => {
                     showSpecialDialog(data.name, "I remember EVERYONE. It's a blessing and a curse.");
@@ -3918,7 +3922,7 @@
         }
 
         function handleVentureMonk(npc, data) {
-            showSpecialDialog(data.name, data.dialogues.initial, data.icon, [
+            showSpecialDialog(data.name, data.dialogues.initial, [
                 { text: "*Bark peacefully*", action: () => {
                     showSpecialDialog(data.name, data.dialogues.bark);
                     karma.xp += 10;
@@ -3934,7 +3938,7 @@
 
         function handleEnlightenmentClub(npc, data) {
             const chant = data.dialogues.chant[Math.floor(Math.random() * data.dialogues.chant.length)];
-            showSpecialDialog(data.name, "*chanting* " + chant, data.icon, [
+            showSpecialDialog(data.name, "*chanting* " + chant, [
                 { text: "Join meditation", action: () => {
                     playerBuffs.thoughtLeadership = 30;
                     showSpecialDialog(data.name, data.dialogues.buff);
@@ -3955,7 +3959,7 @@
                 showSpecialDialog(data.name, data.dialogues.meta);
             } else {
                 const prediction = data.dialogues.predictions[Math.floor(Math.random() * data.dialogues.predictions.length)];
-                showSpecialDialog(data.name, prediction, data.icon, [
+                showSpecialDialog(data.name, prediction, [
                     { text: "Grant me insight", action: () => {
                         playerBuffs.algorithmicInsight = 45;
                         showSpecialDialog(data.name, data.dialogues.buff);
@@ -3982,9 +3986,9 @@
                 return;
             }
 
-            showSpecialDialog(data.name, data.dialogues.block, data.icon, [
+            showSpecialDialog(data.name, data.dialogues.block, [
                 { text: "I'm an emotional support startup", action: () => {
-                    if (goldInventory >= 1 || playerBuffs.thoughtLeadership > 0) {
+                    if (player.goldBars >= 1 || playerBuffs.thoughtLeadership > 0) {
                         npc.specialState.passed = true;
                         showSpecialDialog(data.name, data.dialogues.pass);
                         showNotification("Path unlocked! (Homeowner still judging)", 3000);
@@ -4936,6 +4940,20 @@
             }
         }
 
+        // Map power iconType to a display symbol for HUD
+        function getPowerSymbol(iconType) {
+            const symbols = {
+                speed: '>>',
+                shield: '()',
+                bark: '!!',
+                water: '~~',
+                radar: '(()',
+                crystal: '<>',
+                button: '[*]'
+            };
+            return symbols[iconType] || '?';
+        }
+
         // HUD management
         function updateHUD() {
             const hudBar = document.getElementById('hudBar');
@@ -4947,7 +4965,7 @@
                 slot.innerHTML = `<span class="key">${i + 1}</span>`;
 
                 if (player.powers[i]) {
-                    slot.innerHTML += `<span class="icon">${player.powers[i].icon}</span>`;
+                    slot.innerHTML += `<span class="icon">${getPowerSymbol(player.powers[i].iconType)}</span>`;
                     slot.title = player.powers[i].name;
                 } else {
                     slot.innerHTML += `<span class="icon">-</span>`;
@@ -4964,10 +4982,10 @@
 
             if (power.id === 'mega_bark') {
                 player.megaBarkReady = true;
-                showNotification(`${power.icon} Mega Bark ready! Press SPACE to use!`, 2000);
+                showNotification(`${getPowerSymbol(power.iconType)} Mega Bark ready! Press F to use!`, 2000);
             } else {
                 applyPowerEffect(power);
-                showNotification(`${power.icon} ${power.name} activated!`, 2000);
+                showNotification(`${getPowerSymbol(power.iconType)} ${power.name} activated!`, 2000);
             }
 
             player.powers.splice(index, 1);
@@ -7711,6 +7729,99 @@
         }
 
         init();
+
+        // ===== DRAW TITLE SCREEN SHIBA ART =====
+        (function drawTitleShiba() {
+            const container = document.getElementById('shibaArtCanvas');
+            if (!container) return;
+            const c = document.createElement('canvas');
+            c.width = 80;
+            c.height = 80;
+            c.style.display = 'block';
+            c.style.margin = '0 auto 10px';
+            container.appendChild(c);
+            const cx = c.getContext('2d');
+            // Use the in-game shiba sprite renderer
+            cx.save();
+            cx.scale(3, 3);
+            drawShibaSprite(cx, 3, 0, 'down', false, 0, false);
+            cx.restore();
+        })();
+
+        // ===== DRAW VICTORY SCREEN PALO SANTO ART =====
+        (function drawVictoryPaloSanto() {
+            const container = document.getElementById('paloSantoArt');
+            if (!container) return;
+            const c = document.createElement('canvas');
+            c.width = 100;
+            c.height = 100;
+            c.style.display = 'block';
+            c.style.margin = '0 auto';
+            container.appendChild(c);
+            const cx = c.getContext('2d');
+            // Draw a glowing Palo Santo plant
+            cx.save();
+            // Glow
+            const glow = cx.createRadialGradient(50, 50, 5, 50, 50, 48);
+            glow.addColorStop(0, 'rgba(255, 215, 0, 0.4)');
+            glow.addColorStop(1, 'rgba(255, 215, 0, 0)');
+            cx.fillStyle = glow;
+            cx.fillRect(0, 0, 100, 100);
+            // Stem
+            cx.strokeStyle = '#4a7c3f';
+            cx.lineWidth = 3;
+            cx.beginPath();
+            cx.moveTo(50, 85);
+            cx.bezierCurveTo(48, 65, 52, 55, 50, 40);
+            cx.stroke();
+            // Left branch
+            cx.lineWidth = 2;
+            cx.beginPath();
+            cx.moveTo(50, 60);
+            cx.bezierCurveTo(40, 55, 30, 50, 25, 42);
+            cx.stroke();
+            // Right branch
+            cx.beginPath();
+            cx.moveTo(50, 55);
+            cx.bezierCurveTo(60, 48, 68, 45, 72, 38);
+            cx.stroke();
+            // Leaves
+            cx.fillStyle = '#5cb85c';
+            const leaves = [[50, 35, 12], [30, 38, 9], [70, 34, 9], [42, 45, 8], [58, 42, 8], [50, 25, 10], [38, 30, 7], [62, 28, 7]];
+            leaves.forEach(([lx, ly, r]) => {
+                cx.beginPath();
+                cx.ellipse(lx, ly, r, r * 0.6, Math.random() * 0.5, 0, Math.PI * 2);
+                cx.fill();
+            });
+            // Highlight leaves
+            cx.fillStyle = '#7dce7d';
+            leaves.forEach(([lx, ly, r]) => {
+                cx.beginPath();
+                cx.ellipse(lx - 1, ly - 1, r * 0.5, r * 0.3, 0.3, 0, Math.PI * 2);
+                cx.fill();
+            });
+            // Golden sparkles
+            cx.fillStyle = '#ffd700';
+            for (let i = 0; i < 8; i++) {
+                const sx = 25 + Math.random() * 50;
+                const sy = 20 + Math.random() * 40;
+                cx.beginPath();
+                cx.arc(sx, sy, 1.5, 0, Math.PI * 2);
+                cx.fill();
+            }
+            // Pot
+            cx.fillStyle = '#8B4513';
+            cx.beginPath();
+            cx.moveTo(38, 85);
+            cx.lineTo(62, 85);
+            cx.lineTo(58, 98);
+            cx.lineTo(42, 98);
+            cx.closePath();
+            cx.fill();
+            cx.fillStyle = '#a0522d';
+            cx.fillRect(36, 83, 28, 4);
+            cx.restore();
+        })();
 
         // ===== SERVICE WORKER REGISTRATION =====
         if ('serviceWorker' in navigator) {
