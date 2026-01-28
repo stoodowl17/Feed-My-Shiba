@@ -2553,7 +2553,7 @@
             }
 
             // Show "VR headset locked" when player tries to escape
-            if (keys.Escape || keys.e || keys.E) {
+            if (keys.escape || keys.e) {
                 showNotification('VR headset locked! Please wait...', 1000);
             }
 
@@ -3065,7 +3065,7 @@
         function updateIdleSystem(dt) {
             // Check if player is moving
             const isMoving = keys.w || keys.a || keys.s || keys.d ||
-                            keys.ArrowUp || keys.ArrowDown || keys.ArrowLeft || keys.ArrowRight;
+                            keys.arrowup || keys.arrowdown || keys.arrowleft || keys.arrowright;
 
             if (!isMoving && gameStarted && !gamePaused && !inCave && !inDuel && !zuckEncounter.active && !playerSitting.active) {
                 karma.idleTimer += dt;
@@ -4927,14 +4927,21 @@
 
         function generateBuildings() {
             buildings = [];
+            // Safe zone around spawn point so player never starts inside a building
+            const spawnSafe = { x: 5500 - 80, y: 14500 - 80, w: 40 + 160, h: 40 + 160 };
             zones.filter(z => z.type === 'urban' || z.type === 'shops').forEach(zone => {
                 const numBuildings = 10 + Math.floor(Math.random() * 6);
                 for (let i = 0; i < numBuildings; i++) {
+                    const bx = zone.x + Math.random() * (zone.width - 80);
+                    const by = zone.y + Math.random() * (zone.height - 80);
+                    const bw = 60 + Math.random() * 50;
+                    const bh = 60 + Math.random() * 50;
+                    // Skip buildings that overlap the spawn area
+                    if (bx < spawnSafe.x + spawnSafe.w && bx + bw > spawnSafe.x &&
+                        by < spawnSafe.y + spawnSafe.h && by + bh > spawnSafe.y) continue;
                     buildings.push({
-                        x: zone.x + Math.random() * (zone.width - 80),
-                        y: zone.y + Math.random() * (zone.height - 80),
-                        width: 60 + Math.random() * 50,
-                        height: 60 + Math.random() * 50,
+                        x: bx, y: by,
+                        width: bw, height: bh,
                         color: `hsl(${Math.random() * 40 + 20}, 30%, ${40 + Math.random() * 20}%)`
                     });
                 }
@@ -5078,7 +5085,6 @@
         // Input handling
         document.addEventListener('keydown', (e) => {
             keys[e.key.toLowerCase()] = true;
-            keys[e.code] = true;
 
             if (e.key === 'Escape') {
                 e.preventDefault();
@@ -5087,7 +5093,7 @@
                 }
             }
 
-            if (e.code === 'Space') {
+            if (e.key === ' ') {
                 e.preventDefault();
                 if (inWaterCrossing) {
                     waterCrossingProgress += 10;
@@ -5149,7 +5155,6 @@
 
         document.addEventListener('keyup', (e) => {
             keys[e.key.toLowerCase()] = false;
-            keys[e.code] = false;
         });
 
         function togglePause() {
@@ -5815,7 +5820,7 @@
             }
 
             player.isMoving = dx !== 0 || dy !== 0;
-            player.isSprinting = player.isMoving && (keys['shift'] || keys['Shift']);
+            player.isSprinting = player.isMoving && keys['shift'];
 
             // 8-way direction: cardinal + diagonal
             if (dx !== 0 || dy !== 0) {
@@ -7803,8 +7808,43 @@
             ctx.ellipse(6, 13 + (isWalking ? -legAnim : 0), 2.3, 1.8, 0, 0, Math.PI * 2);
             ctx.fill();
 
+            // === Ears drawn FIRST so head overlaps bases for seamless integration ===
+            // Left ear - smooth curved triangle, same fur color as head
+            ctx.fillStyle = furMain;
+            ctx.beginPath();
+            ctx.moveTo(-4, 6 + bodyBob);         // base inner (hidden under head)
+            ctx.bezierCurveTo(-5, 10 + bodyBob, -8.5, 14 + bodyBob, -7.5, 17 + bodyBob); // tip
+            ctx.bezierCurveTo(-9.5, 14 + bodyBob, -10, 8 + bodyBob, -8, 5 + bodyBob);    // base outer
+            ctx.closePath();
+            ctx.fill();
+            // Subtle inner ear warmth (same fur family, not pink)
+            ctx.fillStyle = furLight;
+            ctx.beginPath();
+            ctx.moveTo(-5, 7.5 + bodyBob);
+            ctx.bezierCurveTo(-5.8, 10 + bodyBob, -8, 13 + bodyBob, -7.8, 15.5 + bodyBob);
+            ctx.bezierCurveTo(-9, 12.5 + bodyBob, -9, 8.5 + bodyBob, -7.5, 6.5 + bodyBob);
+            ctx.closePath();
+            ctx.fill();
+
+            // Right ear - smooth curved triangle, same fur color as head
+            ctx.fillStyle = furMain;
+            ctx.beginPath();
+            ctx.moveTo(4, 6 + bodyBob);          // base inner (hidden under head)
+            ctx.bezierCurveTo(5, 10 + bodyBob, 8.5, 14 + bodyBob, 7.5, 17 + bodyBob);  // tip
+            ctx.bezierCurveTo(9.5, 14 + bodyBob, 10, 8 + bodyBob, 8, 5 + bodyBob);     // base outer
+            ctx.closePath();
+            ctx.fill();
+            // Subtle inner ear warmth (same fur family, not pink)
+            ctx.fillStyle = furLight;
+            ctx.beginPath();
+            ctx.moveTo(5, 7.5 + bodyBob);
+            ctx.bezierCurveTo(5.8, 10 + bodyBob, 8, 13 + bodyBob, 7.8, 15.5 + bodyBob);
+            ctx.bezierCurveTo(9, 12.5 + bodyBob, 9, 8.5 + bodyBob, 7.5, 6.5 + bodyBob);
+            ctx.closePath();
+            ctx.fill();
+
             // === Head (slightly wider than body for shiba proportions) ===
-            // Head fur base
+            // Head fur base - drawn AFTER ears so it covers ear bases
             const headGrad = ctx.createRadialGradient(0, 11 + bodyBob, 1, 0, 11 + bodyBob, 10);
             headGrad.addColorStop(0, furMain);
             headGrad.addColorStop(0.7, furMid);
@@ -7828,57 +7868,6 @@
             ctx.moveTo(2, 9 + bodyBob);
             ctx.bezierCurveTo(6, 9 + bodyBob, 8, 12 + bodyBob, 6, 15 + bodyBob);
             ctx.bezierCurveTo(4, 17 + bodyBob, 1, 15 + bodyBob, 1, 12 + bodyBob);
-            ctx.closePath();
-            ctx.fill();
-
-            // === Ears (sharp triangles, erect and forward-set like real shiba) ===
-            // Left ear outer - sharp triangle
-            ctx.fillStyle = furMain;
-            ctx.beginPath();
-            ctx.moveTo(-3, 8 + bodyBob);        // base inner
-            ctx.lineTo(-8, 17 + bodyBob);        // tip (pointy top)
-            ctx.lineTo(-11, 8 + bodyBob);        // base outer
-            ctx.closePath();
-            ctx.fill();
-            // Left ear dark edge (fur shadow)
-            ctx.fillStyle = furDark;
-            ctx.beginPath();
-            ctx.moveTo(-10, 8.5 + bodyBob);
-            ctx.lineTo(-8.5, 16 + bodyBob);
-            ctx.lineTo(-6.5, 9 + bodyBob);
-            ctx.closePath();
-            ctx.fill();
-            // Left inner ear - smaller triangle
-            ctx.fillStyle = innerEar;
-            ctx.beginPath();
-            ctx.moveTo(-4.5, 9.5 + bodyBob);
-            ctx.lineTo(-8, 15.5 + bodyBob);
-            ctx.lineTo(-9.5, 9.5 + bodyBob);
-            ctx.closePath();
-            ctx.fill();
-
-            // Right ear outer - sharp triangle
-            ctx.fillStyle = furMain;
-            ctx.beginPath();
-            ctx.moveTo(3, 8 + bodyBob);          // base inner
-            ctx.lineTo(8, 17 + bodyBob);          // tip (pointy top)
-            ctx.lineTo(11, 8 + bodyBob);          // base outer
-            ctx.closePath();
-            ctx.fill();
-            // Right ear dark edge
-            ctx.fillStyle = furDark;
-            ctx.beginPath();
-            ctx.moveTo(10, 8.5 + bodyBob);
-            ctx.lineTo(8.5, 16 + bodyBob);
-            ctx.lineTo(6.5, 9 + bodyBob);
-            ctx.closePath();
-            ctx.fill();
-            // Right inner ear - smaller triangle
-            ctx.fillStyle = innerEar;
-            ctx.beginPath();
-            ctx.moveTo(4.5, 9.5 + bodyBob);
-            ctx.lineTo(8, 15.5 + bodyBob);
-            ctx.lineTo(9.5, 9.5 + bodyBob);
             ctx.closePath();
             ctx.fill();
 
@@ -8152,7 +8141,7 @@
             // Draw animated Shiba Inu sprite
             const time = Date.now() / 1000;
             const isWalking = keys.w || keys.a || keys.s || keys.d ||
-                              keys.ArrowUp || keys.ArrowDown || keys.ArrowLeft || keys.ArrowRight;
+                              keys.arrowup || keys.arrowdown || keys.arrowleft || keys.arrowright;
             // Faster animation when kibble boost is active
             const animTime = player.kibbleBoostActive ? time * 2 : time;
             drawShibaSprite(ctx, sx + player.width/2 - 10, sy + player.height/2 - 5, player.direction, isWalking, animTime);
@@ -8358,6 +8347,27 @@
             // Initialize Meta campus
             initMetaCampus();
             updateGoldUI();
+
+            // Ensure player doesn't start inside a building or blocking tree
+            if (isCollidingWithBuilding(player.x, player.y, player.width, player.height) ||
+                isCollidingWithBlockingTree(player.x, player.y, player.width, player.height)) {
+                // Spiral outward to find a safe position
+                for (let r = 50; r < 500; r += 40) {
+                    let escaped = false;
+                    for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
+                        const tx = 5500 + Math.cos(a) * r;
+                        const ty = 14500 + Math.sin(a) * r;
+                        if (!isCollidingWithBuilding(tx, ty, player.width, player.height) &&
+                            !isCollidingWithBlockingTree(tx, ty, player.width, player.height)) {
+                            player.x = tx;
+                            player.y = ty;
+                            escaped = true;
+                            break;
+                        }
+                    }
+                    if (escaped) break;
+                }
+            }
 
             // Initialize environmental flavor
             initEnvironment();
