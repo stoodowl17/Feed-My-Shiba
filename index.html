@@ -658,7 +658,7 @@
     <div id="srAnnouncements" class="sr-only-announcements" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <div id="gameContainer" role="application" aria-label="Croissant's Quest for Enlightenment - Game Area">
-        <canvas id="gameCanvas" width="1024" height="768" role="img" aria-label="Game canvas - Use WASD or Arrow keys to move, Spacebar to bark, E to interact, ESC to pause" tabindex="0"></canvas>
+        <canvas id="gameCanvas" width="1024" height="768" role="img" aria-label="Game canvas - Use WASD or Arrow keys to move, F to bark, Spacebar to jump, E to interact, ESC to pause" tabindex="0"></canvas>
 
         <div id="ui">
             <div class="bar-container">
@@ -1476,7 +1476,7 @@
             const cy = mountain.y + mountain.height / 2;
             const maxRadius = 1000;
             const turns = 4;
-            const trailWidth = 60; // Wider trail for easier navigation
+            const trailWidth = 75; // 25% wider trail for easier navigation
 
             // Create spiral from outside to inside
             for (let i = 0; i < 300; i++) {
@@ -4231,79 +4231,107 @@
                     ctx.globalAlpha = 0.7 + Math.sin(Date.now() / 500) * 0.2;
                 }
 
-                // Special effects for ancient shiba
+                // Ancient Shiba Spirit - draw as ghost version of Croissant
                 if (npc.id === 'ancientShiba') {
-                    const gradient = ctx.createRadialGradient(sx + 22, sy + 25, 0, sx + 22, sy + 25, 40);
-                    gradient.addColorStop(0, 'rgba(255,215,0,0.3)');
-                    gradient.addColorStop(1, 'rgba(255,215,0,0)');
+                    // Hovering bob animation
+                    const hoverOffset = Math.sin(Date.now() / 600) * 6;
+                    const ghostTime = Date.now() / 1000;
+
+                    // Gold aura glow
+                    const gradient = ctx.createRadialGradient(sx + 22, sy + 25 + hoverOffset, 0, sx + 22, sy + 25 + hoverOffset, 45);
+                    gradient.addColorStop(0, 'rgba(255,215,0,0.35)');
+                    gradient.addColorStop(0.6, 'rgba(150,220,255,0.15)');
+                    gradient.addColorStop(1, 'rgba(150,220,255,0)');
                     ctx.fillStyle = gradient;
                     ctx.beginPath();
-                    ctx.arc(sx + 22, sy + 25, 40, 0, Math.PI * 2);
+                    ctx.arc(sx + 22, sy + 25 + hoverOffset, 45, 0, Math.PI * 2);
                     ctx.fill();
+
+                    // Draw ghost Croissant sprite (facing toward player)
+                    const dx = player.x - npc.x;
+                    const dy = player.y - npc.y;
+                    let spiritDir = 'down';
+                    if (Math.abs(dx) > Math.abs(dy)) {
+                        spiritDir = dx > 0 ? 'right' : 'left';
+                    } else {
+                        spiritDir = dy > 0 ? 'down' : 'up';
+                    }
+                    drawShibaSprite(ctx, sx + 12, sy + 15 + hoverOffset, spiritDir, false, ghostTime, true);
+
+                    ctx.globalAlpha = 1;
+
+                    // Draw name
+                    ctx.fillStyle = '#aadcff';
+                    ctx.font = '8px Courier New';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(npc.name, sx + 22, sy + 66);
+                    ctx.textAlign = 'left';
+                } else {
+                    // === Standard humanoid NPC drawing for all other special NPCs ===
+
+                    // Draw legs
+                    ctx.fillStyle = '#3a3a3a';
+                    ctx.fillRect(sx + 12, sy + 45, 6, 12);
+                    ctx.fillRect(sx + 26, sy + 45, 6, 12);
+
+                    // Draw body/torso
+                    ctx.fillStyle = npc.color;
+                    ctx.fillRect(sx + 8, sy + 22, 28, 25);
+
+                    // Draw arms
+                    ctx.fillStyle = npc.color;
+                    ctx.fillRect(sx + 2, sy + 24, 6, 18);
+                    ctx.fillRect(sx + 36, sy + 24, 6, 18);
+
+                    // Draw hands
+                    ctx.fillStyle = '#ffe4c4';
+                    ctx.beginPath();
+                    ctx.arc(sx + 5, sy + 44, 4, 0, Math.PI * 2);
+                    ctx.arc(sx + 39, sy + 44, 4, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Draw neck
+                    ctx.fillStyle = '#ffe4c4';
+                    ctx.fillRect(sx + 18, sy + 16, 8, 8);
+
+                    // Draw head
+                    ctx.fillStyle = '#ffe4c4';
+                    ctx.beginPath();
+                    ctx.arc(sx + 22, sy + 10, 10, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Draw hair
+                    ctx.fillStyle = '#3a2a1a';
+                    ctx.beginPath();
+                    ctx.arc(sx + 22, sy + 7, 9, Math.PI, 0);
+                    ctx.fill();
+
+                    // Draw eyes
+                    ctx.fillStyle = '#333';
+                    ctx.beginPath();
+                    ctx.arc(sx + 18, sy + 10, 2, 0, Math.PI * 2);
+                    ctx.arc(sx + 26, sy + 10, 2, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Draw mouth
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.arc(sx + 22, sy + 14, 3, 0.1, Math.PI - 0.1);
+                    ctx.stroke();
+
+                    ctx.globalAlpha = 1;
+
+                    // Draw icon above head
+                    drawSpecialNpcIcon(ctx, npc.iconType, sx + 10, sy - 18, 16);
+
+                    // Draw name
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '8px Courier New';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(npc.name, sx + 22, sy + 66);
+                    ctx.textAlign = 'left';
                 }
-
-                // Draw legs
-                ctx.fillStyle = '#3a3a3a';
-                ctx.fillRect(sx + 12, sy + 45, 6, 12);
-                ctx.fillRect(sx + 26, sy + 45, 6, 12);
-
-                // Draw body/torso
-                ctx.fillStyle = npc.color;
-                ctx.fillRect(sx + 8, sy + 22, 28, 25);
-
-                // Draw arms
-                ctx.fillStyle = npc.color;
-                ctx.fillRect(sx + 2, sy + 24, 6, 18);
-                ctx.fillRect(sx + 36, sy + 24, 6, 18);
-
-                // Draw hands
-                ctx.fillStyle = '#ffe4c4';
-                ctx.beginPath();
-                ctx.arc(sx + 5, sy + 44, 4, 0, Math.PI * 2);
-                ctx.arc(sx + 39, sy + 44, 4, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Draw neck
-                ctx.fillStyle = '#ffe4c4';
-                ctx.fillRect(sx + 18, sy + 16, 8, 8);
-
-                // Draw head
-                ctx.fillStyle = '#ffe4c4';
-                ctx.beginPath();
-                ctx.arc(sx + 22, sy + 10, 10, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Draw hair
-                ctx.fillStyle = '#3a2a1a';
-                ctx.beginPath();
-                ctx.arc(sx + 22, sy + 7, 9, Math.PI, 0);
-                ctx.fill();
-
-                // Draw eyes
-                ctx.fillStyle = '#333';
-                ctx.beginPath();
-                ctx.arc(sx + 18, sy + 10, 2, 0, Math.PI * 2);
-                ctx.arc(sx + 26, sy + 10, 2, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Draw mouth
-                ctx.strokeStyle = '#333';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.arc(sx + 22, sy + 14, 3, 0.1, Math.PI - 0.1);
-                ctx.stroke();
-
-                ctx.globalAlpha = 1;
-
-                // Draw icon above head
-                drawSpecialNpcIcon(ctx, npc.iconType, sx + 10, sy - 18, 16);
-
-                // Draw name
-                ctx.fillStyle = '#fff';
-                ctx.font = '8px Courier New';
-                ctx.textAlign = 'center';
-                ctx.fillText(npc.name, sx + 22, sy + 66);
-                ctx.textAlign = 'left';
 
                 // Interaction indicator (yellow exclamation drawn)
                 const dist = distance(player.x, player.y, npc.x, npc.y);
@@ -4731,7 +4759,7 @@
 
         // Moles
         let moles = [];
-        const MOLE_SPAWN_INTERVAL = 15000;
+        const MOLE_SPAWN_INTERVAL = 30000;
         let lastMoleSpawn = 0;
 
         function spawnMole() {
@@ -4741,7 +4769,10 @@
             const x = player.x + Math.cos(angle) * dist;
             const y = player.y + Math.sin(angle) * dist;
 
-            if (!isInWater(x, y) && !isOnMountain(x, y)) {
+            // Only spawn in grass - not in water, mountains, cities, or campuses
+            const inCity = isInUrbanZone(x, y);
+            const inCampus = companyCampuses.some(c => x >= c.x && x <= c.x + c.width && y >= c.y && y <= c.y + c.height);
+            if (!isInWater(x, y) && !isOnMountain(x, y) && !inCity && !inCampus) {
                 moles.push({
                     x, y, width: 30, height: 30,
                     timer: 5 + Math.random() * 5,
@@ -5765,17 +5796,42 @@
                     newX = mountain.trailStartX - player.width/2;
                     newY = mountain.trailStartY - player.height/2;
                 } else {
-                    // Not on trail and not entering properly - slide back to entrance
-                    const slideAngle = Math.atan2(mountain.entryY - newY, mountain.entryX - newX);
-                    const slideSpeed = 150 * dt;
-                    newX += Math.cos(slideAngle) * slideSpeed;
-                    newY += Math.sin(slideAngle) * slideSpeed;
+                    const mtCenterX = mountain.x + mountain.width / 2;
+                    const mtCenterY = mountain.y + mountain.height / 2;
 
-                    // If slid outside the mountain, teleport to approach path start
-                    if (!isOnMountain(newX, newY)) {
-                        newX = mountain.entryX - player.width/2;
-                        newY = mountain.entryY - player.height/2;
-                        showNotification('You slid back down! Use the path on the south side.', 2000);
+                    // If player is NOT moving, push them away from center toward grass
+                    if (!player.isMoving) {
+                        const pushAngle = Math.atan2(playerCenterY - mtCenterY, playerCenterX - mtCenterX);
+                        const pushSpeed = 200 * dt;
+                        newX = player.x + Math.cos(pushAngle) * pushSpeed;
+                        newY = player.y + Math.sin(pushAngle) * pushSpeed;
+
+                        // If pushed outside mountain, land at edge
+                        if (!isOnMountain(newX, newY)) {
+                            showNotification('The mountain pushes you back! Stay on the path.', 2000);
+                        }
+                    } else {
+                        // Player IS moving off-trail: 20x harder to move toward center
+                        const towardCenterDx = mtCenterX - playerCenterX;
+                        const towardCenterDy = mtCenterY - playerCenterY;
+                        const centerDist = Math.sqrt(towardCenterDx * towardCenterDx + towardCenterDy * towardCenterDy);
+                        if (centerDist > 0) {
+                            const centerNx = towardCenterDx / centerDist;
+                            const centerNy = towardCenterDy / centerDist;
+                            // How much of movement is toward center (dot product)
+                            const moveDx = newX - player.x;
+                            const moveDy = newY - player.y;
+                            const dot = moveDx * centerNx + moveDy * centerNy;
+                            if (dot > 0) {
+                                // Moving toward center - reduce that component by 20x
+                                newX -= centerNx * dot * (19 / 20);
+                                newY -= centerNy * dot * (19 / 20);
+                            }
+                        }
+                        // Also apply a gentle push away from center even while moving
+                        const gentlePushAngle = Math.atan2(playerCenterY - mtCenterY, playerCenterX - mtCenterX);
+                        newX += Math.cos(gentlePushAngle) * 30 * dt;
+                        newY += Math.sin(gentlePushAngle) * 30 * dt;
                     }
                 }
             }
@@ -5897,7 +5953,7 @@
 
         function updateMoles(dt) {
             lastMoleSpawn += dt * 1000;
-            if (lastMoleSpawn > MOLE_SPAWN_INTERVAL && moles.length < 2) {
+            if (lastMoleSpawn > MOLE_SPAWN_INTERVAL && moles.length < 1) {
                 spawnMole();
                 lastMoleSpawn = 0;
             }
@@ -6232,7 +6288,7 @@
 
             // Draw approach path first (even if mountain is off screen, path might be visible)
             ctx.strokeStyle = '#8B7355';
-            ctx.lineWidth = 40;
+            ctx.lineWidth = 50;
             ctx.lineCap = 'round';
             ctx.beginPath();
             mountain.approachPath.forEach((t, i) => {
@@ -6273,9 +6329,9 @@
             ctx.arc(sx + mountain.width/2, sy + mountain.height/2, 80, 0, Math.PI * 2);
             ctx.fill();
 
-            // Trail
+            // Trail (25% wider)
             ctx.strokeStyle = '#8B7355';
-            ctx.lineWidth = 35;
+            ctx.lineWidth = 44;
             ctx.lineCap = 'round';
             ctx.beginPath();
             mountain.trails.forEach((t, i) => {
@@ -6913,182 +6969,221 @@
             });
         }
 
-        // Draw animated wizard sprite
-        function drawShibaSprite(ctx, x, y, direction, isWalking, time) {
+        // Draw top-down red sesame Shiba Inu sprite facing movement direction
+        function drawShibaSprite(ctx, x, y, direction, isWalking, time, ghostMode) {
             ctx.save();
-            ctx.translate(x, y);
+            // Center the sprite at (x+10, y+10) since we draw relative to center
+            ctx.translate(x + 10, y + 10);
 
-            // Flip for left direction
-            if (direction === 'left') {
-                ctx.scale(-1, 1);
+            // Rotate based on direction (default facing down)
+            const angles = { down: 0, up: Math.PI, left: -Math.PI / 2, right: Math.PI / 2 };
+            ctx.rotate(angles[direction] || 0);
+
+            if (ghostMode) {
+                ctx.globalAlpha = 0.45 + Math.sin(time * 3) * 0.15;
             }
 
-            // Walking animation - leg movement
-            const legOffset = isWalking ? Math.sin(time * 12) * 4 : 0;
-            const bodyBob = isWalking ? Math.abs(Math.sin(time * 12)) * 2 : 0;
+            // Walking animation
+            const legAnim = isWalking ? Math.sin(time * 12) * 3 : 0;
+            const bodyBob = isWalking ? Math.sin(time * 12) * 0.5 : 0;
 
-            // Tail wag animation
-            const tailWag = Math.sin(time * 8) * 0.3;
+            // Tail wag
+            const tailWag = Math.sin(time * 6) * 0.4;
 
-            // Shadow
-            ctx.fillStyle = 'rgba(0,0,0,0.2)';
-            ctx.beginPath();
-            ctx.ellipse(0, 14, 12, 4, 0, 0, Math.PI * 2);
-            ctx.fill();
+            // === Red sesame Shiba colors ===
+            const furMain = ghostMode ? '#7ac4e8' : '#c4622d';       // Red sesame main
+            const furDark = ghostMode ? '#5aa0c0' : '#9e4a1e';       // Darker red sesame
+            const furLight = ghostMode ? '#b8e0f0' : '#d98040';      // Lighter highlights
+            const urajiro = ghostMode ? '#d0eef8' : '#fff5e6';       // White/cream markings
+            const innerEar = ghostMode ? '#90d0e8' : '#ffb6c1';      // Pink inner ear
+            const noseColor = ghostMode ? '#3a6a8a' : '#222';        // Nose
 
-            // Back legs
-            ctx.fillStyle = '#d4a574';
-            // Back left leg
-            ctx.beginPath();
-            ctx.ellipse(-6, 10 + (isWalking ? -legOffset : 0), 3, 6, 0.1, 0, Math.PI * 2);
-            ctx.fill();
-            // Back right leg
-            ctx.beginPath();
-            ctx.ellipse(6, 10 + (isWalking ? legOffset : 0), 3, 6, -0.1, 0, Math.PI * 2);
-            ctx.fill();
+            // === Shadow on ground ===
+            if (!ghostMode) {
+                ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                ctx.beginPath();
+                ctx.ellipse(0, 2, 11, 14, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
 
-            // Curled tail - the signature Shiba feature!
+            // === Curled tail (on the back, toward top/rear) ===
             ctx.save();
-            ctx.translate(-10, -8 - bodyBob);
+            ctx.translate(0, -12 + bodyBob);
             ctx.rotate(tailWag);
-
-            // Tail base
-            ctx.fillStyle = '#e8c49a';
+            // Tail curl
+            ctx.fillStyle = furMain;
             ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.quadraticCurveTo(-8, -8, -4, -14);
-            ctx.quadraticCurveTo(2, -16, 4, -10);
-            ctx.quadraticCurveTo(2, -4, 0, 0);
+            ctx.moveTo(-2, 0);
+            ctx.quadraticCurveTo(-8, -6, -5, -11);
+            ctx.quadraticCurveTo(0, -14, 5, -11);
+            ctx.quadraticCurveTo(8, -6, 2, 0);
+            ctx.closePath();
             ctx.fill();
-
             // Tail cream tip
-            ctx.fillStyle = '#fff5e6';
+            ctx.fillStyle = urajiro;
             ctx.beginPath();
-            ctx.arc(-2, -12, 4, 0, Math.PI * 2);
+            ctx.arc(0, -10, 3.5, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
 
-            // Body
-            ctx.fillStyle = '#e8c49a'; // Cream/tan Shiba color
+            // === Back legs (rear, behind body) ===
+            ctx.fillStyle = furDark;
+            // Left back leg
             ctx.beginPath();
-            ctx.ellipse(0, 0 - bodyBob, 12, 10, 0, 0, Math.PI * 2);
+            ctx.ellipse(-7, -9 + (isWalking ? -legAnim : 0), 3.5, 5, -0.2, 0, Math.PI * 2);
+            ctx.fill();
+            // Right back leg
+            ctx.beginPath();
+            ctx.ellipse(7, -9 + (isWalking ? legAnim : 0), 3.5, 5, 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            // Back paws
+            ctx.fillStyle = urajiro;
+            ctx.beginPath();
+            ctx.ellipse(-7, -13 + (isWalking ? -legAnim : 0), 2.5, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(7, -13 + (isWalking ? legAnim : 0), 2.5, 2, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Belly (white/cream underbelly)
-            ctx.fillStyle = '#fff5e6';
+            // === Body (top-down oval) ===
+            ctx.fillStyle = furMain;
             ctx.beginPath();
-            ctx.ellipse(2, 3 - bodyBob, 8, 6, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, 0 + bodyBob, 10, 13, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Front legs
-            ctx.fillStyle = '#d4a574';
-            // Front left leg
+            // Sesame pattern - dark guard hair tips scattered on back
+            ctx.fillStyle = furDark;
+            for (let i = 0; i < 8; i++) {
+                const sx2 = Math.sin(i * 1.7 + 0.5) * 6;
+                const sy2 = Math.cos(i * 2.3 + 0.3) * 8 + bodyBob;
+                ctx.beginPath();
+                ctx.ellipse(sx2, sy2, 1.2, 0.8, i * 0.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Dorsal stripe (darker line down the back)
+            ctx.strokeStyle = furDark;
+            ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.ellipse(4, 10 + (isWalking ? legOffset : 0), 3, 6, 0.1, 0, Math.PI * 2);
+            ctx.moveTo(0, -8 + bodyBob);
+            ctx.lineTo(0, 4 + bodyBob);
+            ctx.stroke();
+
+            // === Front legs (in front of body) ===
+            ctx.fillStyle = furDark;
+            // Left front leg
+            ctx.beginPath();
+            ctx.ellipse(-7, 9 + (isWalking ? legAnim : 0), 3.5, 5, 0.2, 0, Math.PI * 2);
             ctx.fill();
-            // Front right leg
+            // Right front leg
             ctx.beginPath();
-            ctx.ellipse(10, 10 + (isWalking ? -legOffset : 0), 3, 6, -0.1, 0, Math.PI * 2);
+            ctx.ellipse(7, 9 + (isWalking ? -legAnim : 0), 3.5, 5, -0.2, 0, Math.PI * 2);
+            ctx.fill();
+            // Front paws (cream/white)
+            ctx.fillStyle = urajiro;
+            ctx.beginPath();
+            ctx.ellipse(-7, 13 + (isWalking ? legAnim : 0), 2.5, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(7, 13 + (isWalking ? -legAnim : 0), 2.5, 2, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Paw details - cream colored
-            ctx.fillStyle = '#fff5e6';
+            // === Head (front of body, overlapping) ===
+            ctx.fillStyle = furMain;
             ctx.beginPath();
-            ctx.ellipse(4, 14 + (isWalking ? legOffset : 0), 2, 2, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.ellipse(10, 14 + (isWalking ? -legOffset : 0), 2, 2, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, 10 + bodyBob, 9, 8, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Head
-            ctx.fillStyle = '#e8c49a';
+            // Urajiro face markings (white cheeks from above)
+            ctx.fillStyle = urajiro;
             ctx.beginPath();
-            ctx.ellipse(12, -6 - bodyBob, 10, 9, 0.2, 0, Math.PI * 2);
+            ctx.ellipse(-4, 12 + bodyBob, 4, 3.5, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(4, 12 + bodyBob, 4, 3.5, 0.3, 0, Math.PI * 2);
             ctx.fill();
 
-            // Face mask (white cheeks and snout area - characteristic of Shiba)
-            ctx.fillStyle = '#fff5e6';
-            ctx.beginPath();
-            ctx.ellipse(16, -4 - bodyBob, 6, 6, 0.3, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Ears (pointed triangular - very Shiba!)
-            ctx.fillStyle = '#d4a574';
+            // === Ears (pointed but rounded, on top of head) ===
             // Left ear
+            ctx.fillStyle = furMain;
             ctx.beginPath();
-            ctx.moveTo(6, -10 - bodyBob);
-            ctx.lineTo(4, -22 - bodyBob);
-            ctx.lineTo(12, -12 - bodyBob);
+            ctx.moveTo(-5, 8 + bodyBob);
+            ctx.quadraticCurveTo(-12, 13 + bodyBob, -10, 18 + bodyBob);
+            ctx.quadraticCurveTo(-7, 19 + bodyBob, -4, 14 + bodyBob);
+            ctx.closePath();
+            ctx.fill();
+            // Left inner ear
+            ctx.fillStyle = innerEar;
+            ctx.beginPath();
+            ctx.moveTo(-5.5, 9.5 + bodyBob);
+            ctx.quadraticCurveTo(-10, 13.5 + bodyBob, -8.5, 16.5 + bodyBob);
+            ctx.quadraticCurveTo(-6.5, 17 + bodyBob, -5, 13 + bodyBob);
             ctx.closePath();
             ctx.fill();
             // Right ear
+            ctx.fillStyle = furMain;
             ctx.beginPath();
-            ctx.moveTo(12, -12 - bodyBob);
-            ctx.lineTo(14, -22 - bodyBob);
-            ctx.lineTo(20, -10 - bodyBob);
-            ctx.closePath();
-            ctx.fill();
-
-            // Inner ears (pink)
-            ctx.fillStyle = '#ffb6c1';
-            // Left inner ear
-            ctx.beginPath();
-            ctx.moveTo(7, -11 - bodyBob);
-            ctx.lineTo(6, -18 - bodyBob);
-            ctx.lineTo(11, -12 - bodyBob);
+            ctx.moveTo(5, 8 + bodyBob);
+            ctx.quadraticCurveTo(12, 13 + bodyBob, 10, 18 + bodyBob);
+            ctx.quadraticCurveTo(7, 19 + bodyBob, 4, 14 + bodyBob);
             ctx.closePath();
             ctx.fill();
             // Right inner ear
+            ctx.fillStyle = innerEar;
             ctx.beginPath();
-            ctx.moveTo(13, -12 - bodyBob);
-            ctx.lineTo(14, -18 - bodyBob);
-            ctx.lineTo(18, -11 - bodyBob);
+            ctx.moveTo(5.5, 9.5 + bodyBob);
+            ctx.quadraticCurveTo(10, 13.5 + bodyBob, 8.5, 16.5 + bodyBob);
+            ctx.quadraticCurveTo(6.5, 17 + bodyBob, 5, 13 + bodyBob);
             ctx.closePath();
             ctx.fill();
 
-            // Snout
-            ctx.fillStyle = '#fff5e6';
+            // === Snout/muzzle (small bump at front of head) ===
+            ctx.fillStyle = urajiro;
             ctx.beginPath();
-            ctx.ellipse(20, -3 - bodyBob, 5, 4, 0.3, 0, Math.PI * 2);
+            ctx.ellipse(0, 17 + bodyBob, 3.5, 2.5, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Nose (black)
-            ctx.fillStyle = '#222';
+            // Nose
+            ctx.fillStyle = noseColor;
             ctx.beginPath();
-            ctx.ellipse(24, -4 - bodyBob, 3, 2.5, 0.2, 0, Math.PI * 2);
+            ctx.ellipse(0, 18.5 + bodyBob, 2, 1.5, 0, 0, Math.PI * 2);
             ctx.fill();
             // Nose shine
-            ctx.fillStyle = '#555';
-            ctx.beginPath();
-            ctx.ellipse(23, -5 - bodyBob, 1, 0.8, 0, 0, Math.PI * 2);
-            ctx.fill();
+            if (!ghostMode) {
+                ctx.fillStyle = '#555';
+                ctx.beginPath();
+                ctx.arc(-0.5, 18 + bodyBob, 0.7, 0, Math.PI * 2);
+                ctx.fill();
+            }
 
-            // Eyes
-            ctx.fillStyle = '#222';
+            // Eyes (small dark dots visible from above)
+            ctx.fillStyle = noseColor;
             ctx.beginPath();
-            ctx.ellipse(14, -8 - bodyBob, 2.5, 3, 0.1, 0, Math.PI * 2);
+            ctx.arc(-3.5, 13 + bodyBob, 1.8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(3.5, 13 + bodyBob, 1.8, 0, Math.PI * 2);
             ctx.fill();
             // Eye shine
             ctx.fillStyle = '#fff';
             ctx.beginPath();
-            ctx.arc(13.5, -9 - bodyBob, 1, 0, Math.PI * 2);
+            ctx.arc(-4, 12.5 + bodyBob, 0.7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(3, 12.5 + bodyBob, 0.7, 0, Math.PI * 2);
             ctx.fill();
 
-            // Eyebrows (the expressive Shiba brows!)
-            ctx.strokeStyle = '#c49a6c';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(11, -12 - bodyBob);
-            ctx.quadraticCurveTo(14, -13 - bodyBob, 17, -11 - bodyBob);
-            ctx.stroke();
-
-            // Mouth
-            ctx.strokeStyle = '#222';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(22, -2 - bodyBob);
-            ctx.quadraticCurveTo(20, 0 - bodyBob, 18, -1 - bodyBob);
-            ctx.stroke();
+            // Ghost glow effect
+            if (ghostMode) {
+                ctx.globalAlpha = 0.2 + Math.sin(time * 4) * 0.1;
+                const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 22);
+                glow.addColorStop(0, 'rgba(150, 220, 255, 0.4)');
+                glow.addColorStop(1, 'rgba(150, 220, 255, 0)');
+                ctx.fillStyle = glow;
+                ctx.beginPath();
+                ctx.arc(0, 0, 22, 0, Math.PI * 2);
+                ctx.fill();
+            }
 
             ctx.restore();
         }
