@@ -6257,50 +6257,54 @@
         // Rendering
         function render() {
             ctx.save();
-            ctx.scale(ZOOM_LEVEL, ZOOM_LEVEL);
+            try {
+                ctx.scale(ZOOM_LEVEL, ZOOM_LEVEL);
 
-            // Apply screen shake
-            const shake = getScreenShakeOffset();
-            ctx.translate(shake.x, shake.y);
+                // Apply screen shake
+                const shake = getScreenShakeOffset();
+                ctx.translate(shake.x, shake.y);
 
-            ctx.clearRect(-20, -20, camera.width + 40, camera.height + 40);
+                ctx.clearRect(-20, -20, camera.width + 40, camera.height + 40);
 
-            drawBackground();
-            drawZones();
-            drawRoads();
-            drawBearTerritory();
-            drawMetaCampus();
-            drawWater();
-            drawMountain();
-            drawTrees();
-            drawBuildings();
-            drawCampuses();
-            drawCaveEntrance();
-            drawSteaks();
-            drawKibble();
-            drawGoldBar();
-            drawGoldSparkles();
-            drawNPCs();
-            drawSpecialNpcs();
-            drawCampusNpcs();
-            drawRabbits();
-            drawMoles();
-            drawWizards();
-            drawBear();
-            drawZuck();
-            drawEnvironment();
-            drawPlayer();
-            drawClouds();
+                drawBackground();
+                drawZones();
+                drawRoads();
+                drawBearTerritory();
+                drawMetaCampus();
+                drawWater();
+                drawMountain();
+                drawTrees();
+                drawBuildings();
+                drawCampuses();
+                drawCaveEntrance();
+                drawSteaks();
+                drawKibble();
+                drawGoldBar();
+                drawGoldSparkles();
+                drawNPCs();
+                drawSpecialNpcs();
+                drawCampusNpcs();
+                drawRabbits();
+                drawMoles();
+                drawWizards();
+                drawBear();
+                drawZuck();
+                drawEnvironment();
+                drawPlayer();
+                drawClouds();
 
-            if (player.radarActive) drawRadar();
+                if (player.radarActive) drawRadar();
 
-            // Draw Zuck encounter overlay (VR vignette, particles, dialogue)
-            drawZuckEncounterOverlay();
-            drawMetaDebuffIndicator();
+                // Draw Zuck encounter overlay (VR vignette, particles, dialogue)
+                drawZuckEncounterOverlay();
+                drawMetaDebuffIndicator();
 
-            // 3rd person limited POV - fog of war around player
-            drawLimitedPOV();
-
+                // 3rd person limited POV - fog of war around player
+                drawLimitedPOV();
+            } catch (e) {
+                console.error('Render error:', e);
+            }
+            // ALWAYS restore canvas state even if render threw an error
             ctx.restore();
             drawMinimap();
             drawKarmaUI();
@@ -7808,43 +7812,7 @@
             ctx.ellipse(6, 13 + (isWalking ? -legAnim : 0), 2.3, 1.8, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // === Ears drawn FIRST so head overlaps bases for seamless integration ===
-            // Left ear - smooth curved triangle, same fur color as head
-            ctx.fillStyle = furMain;
-            ctx.beginPath();
-            ctx.moveTo(-4, 6 + bodyBob);         // base inner (hidden under head)
-            ctx.bezierCurveTo(-5, 10 + bodyBob, -8.5, 14 + bodyBob, -7.5, 17 + bodyBob); // tip
-            ctx.bezierCurveTo(-9.5, 14 + bodyBob, -10, 8 + bodyBob, -8, 5 + bodyBob);    // base outer
-            ctx.closePath();
-            ctx.fill();
-            // Subtle inner ear warmth (same fur family, not pink)
-            ctx.fillStyle = furLight;
-            ctx.beginPath();
-            ctx.moveTo(-5, 7.5 + bodyBob);
-            ctx.bezierCurveTo(-5.8, 10 + bodyBob, -8, 13 + bodyBob, -7.8, 15.5 + bodyBob);
-            ctx.bezierCurveTo(-9, 12.5 + bodyBob, -9, 8.5 + bodyBob, -7.5, 6.5 + bodyBob);
-            ctx.closePath();
-            ctx.fill();
-
-            // Right ear - smooth curved triangle, same fur color as head
-            ctx.fillStyle = furMain;
-            ctx.beginPath();
-            ctx.moveTo(4, 6 + bodyBob);          // base inner (hidden under head)
-            ctx.bezierCurveTo(5, 10 + bodyBob, 8.5, 14 + bodyBob, 7.5, 17 + bodyBob);  // tip
-            ctx.bezierCurveTo(9.5, 14 + bodyBob, 10, 8 + bodyBob, 8, 5 + bodyBob);     // base outer
-            ctx.closePath();
-            ctx.fill();
-            // Subtle inner ear warmth (same fur family, not pink)
-            ctx.fillStyle = furLight;
-            ctx.beginPath();
-            ctx.moveTo(5, 7.5 + bodyBob);
-            ctx.bezierCurveTo(5.8, 10 + bodyBob, 8, 13 + bodyBob, 7.8, 15.5 + bodyBob);
-            ctx.bezierCurveTo(9, 12.5 + bodyBob, 9, 8.5 + bodyBob, 7.5, 6.5 + bodyBob);
-            ctx.closePath();
-            ctx.fill();
-
-            // === Head (slightly wider than body for shiba proportions) ===
-            // Head fur base - drawn AFTER ears so it covers ear bases
+            // === Head ===
             const headGrad = ctx.createRadialGradient(0, 11 + bodyBob, 1, 0, 11 + bodyBob, 10);
             headGrad.addColorStop(0, furMain);
             headGrad.addColorStop(0.7, furMid);
@@ -7853,6 +7821,44 @@
             ctx.beginPath();
             ctx.ellipse(0, 10 + bodyBob, 8.5, 8, 0, 0, Math.PI * 2);
             ctx.fill();
+
+            // === Ears (small triangles pointing toward nose, drawn on top of head) ===
+            // Left ear - small triangle, tip points toward nose (+Y), rounded tip
+            ctx.fillStyle = furMain;
+            ctx.beginPath();
+            ctx.moveTo(-8.5, 5.5 + bodyBob);       // outer base (at head edge)
+            ctx.lineTo(-5, 5 + bodyBob);             // inner base
+            ctx.quadraticCurveTo(-6, 13 + bodyBob, -7.5, 14 + bodyBob); // rounded tip toward nose
+            ctx.quadraticCurveTo(-9.5, 12 + bodyBob, -8.5, 5.5 + bodyBob); // back to base
+            ctx.fill();
+            // Subtle inner ear highlight (fur-matching warmth)
+            ctx.fillStyle = furLight;
+            ctx.globalAlpha = ghostMode ? ctx.globalAlpha : 0.5;
+            ctx.beginPath();
+            ctx.moveTo(-7.8, 7 + bodyBob);
+            ctx.lineTo(-5.8, 7 + bodyBob);
+            ctx.quadraticCurveTo(-6.3, 11.5 + bodyBob, -7.2, 12.5 + bodyBob);
+            ctx.quadraticCurveTo(-8.5, 10.5 + bodyBob, -7.8, 7 + bodyBob);
+            ctx.fill();
+            ctx.globalAlpha = ghostMode ? (0.45 + Math.sin(time * 3) * 0.15) : 1;
+
+            // Right ear - mirror of left
+            ctx.fillStyle = furMain;
+            ctx.beginPath();
+            ctx.moveTo(8.5, 5.5 + bodyBob);
+            ctx.lineTo(5, 5 + bodyBob);
+            ctx.quadraticCurveTo(6, 13 + bodyBob, 7.5, 14 + bodyBob);
+            ctx.quadraticCurveTo(9.5, 12 + bodyBob, 8.5, 5.5 + bodyBob);
+            ctx.fill();
+            ctx.fillStyle = furLight;
+            ctx.globalAlpha = ghostMode ? ctx.globalAlpha : 0.5;
+            ctx.beginPath();
+            ctx.moveTo(7.8, 7 + bodyBob);
+            ctx.lineTo(5.8, 7 + bodyBob);
+            ctx.quadraticCurveTo(6.3, 11.5 + bodyBob, 7.2, 12.5 + bodyBob);
+            ctx.quadraticCurveTo(8.5, 10.5 + bodyBob, 7.8, 7 + bodyBob);
+            ctx.fill();
+            ctx.globalAlpha = ghostMode ? (0.45 + Math.sin(time * 3) * 0.15) : 1;
 
             // Urajiro cheek markings (signature shiba white face pattern)
             ctx.fillStyle = urajiro;
@@ -8312,15 +8318,19 @@
             minimapCtx.strokeRect(camera.x * scale, camera.y * scale, camera.width * scale, camera.height * scale);
         }
 
-        // Game loop
+        // Game loop - schedule next frame FIRST so errors never kill the loop
         function gameLoop(currentTime) {
-            const dt = Math.min((currentTime - lastTime) / 1000, 0.1);
-            lastTime = currentTime;
-
-            update(dt);
-            if (!inCave) render();
-
             requestAnimationFrame(gameLoop);
+            try {
+                const dt = Math.min((currentTime - lastTime) / 1000, 0.1);
+                lastTime = currentTime;
+
+                update(dt);
+                if (!inCave) render();
+            } catch (e) {
+                // Prevent game death - log error but keep running
+                console.error('Game loop error:', e);
+            }
         }
 
         // Initialize
