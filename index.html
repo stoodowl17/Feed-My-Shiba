@@ -841,6 +841,114 @@
         const SPRINT_MULTIPLIER = 1.8;
         const ZOOM_LEVEL = 1.3; // 30% more zoomed in
 
+        // ===== TERRAIN ELEVATION SYSTEM =====
+        // Based on real Bay Area geography:
+        // West side: Santa Cruz Mountains (high elevation)
+        // Bay shoreline: Low/flat
+        // Valley floor: Low
+        // East Bay: Diablo Range hills
+        // SF: Notable hills
+        function getElevation(worldX, worldY) {
+            let elev = 0;
+
+            // Normalize coords to 0-1
+            const nx = worldX / WORLD_WIDTH;
+            const ny = worldY / WORLD_HEIGHT;
+
+            // Santa Cruz Mountains (west side, runs along entire peninsula)
+            const westDist = nx; // 0 at west edge, 1 at east
+            if (westDist < 0.15) {
+                elev += (1 - westDist / 0.15) * 180;
+            }
+
+            // Rolling foothills west of the valley (x: 0.10 - 0.25)
+            if (westDist > 0.05 && westDist < 0.25) {
+                const hillFactor = Math.sin(worldX * 0.003) * Math.cos(worldY * 0.002) * 60;
+                elev += Math.max(0, hillFactor * (1 - Math.abs(westDist - 0.15) / 0.10));
+            }
+
+            // Black Mountain peak (near x:0.05, y:0.65)
+            const bmDist = Math.sqrt((nx - 0.06) ** 2 + (ny - 0.65) ** 2);
+            if (bmDist < 0.08) {
+                elev += (1 - bmDist / 0.08) * 250;
+            }
+
+            // SF hills (Twin Peaks, Nob Hill, etc.) - north portion
+            if (ny < 0.18) {
+                const sfHills = Math.sin(worldX * 0.005) * Math.cos(worldY * 0.006) * 50;
+                elev += Math.max(0, sfHills);
+                // Twin Peaks
+                const tpDist = Math.sqrt((nx - 0.22) ** 2 + (ny - 0.08) ** 2);
+                if (tpDist < 0.04) {
+                    elev += (1 - tpDist / 0.04) * 120;
+                }
+            }
+
+            // East Bay hills (Diablo Range)
+            if (nx > 0.72 && ny > 0.45 && ny < 0.85) {
+                const eastHillDist = (nx - 0.72) / 0.28;
+                const hillWave = Math.sin(worldY * 0.002) * Math.cos(worldX * 0.003);
+                elev += eastHillDist * 100 * Math.max(0, 0.5 + hillWave * 0.5);
+            }
+
+            // Pleasanton ridge (east bay, near x:0.85, y:0.55)
+            const prDist = Math.sqrt((nx - 0.88) ** 2 + (ny - 0.55) ** 2);
+            if (prDist < 0.06) {
+                elev += (1 - prDist / 0.06) * 80;
+            }
+
+            // Valley floor depression (flat tech corridor)
+            if (nx > 0.20 && nx < 0.50 && ny > 0.35) {
+                elev -= 15; // Slightly below baseline
+            }
+
+            // Bay shoreline is very low
+            if (isInWater(worldX, worldY)) {
+                return -5;
+            }
+
+            // Near-bay areas are flat/low
+            const bayProximity = Math.min(
+                Math.abs(nx - 0.50) < 0.10 ? 0 : 1,
+                ny < 0.15 ? 0.5 : 1
+            );
+
+            // Micro-terrain noise for natural look
+            const noise = Math.sin(worldX * 0.01) * Math.cos(worldY * 0.013) * 8 +
+                          Math.sin(worldX * 0.023 + worldY * 0.017) * 5;
+            elev += noise;
+
+            return Math.max(-5, elev);
+        }
+
+        // Get slope steepness at a point (0 = flat, higher = steeper)
+        function getSlope(worldX, worldY) {
+            const sampleDist = 30;
+            const ex = getElevation(worldX + sampleDist, worldY);
+            const ew = getElevation(worldX - sampleDist, worldY);
+            const en = getElevation(worldX, worldY - sampleDist);
+            const es = getElevation(worldX, worldY + sampleDist);
+            const dx = (ex - ew) / (sampleDist * 2);
+            const dy = (es - en) / (sampleDist * 2);
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // Speed multiplier based on slope (steeper = slower going uphill)
+        function getSlopeSpeedMultiplier(worldX, worldY, dx, dy) {
+            if (dx === 0 && dy === 0) return 1;
+            const sampleDist = 20;
+            const currentElev = getElevation(worldX, worldY);
+            const targetElev = getElevation(worldX + dx * sampleDist, worldY + dy * sampleDist);
+            const elevChange = targetElev - currentElev;
+            if (elevChange > 0) {
+                // Going uphill - slow down proportionally
+                return Math.max(0.35, 1 - elevChange * 0.04);
+            } else {
+                // Going downhill - slight speed boost
+                return Math.min(1.15, 1 - elevChange * 0.01);
+            }
+        }
+
         // Game state
         let gameStarted = false;
         let gamePaused = false;
@@ -1202,7 +1310,10 @@
             kibbleCooldown: 0,
             radarActive: false,
             goldBars: 0,
-            maxGoldBars: 5
+            maxGoldBars: 5,
+            isJumping: false,
+            jumpHeight: 0,
+            jumpVelocity: 0
         };
 
         // Camera with zoom
@@ -4353,6 +4464,240 @@
             }
         }
 
+        // ===== CAMPUS NPC SYSTEM =====
+        let campusNpcs = [];
+        const campusNpcDialogues = {
+            'Salesforce': { name: 'Benioff Bot', gender: 'male', lines: ["Welcome to the Ohana! Here's a plush Astro.", "We don't sell software, we sell trust. And software.", "Have you tried our AI agent? It's called Agentforce. It'll change your life. Or at least your CRM."] },
+            'Uber': { name: 'Rideshare Rita', gender: 'female', lines: ["Your ETA is 3 minutes. Actually 12. Actually we cancelled.", "Surge pricing is just supply and demand. The demand is your tears.", "Rate your experience: 1-5 stars. No pressure."] },
+            'Lyft': { name: 'Friendly Frank', gender: 'male', lines: ["We're the friendly rideshare! Sit up front, we're basically friends now.", "Fun fact: our logo is a pink mustache. Very disruption. Much wow.", "We're totally different from that other app. We have... friendliness."] },
+            'X (Twitter)': { name: 'Post Patricia', gender: 'female', lines: ["It's called X now. Please stop calling it Twitter. PLEASE.", "Your hot take got 3 impressions. Two were bots.", "Verified? That'll be $8/month. Blue check, red check, we have all the checks."] },
+            'Pinterest': { name: 'Pinner Paul', gender: 'male', lines: ["I pinned 47 recipes today. I can't actually cook.", "Your aesthetic board has 0 followers but it sparks joy.", "We pivoted to shopping. Everything is shoppable. Your dreams? Shoppable."] },
+            'Stripe': { name: 'Payment Priya', gender: 'female', lines: ["We process billions in payments. My personal account has $47.", "Seven lines of code to accept payments. Seven hundred to understand our docs.", "The Collison brothers started this in a dorm. I started a sandwich in a dorm. Different outcomes."] },
+            'Cloudflare': { name: 'Cache Carl', gender: 'male', lines: ["We protect half the internet. The other half is on its own.", "DDoS attack? Not on MY watch. Literally, I'm watching the dashboard 24/7.", "Our edge network is everywhere. We ARE the cloud, friend."] },
+            'Twilio': { name: 'API Amy', gender: 'female', lines: ["Need to send a text? I've got an API for that. And an API for that API.", "Our mascot is a red telephone. Very retro. Very developer.", "Ask every developer to build it. That's our whole strategy."] },
+            'Okta': { name: 'Identity Ian', gender: 'male', lines: ["Who are you? No really, authenticate yourself.", "Single sign-on is beautiful. One password to rule them all.", "Zero trust means I don't trust anyone. Not even myself. Especially not myself."] },
+            'Dropbox': { name: 'File Fiona', gender: 'female', lines: ["Remember when we disrupted USB drives? Good times.", "Your shared folder has 847 unread files. You're welcome.", "We used to be the future. Now we're... reliable. That counts!"] },
+            'GitHub': { name: 'Commit Chris', gender: 'male', lines: ["Your contribution graph is looking a little green. Or rather, not green enough.", "Force push to main? I didn't see anything. *sweats*", "Copilot wrote this dialogue. I'm just a vessel."] },
+            'DoorDash': { name: 'Dasher Dana', gender: 'female', lines: ["Your order is 5 minutes away! Driver is at a different restaurant though.", "We dash so you don't have to. Literally running between orders.", "Tip your dasher. They're doing their best. Promise."] },
+            'Airbnb': { name: 'Host Hugo', gender: 'male', lines: ["Belong anywhere! Except the listings with 47 house rules.", "This cozy studio sleeps 8! If you stack vertically.", "Superhosts get a badge. It's the most prestigious badge in hospitality."] },
+            'Databricks': { name: 'Lakehouse Lily', gender: 'female', lines: ["It's a data lakehouse. No, not a lake. Not a house. It's... both? Neither?", "Apache Spark was born here. You're standing on hallowed data ground.", "Our valuations keep going up. Must be all that unified analytics."] },
+            'Atlassian': { name: 'Jira Jake', gender: 'male', lines: ["Your ticket is in the backlog. It's been there since 2019.", "Sprint planning in 10 minutes. Bring your existential dread.", "Confluence page updated! No one will read it but it EXISTS."] },
+            'OpenTable': { name: 'Reservation Rachel', gender: 'female', lines: ["Table for 2 at 7pm? Best I can do is 5:15 or 10:45.", "Your reservation was confirmed. And then the restaurant closed.", "1,000 points! That's almost enough for... a bread basket."] },
+            'Snap': { name: 'Story Sam', gender: 'male', lines: ["This message will self-destruct. Or someone will screenshot it.", "Our glasses have cameras now. Don't worry, it's totally not creepy.", "Streaks are the foundation of all meaningful relationships."] },
+            'Genentech': { name: 'Biotech Betty', gender: 'female', lines: ["We're engineering the future of medicine. One molecule at a time.", "This campus has its own ecosystem. Literally, we study ecosystems.", "Our parking lot has more PhDs per square foot than anywhere on Earth."] },
+            'Pfizer': { name: 'Pharma Phil', gender: 'male', lines: ["We made that vaccine. You're welcome.", "Clinical trials take years. Years of very precise science. And paperwork.", "Our campus has the most advanced vending machines. And labs. Mostly labs."] },
+            'Merck': { name: 'Research Rosa', gender: 'female', lines: ["Inventing for life since 1891. That's a long time to be inventing.", "Our molecules are very small but very important.", "Lab coat? Check. Safety goggles? Check. Breakthrough? Pending."] },
+            'Novartis': { name: 'Swiss Miss Scientist', gender: 'female', lines: ["Reimagining medicine, the Swiss way. Precisely.", "Gene therapy is the future. Also the present. We're in the present-future.", "Our campus looks like a Bond villain lair. That's intentional."] },
+            'Illumina': { name: 'Genome Greg', gender: 'male', lines: ["We can read your DNA faster than you can read this dialogue.", "Sequencing costs dropped 99.999%. You're welcome, science.", "Every base pair tells a story. Yours says... you need more kibble."] },
+            'YouTube': { name: 'Creator Chloe', gender: 'female', lines: ["Don't forget to like, subscribe, and bark the notification bell!", "Your video got demonetized. It had a dog barking. Too controversial.", "The algorithm works in mysterious ways. Mostly cat videos."] },
+            'Gilead Sciences': { name: 'Virologist Vic', gender: 'male', lines: ["We fight the world's most challenging diseases. No big deal.", "This campus is where antivirals come to life. Literally.", "Science isn't just a job, it's a calling. A very well-funded calling."] },
+            'Roblox': { name: 'Blocky Beth', gender: 'female', lines: ["Oof! Welcome to my experience! That's what we call games now.", "Robux is the most stable currency on Earth. Don't fact-check that.", "My avatar has better fashion sense than I do in real life."] },
+            'Snowflake': { name: 'Data Dave', gender: 'male', lines: ["Our data cloud is massive. Like, really massive. Cloud-sized, if you will.", "Every query is a snowflake. Unique and beautiful. And expensive.", "We separate compute from storage. Revolutionary, right? ...Right?"] },
+            'Electronic Arts': { name: 'Lootbox Larry', gender: 'male', lines: ["It's in the game! For an additional $4.99.", "Pride and accomplishment. That's what 40 hours of grinding gives you.", "Our sports games are totally different every year. The number changes!"] },
+            'Meta': { name: 'Metaverse Mel', gender: 'female', lines: ["The metaverse is the future! Put on these VR goggles and see!", "Legs! We finally have legs in VR! That only took... years.", "Connect with friends! In virtual reality! Where the eye contact feels almost real!"] },
+            'Sequoia Capital': { name: 'VC Vince', gender: 'male', lines: ["We backed Apple, Google, and WhatsApp. What have you done today?", "Your startup has potential. Come back when you have traction. And revenue. And a moat.", "The next unicorn could be anywhere. Even a dog with enlightenment goals."] },
+            'Andreessen Horowitz': { name: 'a16z Alice', gender: 'female', lines: ["Software is eating the world. We're investing in the silverware.", "It's time to build! Specifically, whatever our portfolio companies need.", "Web3 is the future. Or was. Or will be again. Market dependent."] },
+            'Kleiner Perkins': { name: 'Green Tech Gary', gender: 'male', lines: ["We funded Amazon before it was cool. And Google. And Genentech.", "Cleantech, biotech, deep tech... we fund all the techs.", "Sand Hill Road is where dreams become term sheets."] },
+            'Greylock Partners': { name: 'Series A Sarah', gender: 'female', lines: ["We invest at the earliest stages. When it's just a napkin sketch.", "LinkedIn, Discord, Figma... we have taste. Expensive taste.", "Your pitch deck needs work. But your energy is... adequate."] },
+            'HP': { name: 'Printer Pete', gender: 'male', lines: ["This is where it all started. A garage in Palo Alto. THE garage.", "PC LOAD LETTER. If you know, you know.", "We split into HP Inc and HPE. It's like a corporate amoeba."] },
+            'VMware / Broadcom': { name: 'Virtual Vera', gender: 'female', lines: ["We virtualize everything. Even this conversation might be virtual.", "Broadcom acquired us. Change is the only constant. That and licensing fees.", "A VM inside a VM? We call that inception. And Tuesday."] },
+            'SAP': { name: 'Enterprise Erik', gender: 'male', lines: ["Our software runs 77% of the world's transactions. The other 23% wish it did.", "ERP isn't exciting? You clearly haven't seen our dashboards.", "We're German engineering meets Silicon Valley innovation. Ja, very efficient."] },
+            'Palantir': { name: 'Data Detective Diane', gender: 'female', lines: ["We see patterns in data that others can't. Some call it magic. We call it Gotham.", "Lord of the Rings reference? Never heard of it. *adjusts Palantir branded hoodie*", "Our software helps governments and enterprises. Very normal company. Very normal."] },
+            'Tesla': { name: 'EV Engineer Eddie', gender: 'male', lines: ["Full self-driving is coming. Any day now. Been saying that for... a while.", "This car has more updates than your phone. Please pull over to install.", "Ludicrous mode engaged! That's the speed setting, not my mental state."] },
+            'Google': { name: 'Noogler Nancy', gender: 'female', lines: ["I get free food, nap pods, and an existential crisis about AI. Living the dream!", "Don't be evil. Now it's 'Do the right thing.' Subtle rebrand.", "Our campus has 47 cafes. I've ranked them all. Ask me anything."] },
+            'Intuit': { name: 'Tax Time Tom', gender: 'male', lines: ["TurboTax makes taxes easy! Well, easier. Well, it makes them... digital.", "QuickBooks powers small business! And small business anxiety!", "We prosper so you can prosper. That's literally our product name."] },
+            'Symantec': { name: 'Security Sandy', gender: 'female', lines: ["Norton Antivirus saved the world in 1998. We're still here! Somehow!", "Cyber threats are everywhere. Even this NPC could be compromised. Am I?", "We're Gen Digital now. Rebranded but still securing your downloads since dial-up."] },
+            'Juniper Networks': { name: 'Router Ralph', gender: 'male', lines: ["We make the routers that make the internet work. You're welcome for WiFi.", "Networking is sexy. No? Just me? Okay.", "Experience-first networking! The experience of your packets arriving on time!"] },
+            'Apple': { name: 'Genius Gina', gender: 'female', lines: ["Welcome to Apple Park. The spaceship is real. The reality distortion field is also real.", "One more thing... actually that's all I'm authorized to say.", "This campus cost $5 billion. But it has really nice trees."] },
+            'NVIDIA': { name: 'GPU Guru Gavin', gender: 'male', lines: ["Jensen says AI will change everything. Jensen is never wrong. NEVER.", "Our stock went up 10x. My leather jacket went up in confidence.", "CUDA cores are the new gold. We have ALL the CUDA cores."] },
+            'Intel': { name: 'Chip Charlie', gender: 'male', lines: ["Intel Inside! Also Intel outside. Intel everywhere. Trying to be, at least.", "Moore's Law isn't dead! It's just... resting. Aggressively resting.", "We're back, baby! Foundry services, AI chips, the whole package."] },
+            'ServiceNow': { name: 'Workflow Wendy', gender: 'female', lines: ["We make work flow better. Get it? Flow? Like a workflow? I'll see myself out.", "Digital transformation! Buzzword? Maybe. Revenue driver? Definitely.", "Your IT ticket has been escalated. To me. I have no idea what to do either."] },
+            'AMD': { name: 'Lisa Su Fan', gender: 'female', lines: ["Lisa Su turned this company around. We stan a semiconductor queen.", "EPYC processors are EPYC. Marketing named them. Marketing is proud.", "Team Red forever. Our GPUs are catching up. Probably. We're optimistic."] },
+            'Qualcomm': { name: 'Snapdragon Steve', gender: 'male', lines: ["5G is HERE! Can you feel the speed? No? Try holding your phone differently.", "Our chips are in billions of phones. BILLIONS. I counted.", "Snapdragon sounds like a fantasy creature. Our chips perform like one too."] },
+            'Applied Materials': { name: 'Fab Faye', gender: 'female', lines: ["We make the machines that make the chips. We're the OG of semiconductor.", "Thin film deposition is my passion. Don't judge.", "Without us, no smartphones, no AI, no modern world. No pressure."] },
+            'Marvell': { name: 'Data Infrastructure Dan', gender: 'male', lines: ["Not the comic book company! We do data infrastructure. Totally different Marvel.", "Our chips move data faster than you can say 'data infrastructure semiconductor.'", "5G, cloud, auto... we're in everything boring but essential."] },
+            'Arista Networks': { name: 'Cloud Network Nina', gender: 'female', lines: ["Cloud networking at scale. It's less exciting than it sounds. And it sounds pretty exciting to me.", "We beat Cisco in the cloud. Don't tell Cisco. Actually, do tell Cisco.", "Every hyperscaler runs on Arista. We're basically the internet's plumbing."] },
+            'Adobe': { name: 'Creative Cloud Craig', gender: 'male', lines: ["Photoshop is a verb now. You're welcome, English language.", "Your free trial has expired. Your free trial has expired. YOUR FREE TRIAL-", "We put AI in everything. Firefly makes art. Acrobat reads PDFs. The future is now."] },
+            'Oracle': { name: 'Database Deborah', gender: 'female', lines: ["Larry's yacht is bigger than this campus. The campus is very large.", "Our cloud is autonomous. It patches itself. I just watch... and worry.", "Java? We own that. Databases? We own that. Your data? We'd like to own that."] },
+            'Cisco': { name: 'Webex Walter', gender: 'male', lines: ["Cisco Systems! We connect everything to everything. Even things that shouldn't connect.", "WebEx was video calling before it was cool. Before Zoom was a twinkle in anyone's eye.", "The bridge to possible! That's our tagline. The bridge is a network bridge. Get it?"] },
+            'eBay': { name: 'Auction Andy', gender: 'male', lines: ["What a weird item! Someone will buy it. They always do.", "We were the original e-commerce! Before that other company. The one with the smile.", "Rare Beanie Baby, mint condition, $47,000. Serious inquiries only."] },
+            'PayPal': { name: 'Payment Paula', gender: 'female', lines: ["Send money with just an email! Revolutionary in 2002, still pretty handy now.", "The PayPal Mafia built half of Silicon Valley. You're welcome.", "Venmo? That's ours too. The future of splitting dinner tabs."] },
+            'Zoom': { name: 'Muted Mike', gender: 'male', lines: ["You're on mute. YOU'RE ON MUTE. Everyone's always on mute.", "This meeting could have been an email. But here we are. On Zoom.", "Virtual backgrounds: hiding messy rooms since 2020."] },
+            'Western Digital': { name: 'Storage Stella', gender: 'female', lines: ["We store the world's data. All of it. Every cat video. Every meme. Everything.", "Hard drives spinning at 7200 RPM since forever. SSDs now too. We evolve.", "Your data is safe with us. Backed up, replicated, and stored in a very secure place."] },
+            'Netflix': { name: 'Binge Barry', gender: 'male', lines: ["Still watching? YES I'M STILL WATCHING. Don't judge me.", "We disrupted Blockbuster and never looked back. RIP late fees.", "Our recommendation algorithm knows you better than you know yourself. Scary? Maybe."] },
+            'Lam Research': { name: 'Etch Expert Elise', gender: 'female', lines: ["We etch chips at the atomic level. ATOMIC. It's very precise.", "Semiconductor manufacturing is an art form. A very expensive art form.", "Without us, your phone is just a fancy paperweight. Think about that."] },
+            'Tesla Factory': { name: 'Assembly Line Alex', gender: 'male', lines: ["This factory makes thousands of cars a week. The robots don't take lunch breaks.", "Model 3, Model Y, Cybertruck... we build them all right here in Fremont!", "The Gigafactory never sleeps. Neither do I, honestly."] },
+            'KLA': { name: 'Inspector Irene', gender: 'female', lines: ["We inspect chips for defects invisible to the human eye. CSI: Semiconductor Edition.", "Process control is everything. One bad wafer ruins the whole batch.", "Our machines cost millions. But they save billions. Math checks out."] },
+            'Workday': { name: 'HR Hank', gender: 'male', lines: ["Your PTO request has been... processing. For three weeks now.", "Enterprise HR software! Making bureaucracy digital since 2005!", "Our HQ is in Pleasanton. Yes, it's pleasant. The name doesn't lie."] },
+        };
+
+        function spawnCampusNpcs() {
+            campusNpcs = [];
+            companyCampuses.forEach(campus => {
+                const dialogue = campusNpcDialogues[campus.name];
+                if (dialogue) {
+                    campusNpcs.push({
+                        x: campus.x + campus.width / 2 - 20,
+                        y: campus.y + campus.height + 15,
+                        width: 40,
+                        height: 50,
+                        company: campus.name,
+                        companyColor: campus.color,
+                        name: dialogue.name,
+                        gender: dialogue.gender,
+                        lines: dialogue.lines,
+                        lineIndex: 0,
+                        interacted: false
+                    });
+                }
+            });
+        }
+
+        function drawCampusNpcs() {
+            campusNpcs.forEach(npc => {
+                const sx = npc.x - camera.x;
+                const sy = npc.y - camera.y;
+                if (sx + npc.width < 0 || sx > camera.width || sy + npc.height < 0 || sy > camera.height) return;
+
+                const isFemale = npc.gender === 'female';
+
+                // Draw based on gender (simplified version)
+                if (isFemale) {
+                    // Legs
+                    ctx.fillStyle = '#ffe4c4';
+                    ctx.fillRect(sx + 14, sy + 42, 5, 10);
+                    ctx.fillRect(sx + 21, sy + 42, 5, 10);
+                    // Shoes
+                    ctx.fillStyle = '#555';
+                    ctx.fillRect(sx + 12, sy + 50, 8, 4);
+                    ctx.fillRect(sx + 20, sy + 50, 8, 4);
+                    // Dress
+                    ctx.fillStyle = npc.companyColor;
+                    ctx.beginPath();
+                    ctx.moveTo(sx + 10, sy + 20);
+                    ctx.lineTo(sx + 6, sy + 44);
+                    ctx.lineTo(sx + 34, sy + 44);
+                    ctx.lineTo(sx + 30, sy + 20);
+                    ctx.closePath();
+                    ctx.fill();
+                    // Arms
+                    ctx.fillStyle = '#ffe4c4';
+                    ctx.fillRect(sx + 4, sy + 22, 5, 14);
+                    ctx.fillRect(sx + 31, sy + 22, 5, 14);
+                    // Head
+                    ctx.fillStyle = '#ffe4c4';
+                    ctx.beginPath();
+                    ctx.arc(sx + 20, sy + 10, 9, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Hair
+                    const hc = ['#3a2a1a','#1a1a1a','#5a3a2a','#8a6a3a'][npc.name.length % 4];
+                    ctx.fillStyle = hc;
+                    ctx.beginPath();
+                    ctx.arc(sx + 20, sy + 6, 9, Math.PI, 0);
+                    ctx.fill();
+                    ctx.fillRect(sx + 11, sy + 3, 3, 16);
+                    ctx.fillRect(sx + 26, sy + 3, 3, 16);
+                    // Eyes
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(sx + 16, sy + 9, 2.5, 0, Math.PI * 2);
+                    ctx.arc(sx + 24, sy + 9, 2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#2a4a6a';
+                    ctx.beginPath();
+                    ctx.arc(sx + 16, sy + 9, 1.2, 0, Math.PI * 2);
+                    ctx.arc(sx + 24, sy + 9, 1.2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // Legs
+                    ctx.fillStyle = '#2a2a5a';
+                    ctx.fillRect(sx + 12, sy + 40, 6, 12);
+                    ctx.fillRect(sx + 22, sy + 40, 6, 12);
+                    // Shoes
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(sx + 10, sy + 50, 9, 4);
+                    ctx.fillRect(sx + 21, sy + 50, 9, 4);
+                    // Torso
+                    ctx.fillStyle = npc.companyColor;
+                    ctx.fillRect(sx + 8, sy + 18, 24, 24);
+                    // Arms
+                    ctx.fillStyle = npc.companyColor;
+                    ctx.fillRect(sx + 2, sy + 20, 6, 14);
+                    ctx.fillRect(sx + 32, sy + 20, 6, 14);
+                    // Hands
+                    ctx.fillStyle = '#ffe4c4';
+                    ctx.beginPath();
+                    ctx.arc(sx + 5, sy + 36, 3, 0, Math.PI * 2);
+                    ctx.arc(sx + 35, sy + 36, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Head
+                    ctx.fillStyle = '#ffe4c4';
+                    ctx.beginPath();
+                    ctx.arc(sx + 20, sy + 9, 9, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Hair
+                    const hc2 = ['#3a2a1a','#1a1a1a','#5a3a2a','#2a1a0a'][npc.name.length % 4];
+                    ctx.fillStyle = hc2;
+                    ctx.beginPath();
+                    ctx.arc(sx + 20, sy + 5, 8, Math.PI, 0);
+                    ctx.fill();
+                    // Eyes
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(sx + 16, sy + 8, 2.5, 0, Math.PI * 2);
+                    ctx.arc(sx + 24, sy + 8, 2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#3a2a1a';
+                    ctx.beginPath();
+                    ctx.arc(sx + 16, sy + 8, 1.2, 0, Math.PI * 2);
+                    ctx.arc(sx + 24, sy + 8, 1.2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Company badge on chest
+                ctx.fillStyle = isFemale ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.7)';
+                ctx.fillRect(sx + 15, sy + 24, 10, 6);
+                ctx.fillStyle = npc.companyColor;
+                ctx.fillRect(sx + 16, sy + 25, 8, 4);
+
+                // Name label
+                ctx.fillStyle = '#fff';
+                ctx.font = '7px Courier New';
+                ctx.textAlign = 'center';
+                ctx.fillText(npc.name, sx + 20, sy + 62);
+                ctx.textAlign = 'left';
+
+                // Chat bubble indicator when player is near
+                const dist = distance(player.x + player.width/2, player.y + player.height/2,
+                                     npc.x + npc.width/2, npc.y + npc.height/2);
+                if (dist < 80) {
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.ellipse(sx + 20, sy - 10, 12, 8, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#333';
+                    ctx.font = '10px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('E', sx + 20, sy - 7);
+                    ctx.textAlign = 'left';
+                }
+            });
+        }
+
+        function interactWithCampusNpc() {
+            for (const npc of campusNpcs) {
+                const dist = distance(player.x + player.width/2, player.y + player.height/2,
+                                     npc.x + npc.width/2, npc.y + npc.height/2);
+                if (dist < 80) {
+                    const line = npc.lines[npc.lineIndex % npc.lines.length];
+                    npc.lineIndex++;
+                    showSpecialDialog(npc.name + ' (' + npc.company + ')', line);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         // Rabbits (50% more = 7-8 at a time)
         let rabbits = [];
         const RABBIT_SPAWN_INTERVAL = 5000;
@@ -4643,8 +4988,8 @@
                     caveBark();
                 } else if (inDuel) {
                     performDuelAction('bark');
-                } else if (gameStarted && !gamePaused && player.barkCooldown <= 0) {
-                    bark();
+                } else if (gameStarted && !gamePaused && !player.isJumping) {
+                    playerJump();
                 }
             }
 
@@ -4673,9 +5018,11 @@
                 }
             }
 
-            // F key for sniffing objects
+            // F key for barking
             if (e.key.toLowerCase() === 'f' && gameStarted && !gamePaused && !inDuel && !inCave && !playerSitting.active) {
-                trySniff();
+                if (player.barkCooldown <= 0) {
+                    bark();
+                }
             }
 
             // K key for kicking leaves
@@ -4784,6 +5131,40 @@
             }
         }
 
+        // Jump system
+        function playerJump() {
+            if (player.isJumping) return;
+            player.isJumping = true;
+            player.jumpVelocity = -280;
+            player.jumpHeight = 0;
+            // Jump sound
+            if (audioCtx && sfxVolume > 0) {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(250, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(400, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1 * sfxVolume, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + 0.15);
+            }
+        }
+
+        function updateJump(dt) {
+            if (!player.isJumping) return;
+            player.jumpVelocity += 700 * dt; // gravity
+            player.jumpHeight += player.jumpVelocity * dt;
+            if (player.jumpHeight >= 0) {
+                player.jumpHeight = 0;
+                player.jumpVelocity = 0;
+                player.isJumping = false;
+            }
+        }
+
         // NPC interaction
         let activeDialog = null;
 
@@ -4799,7 +5180,10 @@
                 return;
             }
 
-            // Check special NPCs first
+            // Check campus NPCs first
+            if (interactWithCampusNpc()) return;
+
+            // Check special NPCs
             for (const npc of specialNpcs) {
                 const dist = distance(player.x + player.width/2, player.y + player.height/2,
                                      npc.x + npc.width/2, npc.y + npc.height/2);
@@ -5274,6 +5658,7 @@
             updateSpecialNpcs(dt);
 
             if (player.barkCooldown > 0) player.barkCooldown -= dt;
+            updateJump(dt);
 
             // Update music mood based on wizard proximity
             let wizardNearby = wizards.some(wiz =>
@@ -5334,6 +5719,8 @@
             if (player.isSprinting) speedMult *= SPRINT_MULTIPLIER;
             speedMult *= getMetaSpeedMultiplier(); // Apply Meta'd debuff if active
             speedMult *= getEspressoSpeedMultiplier(); // Apply espresso boost if active
+            // Terrain slope affects speed - steeper hills slow you down
+            speedMult *= getSlopeSpeedMultiplier(player.x, player.y, dx, dy);
             const currentSpeed = player.speed * speedMult * dt;
 
             let newX = player.x + dx * currentSpeed;
@@ -5724,6 +6111,7 @@
             drawGoldSparkles();
             drawNPCs();
             drawSpecialNpcs();
+            drawCampusNpcs();
             drawRabbits();
             drawMoles();
             drawWizards();
@@ -5745,13 +6133,56 @@
         }
 
         function drawBackground() {
-            ctx.fillStyle = '#3d7a33';
-            ctx.fillRect(0, 0, camera.width, camera.height);
+            // Draw terrain with elevation-based shading
+            const tileSize = 40;
+            const startTileX = Math.floor(camera.x / tileSize);
+            const startTileY = Math.floor(camera.y / tileSize);
+            const tilesX = Math.ceil(camera.width / tileSize) + 1;
+            const tilesY = Math.ceil(camera.height / tileSize) + 1;
 
-            ctx.fillStyle = '#4a8a3d';
-            for (let x = -camera.x % 80; x < camera.width; x += 80) {
-                for (let y = -camera.y % 80; y < camera.height; y += 80) {
-                    ctx.fillRect(x, y, 2, 2);
+            for (let ty = 0; ty < tilesY; ty++) {
+                for (let tx = 0; tx < tilesX; tx++) {
+                    const worldTileX = (startTileX + tx) * tileSize;
+                    const worldTileY = (startTileY + ty) * tileSize;
+                    const screenX = worldTileX - camera.x;
+                    const screenY = worldTileY - camera.y;
+
+                    const elev = getElevation(worldTileX, worldTileY);
+
+                    // Base green color modified by elevation
+                    let r, g, b;
+                    if (elev < 0) {
+                        // Below sea level - marshy
+                        r = 50; g = 100 + Math.min(20, -elev); b = 60;
+                    } else if (elev < 30) {
+                        // Valley floor - lush green
+                        r = 55 + elev * 0.3; g = 120 + elev * 0.5; b = 45;
+                    } else if (elev < 80) {
+                        // Foothills - darker green
+                        const t = (elev - 30) / 50;
+                        r = 60 + t * 20; g = 130 - t * 20; b = 45 + t * 10;
+                    } else if (elev < 150) {
+                        // Hills - brown-green
+                        const t = (elev - 80) / 70;
+                        r = 80 + t * 40; g = 110 - t * 30; b = 55 + t * 15;
+                    } else {
+                        // Mountain peaks - rocky gray-brown
+                        const t = Math.min(1, (elev - 150) / 100);
+                        r = 120 + t * 30; g = 100 - t * 10; b = 80 + t * 10;
+                    }
+
+                    ctx.fillStyle = `rgb(${Math.floor(r)},${Math.floor(g)},${Math.floor(b)})`;
+                    ctx.fillRect(screenX, screenY, tileSize + 1, tileSize + 1);
+
+                    // Draw contour lines at elevation intervals
+                    if (elev > 10) {
+                        const contourInterval = 50;
+                        const contourMod = elev % contourInterval;
+                        if (contourMod < 5 || contourMod > contourInterval - 5) {
+                            ctx.fillStyle = 'rgba(0,0,0,0.08)';
+                            ctx.fillRect(screenX, screenY, tileSize + 1, tileSize + 1);
+                        }
+                    }
                 }
             }
         }
@@ -6807,7 +7238,16 @@
 
         function drawPlayer() {
             const sx = player.x - camera.x;
-            const sy = player.y - camera.y;
+            const sy = player.y - camera.y + player.jumpHeight;
+
+            // Draw jump shadow when airborne
+            if (player.isJumping) {
+                const shadowScale = 1 + player.jumpHeight / 100;
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.beginPath();
+                ctx.ellipse(player.x - camera.x + player.width/2, player.y - camera.y + player.height, 15 * shadowScale, 5 * shadowScale, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
 
             // Draw speed lines when kibble boost is active
             if (player.kibbleBoostActive) {
@@ -7034,6 +7474,9 @@
 
             // Initialize special NPCs
             initSpecialNpcs();
+
+            // Initialize campus NPCs at company HQs
+            spawnCampusNpcs();
 
             // Initialize leaderboard display and hide timer until game starts
             displayLeaderboard();
