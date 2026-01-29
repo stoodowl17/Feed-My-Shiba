@@ -6289,9 +6289,9 @@
                 drawWizards();
                 drawBear();
                 drawZuck();
+                drawClouds();
                 drawEnvironment();
                 drawPlayer();
-                drawClouds();
 
                 if (player.radarActive) drawRadar();
 
@@ -8196,6 +8196,10 @@
             clouds.forEach(cloud => {
                 const sx = cloud.x - camera.x;
                 const sy = cloud.y - camera.y;
+
+                // Skip off-screen clouds
+                if (sx + cloud.width < 0 || sx > camera.width ||
+                    sy + cloud.height < 0 || sy > camera.height) return;
 
                 ctx.globalAlpha = cloud.opacity;
                 ctx.beginPath();
