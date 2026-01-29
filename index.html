@@ -4854,7 +4854,7 @@
                     y: Math.random() * WORLD_HEIGHT,
                     width: 200 + Math.random() * 300,
                     height: 100 + Math.random() * 150,
-                    opacity: 0.3 + Math.random() * 0.4
+                    opacity: 0.15 + Math.random() * 0.2
                 });
             }
         }
@@ -6235,21 +6235,21 @@
             const playerScreenX = player.x - camera.x + player.width / 2;
             const playerScreenY = player.y - camera.y + player.height / 2 + player.jumpHeight;
 
-            // Visibility radius
-            const baseRadius = 280;
+            // Visibility radius - generous so entities remain visible across viewport
+            const baseRadius = 380;
             const pulseRadius = baseRadius + Math.sin(Date.now() / 1500) * 8;
 
-            // Large radial gradient: transparent center, dark edges
+            // Large radial gradient: transparent center, gentle dark edges
             const fogRadius = Math.max(camera.width, camera.height);
             const fog = ctx.createRadialGradient(
-                playerScreenX, playerScreenY, pulseRadius * 0.6,
+                playerScreenX, playerScreenY, pulseRadius * 0.7,
                 playerScreenX, playerScreenY, fogRadius
             );
             fog.addColorStop(0, 'rgba(8, 10, 15, 0)');
-            fog.addColorStop(0.25, 'rgba(8, 10, 15, 0.15)');
-            fog.addColorStop(0.5, 'rgba(8, 10, 15, 0.55)');
-            fog.addColorStop(0.7, 'rgba(8, 10, 15, 0.82)');
-            fog.addColorStop(1, 'rgba(8, 10, 15, 0.95)');
+            fog.addColorStop(0.4, 'rgba(8, 10, 15, 0)');
+            fog.addColorStop(0.65, 'rgba(8, 10, 15, 0.15)');
+            fog.addColorStop(0.85, 'rgba(8, 10, 15, 0.35)');
+            fog.addColorStop(1, 'rgba(8, 10, 15, 0.55)');
             ctx.fillStyle = fog;
             ctx.fillRect(-20, -20, camera.width + 40, camera.height + 40);
         }
@@ -6273,6 +6273,7 @@
                 drawMetaCampus();
                 drawWater();
                 drawMountain();
+                drawClouds();
                 drawTrees();
                 drawBuildings();
                 drawCampuses();
@@ -6289,7 +6290,6 @@
                 drawWizards();
                 drawBear();
                 drawZuck();
-                drawClouds();
                 drawEnvironment();
                 drawPlayer();
 
@@ -6860,6 +6860,9 @@
                 ctx.arc(px, py + 23, 3, 0, Math.PI * 2);
                 ctx.fill();
             }
+            // Reset line styles changed during mountain drawing
+            ctx.lineCap = 'butt';
+            ctx.lineJoin = 'miter';
         }
 
         function drawTrees() {
