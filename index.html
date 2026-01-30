@@ -6303,31 +6303,41 @@
 
                 ctx.clearRect(-20, -20, camera.width + 40, camera.height + 40);
 
-                drawBackground();
-                drawZones();
-                drawRoads();
-                drawBearTerritory();
-                drawMetaCampus();
-                drawWater();
-                drawMountain();
-                drawClouds();
-                drawTrees();
-                drawBuildings();
-                drawCampuses();
-                drawCaveEntrance();
-                drawSteaks();
-                drawKibble();
-                drawGoldBar();
-                drawGoldSparkles();
-                drawNPCs();
-                drawSpecialNpcs();
-                drawCampusNpcs();
-                drawRabbits();
-                drawMoles();
-                drawWizards();
-                drawBear();
-                drawZuck();
-                drawEnvironment();
+                // Draw world layers - wrapped so errors don't skip player
+                try {
+                    drawBackground();
+                    drawZones();
+                    drawRoads();
+                    drawBearTerritory();
+                    drawMetaCampus();
+                    drawWater();
+                    drawMountain();
+                    drawClouds();
+                    drawTrees();
+                    drawBuildings();
+                    drawCampuses();
+                    drawCaveEntrance();
+                    drawSteaks();
+                    drawKibble();
+                    drawGoldBar();
+                    drawGoldSparkles();
+                    drawNPCs();
+                    drawSpecialNpcs();
+                    drawCampusNpcs();
+                    drawRabbits();
+                    drawMoles();
+                    drawWizards();
+                    drawBear();
+                    drawZuck();
+                    drawEnvironment();
+                } catch (e) {
+                    console.error('World render error:', e);
+                }
+
+                // Reset canvas state before drawing player to prevent
+                // any leaked globalAlpha/state from hiding Croissant
+                ctx.globalAlpha = 1;
+
                 drawPlayer();
 
                 if (player.radarActive) drawRadar();
@@ -6670,6 +6680,7 @@
         }
 
         function drawMountain() {
+            ctx.save();
             const sx = mountain.x - camera.x;
             const sy = mountain.y - camera.y;
             const mcx = sx + mountain.width / 2;
@@ -6736,7 +6747,10 @@
                 }
             }
 
-            if (sx + mountain.width < 0 || sx > camera.width || sy + mountain.height < 0 || sy > camera.height) return;
+            if (sx + mountain.width < 0 || sx > camera.width || sy + mountain.height < 0 || sy > camera.height) {
+                ctx.restore();
+                return;
+            }
 
             // === TOP-DOWN SATELLITE MOUNTAIN ===
 
@@ -6897,9 +6911,7 @@
                 ctx.arc(px, py + 23, 3, 0, Math.PI * 2);
                 ctx.fill();
             }
-            // Reset line styles changed during mountain drawing
-            ctx.lineCap = 'butt';
-            ctx.lineJoin = 'miter';
+            ctx.restore();
         }
 
         function drawTrees() {
