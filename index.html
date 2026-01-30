@@ -956,6 +956,7 @@
         // Game state
         let gameStarted = false;
         let gamePaused = false;
+        let gameOver = false;
         let lastTime = 0;
         let inCave = false;
         let inDuel = false;
@@ -1177,6 +1178,16 @@
                 timerInterval = null;
             }
         }
+
+        // Pause timer when tab is hidden to avoid counting inactive time
+        document.addEventListener('visibilitychange', () => {
+            if (!gameStarted || gamePaused || gameOver) return;
+            if (document.hidden) {
+                pauseTimer();
+            } else {
+                resumeTimer();
+            }
+        });
 
         function loadLeaderboard() {
             try {
@@ -4984,6 +4995,25 @@
                 x < t.x + t.width && x + w > t.x && y < t.y + t.height && y + h > t.y);
         }
 
+        // Find a safe teleport position near (targetX, targetY) that doesn't collide with buildings or trees
+        function findSafeTeleport(targetX, targetY, w, h) {
+            if (!isCollidingWithBuilding(targetX, targetY, w, h) &&
+                !isCollidingWithBlockingTree(targetX, targetY, w, h)) {
+                return { x: targetX, y: targetY };
+            }
+            for (let r = 50; r < 500; r += 40) {
+                for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
+                    const tx = targetX + Math.cos(a) * r;
+                    const ty = targetY + Math.sin(a) * r;
+                    if (!isCollidingWithBuilding(tx, ty, w, h) &&
+                        !isCollidingWithBlockingTree(tx, ty, w, h)) {
+                        return { x: tx, y: ty };
+                    }
+                }
+            }
+            return { x: targetX, y: targetY };
+        }
+
         function distance(x1, y1, x2, y2) {
             return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
         }
@@ -5460,13 +5490,15 @@
                     duelState.currentWizard.y = Math.random() * WORLD_HEIGHT;
                     duelState.currentWizard.retreatTimer = 20;
                     duelState.currentWizard.health = duelState.currentWizard.maxHealth;
+                    duelState.currentWizard.hitsTaken = 0;
                 }
                 player.health = Math.min(player.maxHealth, duelState.playerHealth + 10);
             } else {
                 showNotification(' The wizard defeated you!', 3000);
                 player.health = 30;
-                player.x = 5500;
-                player.y = 14500;
+                const safe = findSafeTeleport(5500, 14500, player.width, player.height);
+                player.x = safe.x;
+                player.y = safe.y;
             }
         }
 
@@ -5493,8 +5525,9 @@
                 cave.difficulty++;
                 randomizeCaveEntrance();
                 showNotification('The cave collapsed! The entrance has moved...', 4000);
-                player.x = 5500;
-                player.y = 14500;
+                const safe = findSafeTeleport(5500, 14500, player.width, player.height);
+                player.x = safe.x;
+                player.y = safe.y;
             }
         }
 
@@ -5747,7 +5780,7 @@
 
         // Main game update
         function update(dt) {
-            if (!gameStarted || gamePaused) return;
+            if (!gameStarted || gamePaused || gameOver) return;
             if (inCave) { updateCave(dt); return; }
             if (inWaterCrossing) { updateWaterCrossing(dt); return; }
             if (inDuel) return;
@@ -6199,8 +6232,9 @@
             if (player.energy <= 0) {
                 showNotification(' Croissant collapsed!', 3000);
                 player.energy = 30;
-                player.x = 5500;
-                player.y = 14500;
+                const safe = findSafeTeleport(5500, 14500, player.width, player.height);
+                player.x = safe.x;
+                player.y = safe.y;
                 player.health -= 15;
             }
 
@@ -6208,8 +6242,11 @@
             player.health = Math.max(0, Math.min(100, player.health));
             player.energy = Math.max(0, Math.min(100, player.energy));
 
-            if (player.health <= 0) {
+            if (player.health <= 0 && !gameOver) {
+                gameOver = true;
                 showNotification('Game Over!', 5000);
+                stopTimer();
+                stopMusic();
                 setTimeout(() => location.reload(), 3000);
             }
 
@@ -7340,9 +7377,9 @@
                     {x: -6, y: 2}, {x: 0, y: 0}, {x: 6, y: 2},
                     {x: -3, y: 4}, {x: 3, y: 4}, {x: -8, y: 5}, {x: 8, y: 5}
                 ];
-                kibblePositions.forEach(pos => {
+                kibblePositions.forEach((pos, i) => {
                     ctx.beginPath();
-                    ctx.ellipse(pos.x, pos.y, 3, 2, Math.random() * 0.5, 0, Math.PI * 2);
+                    ctx.ellipse(pos.x, pos.y, 3, 2, (i * 0.37) % 0.5, 0, Math.PI * 2);
                     ctx.fill();
                 });
 
@@ -8180,9 +8217,12 @@
 
             if (player.isSprinting) {
                 ctx.fillStyle = '#ffff0050';
+                const t = performance.now() * 0.01;
                 for (let i = 0; i < 3; i++) {
+                    const px = sx + ((Math.sin(t + i * 2.1) * 0.5 + 0.5) * player.width);
+                    const py = sy + player.height + ((Math.cos(t + i * 3.7) * 0.5 + 0.5) * 8);
                     ctx.beginPath();
-                    ctx.arc(sx + Math.random() * player.width, sy + player.height + Math.random() * 8, 2, 0, Math.PI * 2);
+                    ctx.arc(px, py, 2, 0, Math.PI * 2);
                     ctx.fill();
                 }
             }
